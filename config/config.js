@@ -1,5 +1,9 @@
-const fs = require('fs');
+const fs = require('fs')
 
+// If this is called standby, then load env variable with dotenv
+if (process.env.NODE_ENV !== 'development') {
+  require('dotenv').config()
+}
 
 module.exports = {
   development: {
@@ -17,8 +21,8 @@ module.exports = {
     username: process.env.CI_DB_USERNAME,
     password: process.env.CI_DB_PASSWORD,
     database: process.env.CI_DB_NAME,
-    host: '127.0.0.1',
-    port: 3306,
+    host: process.env.CI_DB_HOSTNAME,
+    port: process.env.CI_DB_PORT,
     dialect: 'mysql',
     dialectOptions: {
       bigNumberStrings: true
@@ -32,10 +36,10 @@ module.exports = {
     port: process.env.PROD_DB_PORT,
     dialect: 'mysql',
     dialectOptions: {
-      bigNumberStrings: true,
+      bigNumberStrings: true
       // ssl: {
       //   ca: fs.readFileSync(__dirname + '/mysql-ca-main.crt')
       // }
     }
   }
-};
+}
