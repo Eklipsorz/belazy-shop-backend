@@ -22,9 +22,10 @@ module.exports = {
         type: Sequelize.STRING
       },
       avatar: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        defaultValue: 'https://i.imgur.com/6xxypgv.png'
       },
-      aliasname: {
+      nickname: {
         type: Sequelize.STRING(30)
       },
       created_at: {

@@ -2,7 +2,7 @@
 const {
   // User
   DEFAULT_PASSWORD,
-  BCRYPT_COMPLEXITY,
+  DEFAULT_BCRYPT_COMPLEXITY,
   DEFAULT_USER_NUMBER
 } = require('../../config/seeder')
 
@@ -25,14 +25,30 @@ module.exports = {
     // add an admin account
     seederArray.push({
       account: 'admin',
-      password: DEFAULT_PASSWORD,
+      password: bcrypt.hashSync(DEFAULT_PASSWORD, DEFAULT_BCRYPT_COMPLEXITY),
       role: 'admin',
       email: 'admin@example.com',
       avatar: faker.image.avatar(),
-      aliasname: 'admin',
+      nickname: 'admin',
       created_at: new Date(),
       updated_at: new Date()
     })
+
+    let userArray = []
+
+    userArray = Array.from({ length: DEFAULT_USER_NUMBER }, (_, index) => ({
+      account: `user${index + 1}`,
+      password: bcrypt.hashSync(DEFAULT_PASSWORD, DEFAULT_BCRYPT_COMPLEXITY),
+      role: 'user',
+      email: `user${index + 1}@example.com`,
+      avatar: faker.image.avatar(),
+      nickname: `user${index + 1}`,
+      created_at: new Date(),
+      updated_at: new Date()
+    }))
+
+    seederArray.push(...userArray)
+
     await queryInterface.bulkInsert('users', seederArray)
   },
 
