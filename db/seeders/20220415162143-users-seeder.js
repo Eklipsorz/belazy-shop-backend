@@ -3,6 +3,8 @@ const {
   // User
   DEFAULT_PASSWORD,
   DEFAULT_BCRYPT_COMPLEXITY,
+  DEFAULT_EMAIL_PREFIX,
+  DEFAULT_EMAIL_SUFFIX,
   DEFAULT_USER_NUMBER
 } = require('../../config/seeder')
 
@@ -21,13 +23,13 @@ module.exports = {
      * }], {});
     */
     const seederArray = []
-
+    console.log(DEFAULT_EMAIL_PREFIX, DEFAULT_EMAIL_SUFFIX)
     // add an admin account
     seederArray.push({
       account: 'admin',
       password: bcrypt.hashSync(DEFAULT_PASSWORD, DEFAULT_BCRYPT_COMPLEXITY),
       role: 'admin',
-      email: 'admin@example.com',
+      email: `${DEFAULT_EMAIL_PREFIX}+0@${DEFAULT_EMAIL_SUFFIX}`,
       avatar: faker.image.avatar(),
       nickname: 'admin',
       created_at: new Date(),
@@ -40,7 +42,7 @@ module.exports = {
       account: `user${index + 1}`,
       password: bcrypt.hashSync(DEFAULT_PASSWORD, DEFAULT_BCRYPT_COMPLEXITY),
       role: 'user',
-      email: `user${index + 1}@example.com`,
+      email: `${DEFAULT_EMAIL_PREFIX}+${index + 1}@${DEFAULT_EMAIL_SUFFIX}`,
       avatar: faker.image.avatar(),
       nickname: `user${index + 1}`,
       created_at: new Date(),
