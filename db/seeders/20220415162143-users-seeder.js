@@ -23,7 +23,7 @@ module.exports = {
      * }], {});
     */
     const seederArray = []
-    console.log(DEFAULT_EMAIL_PREFIX, DEFAULT_EMAIL_SUFFIX)
+
     // add an admin account
     seederArray.push({
       account: 'admin',

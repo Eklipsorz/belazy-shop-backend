@@ -4,7 +4,7 @@ if (process.env.NODE_ENV !== 'development') {
 }
 
 /* User Seeder  */
-// 設定每位使用者的籲馬密碼(含root)
+// 設定每位使用者的預設密碼(含root)
 const DEFAULT_PASSWORD = '12345678'
 
 // 設定Bcrypt 雜湊複雜度
