@@ -1,8 +1,7 @@
 // If this is called standby, then load env variable with dotenv
-if (process.env.NODE_ENV !== 'development') {
+if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
-
 /* User Seeder  */
 // 設定每位使用者的預設密碼(含root)
 const DEFAULT_PASSWORD = '12345678'
