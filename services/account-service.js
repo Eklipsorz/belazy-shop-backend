@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs')
 const { APIError } = require('../helpers/api-error-helper')
 const { generateAccessToken } = require('../helpers/jwt-helper')
+const { postUsersFormDataValidator } = require('../helpers/formdata-check-helper')
 const { User } = require('../db/models')
 const {
   status,
@@ -32,6 +33,15 @@ const accountServices = {
       const resultUser = user
       const accessToken = generateAccessToken(resultUser)
       return cb(null, { accessToken, ...resultUser }, '登入成功')
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
+    }
+  },
+  register: async (req, cb) => {
+    try {
+      let message = null
+      message = await postUsersFormDataValidator(req)
+      console.log(message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }

@@ -11,7 +11,7 @@ const userController = {
     )
   },
   register: (req, res, next) => {
-    accountServices.register(req, 'users', (error, data, message) =>
+    accountServices.register(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   }
