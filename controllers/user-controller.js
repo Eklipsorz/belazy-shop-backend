@@ -1,11 +1,13 @@
-const bcrypt = require('bcryptjs')
 const { userServices } = require('../services/user-service')
-const BCRYPT_COMPLEXITY = 10
+const {
+  SUCCESS_CODE,
+  SUCCESS_STATUS
+} = require('../config/controller').userController
 
 const userController = {
   login: (req, res, next) => {
     userServices.login(req, (error, message, data) =>
-      error ? next(error) : res.status(200).json({ status: 'success', message, data })
+      error ? next(error) : res.status(SUCCESS_CODE).json({ status: SUCCESS_STATUS, message, data })
     )
   }
 }

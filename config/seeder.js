@@ -3,25 +3,20 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 /* User Seeder  */
-// 設定每位使用者的預設密碼(含root)
-const DEFAULT_PASSWORD = '12345678'
 
-// 設定Bcrypt 雜湊複雜度
-const DEFAULT_BCRYPT_COMPLEXITY = 10
+const usersSeeder = {
+  // 設定每位使用者的預設密碼(含root)
+  DEFAULT_PASSWORD: '12345678',
+  // 設定Bcrypt 雜湊複雜度
+  DEFAULT_BCRYPT_COMPLEXITY: 10,
+  // 設定使用者預設數量
+  DEFAULT_USER_NUMBER: 20,
+  DEFAULT_EMAIL_PREFIX: process.env.SEEDER_EMAIL_PREFIX || 'user',
+  DEFAULT_EMAIL_SUFFIX: process.env.SEEDER_EMAIL_SUFFIX || 'example.com'
 
-// 設定使用者預設數量
-const DEFAULT_USER_NUMBER = 20
-
-const DEFAULT_EMAIL_PREFIX = process.env.SEEDER_EMAIL_PREFIX || 'user'
-
-const DEFAULT_EMAIL_SUFFIX = process.env.SEEDER_EMAIL_SUFFIX || 'example.com'
+}
 
 exports = module.exports = {
-  // User
-  DEFAULT_PASSWORD,
-  DEFAULT_USER_NUMBER,
-  DEFAULT_EMAIL_PREFIX,
-  DEFAULT_EMAIL_SUFFIX,
-  // Password
-  DEFAULT_BCRYPT_COMPLEXITY
+  // user seeder config
+  usersSeeder
 }

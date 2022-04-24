@@ -1,10 +1,12 @@
 
-function APIErrorHandler(error, _, res, next) {
-  const DEFAULT_STATUS = 'error'
-  const DEFAULT_CODE = 500
-  const DEFAULT_MESSAGE = '系統出錯'
-  const DEFAULT_DATA = null
+const {
+  DEFAULT_CODE,
+  DEFAULT_MESSAGE,
+  DEFAULT_STATUS,
+  DEFAULT_DATA
+} = require('../config/middleware').APIErrorHandler
 
+function APIErrorHandler(error, _, res, next) {
   const code = error.code || DEFAULT_CODE
   const message = error.message || DEFAULT_MESSAGE
   const status = error.status || DEFAULT_STATUS

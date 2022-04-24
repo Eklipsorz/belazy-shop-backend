@@ -6,7 +6,7 @@ const {
   DEFAULT_EMAIL_PREFIX,
   DEFAULT_EMAIL_SUFFIX,
   DEFAULT_USER_NUMBER
-} = require('../../config/seeder')
+} = require('../../config/seeder').usersSeeder
 
 const { faker } = require('@faker-js/faker')
 const bcrypt = require('bcryptjs')
@@ -37,7 +37,7 @@ module.exports = {
     })
 
     let userArray = []
-
+    // add n users account (n => DEFAULT_USER_NUMBER)
     userArray = Array.from({ length: DEFAULT_USER_NUMBER }, (_, index) => ({
       account: `user${index + 1}`,
       password: bcrypt.hashSync(DEFAULT_PASSWORD, DEFAULT_BCRYPT_COMPLEXITY),
