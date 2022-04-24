@@ -12,38 +12,42 @@ async function postUsersFormDataValidator(req) {
 
   // 未填寫完所有欄位
   if (!account || !nickname || !email || !password || !confirmPassword) {
-    messageQueue.push({ message: '未填寫完所有欄位' })
+    messageQueue.push('未填寫完所有欄位')
   }
   // 使用者暱稱名稱超過30字
   if (nickname && !validator.isLength(nickname, { min: 0, max: 30 })) {
-    messageQueue.push({ message: '使用者暱稱名稱超過30字' })
+    messageQueue.push('使用者暱稱名稱超過30字')
   }
 
   // 帳號名稱超過10字
   if (account && !validator.isLength(account, { min: 0, max: 10 })) {
-    messageQueue.push({ message: '帳號名稱超過10字' })
+    messageQueue.push('帳號名稱超過10字')
   }
 
   // 電子郵件不是正確格式
   if (email && !validator.isEmail(email)) {
-    messageQueue.push({ message: '電子郵件不是正確格式' })
+    messageQueue.push('電子郵件不是正確格式')
   }
 
   // 密碼和確認密碼不一致
   if (password !== confirmPassword) {
-    messageQueue.push({ message: '密碼和確認密碼不一致' })
+    messageQueue.push('密碼和確認密碼不一致')
   }
 
   // 電子郵件重複註冊
   if ((await User.findOne({ where: { email } }))) {
-    messageQueue.push({ message: '電子郵件重複註冊' })
+    messageQueue.push('電子郵件重複註冊')
   }
 
   // 帳號重複註冊
   if ((await User.findOne({ where: { account } }))) {
-    messageQueue.push({ message: '帳號重複註冊' })
+    messageQueue.push('帳號重複註冊')
   }
 
+  // 暱稱重複註冊
+  if ((await User.findOne({ where: { nickname } }))) {
+    messageQueue.push('暱稱重複註冊')
+  }
   return messageQueue
 }
 

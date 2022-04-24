@@ -12,6 +12,8 @@ const {
   blackListRoleIn
 } = require('../config/service').accountService
 
+const DEFAULT_BCRYPT_COMPLEXITY = 10
+
 const accountServices = {
   login: async (req, type, cb) => {
     try {
@@ -39,9 +41,22 @@ const accountServices = {
   },
   register: async (req, cb) => {
     try {
-      let message = null
-      message = await postUsersFormDataValidator(req)
-      console.log(message)
+      const message = await postUsersFormDataValidator(req)
+      if (message.length > 0) {
+        return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
+      }
+      const { nickname, email, account, password } = req.body
+
+      await User.create({
+        nickname,
+        email,
+        account,
+        role: 'user',
+        password: bcrypt.hashSync(password, DEFAULT_BCRYPT_COMPLEXITY),
+        avatar: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
+      })
+
+      return cb(null, null, '註冊成功')
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }
