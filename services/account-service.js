@@ -6,28 +6,33 @@ const {
   FORBIDDEN,
   NOTFOUND,
   SERVERERROR
-} = require('../config/service').userService
+} = require('../config/service').generalErrorCode
 
-const userServices = {
-  login: async (req, cb) => {
+const {
+  blackListRoleIn
+} = require('../config/service').accountService
+
+const accountServices = {
+  login: async (req, type, cb) => {
     const { account, password } = req.body
 
     try {
       if (!account || !password) {
         return cb(new APIError({ code: FORBIDDEN, status: 'error', message: '未填寫完所有欄位' }))
       }
-      console.log(account, password)
+
       const user = await User.findOne({ where: { account }, raw: true })
-      if (!user || user.account === 'admin') {
+
+      if (!user || blackListRoleIn[type].includes(user.role)) {
         return cb(new APIError({ code: NOTFOUND, status: 'error', message: '帳號不存在' }))
       }
+
       if (!bcrypt.compareSync(password, user.password)) {
         return cb(new APIError({ code: FORBIDDEN, status: 'error', message: '帳號或密碼不正確' }))
       }
       const resultUser = user
       const accessToken = generateAccessToken(resultUser)
-
-      return cb(null, '登入成功', { accessToken, ...resultUser })
+      return cb(null, { accessToken, ...resultUser }, '登入成功')
     } catch (error) {
       return cb(new APIError({ code: SERVERERROR, message: error.message }))
     }
@@ -35,5 +40,5 @@ const userServices = {
 }
 
 exports = module.exports = {
-  userServices
+  accountServices
 }

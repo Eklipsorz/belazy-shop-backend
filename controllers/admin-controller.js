@@ -4,14 +4,14 @@ const {
   SUCCESS_STATUS
 } = require('../config/controller').generalSuccess
 
-const userController = {
+const adminController = {
   login: (req, res, next) => {
-    accountServices.login(req, 'users', (error, data, message) =>
+    accountServices.login(req, 'admin', (error, data, message) =>
       error ? next(error) : res.status(SUCCESS_CODE).json({ status: SUCCESS_STATUS, message, data })
     )
   }
 }
 
 exports = module.exports = {
-  userController
+  adminController
 }

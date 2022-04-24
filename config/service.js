@@ -1,12 +1,17 @@
 
-const userService = {
-  OK: 200,
-  UNAUTHORIZED: 401,
+const accountService = {
+  blackListRoleIn: {
+    users: ['admin'],
+    admin: ['user']
+  }
+}
+
+const generalErrorCode = {
   FORBIDDEN: 403,
   NOTFOUND: 404,
   SERVERERROR: 500
 }
-
 exports = module.exports = {
-  userService
+  accountService,
+  generalErrorCode
 }
