@@ -23,8 +23,17 @@ function authenticate(req, res, next) {
   verify(req, res, next)
 }
 
+function authenticateUser(req, res, next) {
+  const user = getUser(req)
+}
+
+function authenticateAdmin(req, res, next) {
+
+}
 exports = module.exports = {
   getUser,
   getUserId,
-  authenticate
+  authenticate,
+  authenticateUser,
+  authenticateAdmin
 }

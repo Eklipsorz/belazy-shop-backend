@@ -7,7 +7,7 @@ const { status, code } = require('../config/result-status-table').errorTable
 const { getUser } = require('../helpers/auth-helper')
 const {
   blackListRoleIn
-} = require('../config/service').accountService
+} = require('../config/project').generalConfig
 
 const DEFAULT_BCRYPT_COMPLEXITY = 10
 

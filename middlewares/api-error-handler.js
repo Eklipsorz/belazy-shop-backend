@@ -4,7 +4,7 @@ const {
   DEFAULT_MESSAGE,
   DEFAULT_STATUS,
   DEFAULT_DATA
-} = require('../config/middleware').APIErrorHandler
+} = require('../config/project').middleware.APIErrorHandler
 
 const { code } = require('../config/result-status-table').errorTable
 function APIErrorHandler(error, _, res, next) {
