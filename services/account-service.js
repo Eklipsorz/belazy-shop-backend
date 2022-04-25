@@ -3,10 +3,7 @@ const { APIError } = require('../helpers/api-error-helper')
 const { generateAccessToken } = require('../helpers/jwt-helper')
 const { postUsersFormDataValidator } = require('../helpers/formdata-check-helper')
 const { User } = require('../db/models')
-const {
-  status,
-  code
-} = require('../config/result-status-table').errorTable
+const { status, code } = require('../config/result-status-table').errorTable
 
 const {
   blackListRoleIn
@@ -63,6 +60,14 @@ class AccountService {
       })
 
       return cb(null, null, '註冊成功')
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
+    }
+  }
+
+  async getSelf(req, cb) {
+    try {
+      console.log('hi this user getself')
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }

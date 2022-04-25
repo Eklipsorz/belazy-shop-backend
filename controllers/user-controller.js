@@ -14,6 +14,11 @@ const userController = {
     userServices.register(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getSelf: (req, res, next) => {
+    userServices.getSelf(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

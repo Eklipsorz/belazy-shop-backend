@@ -1,7 +1,7 @@
 const passport = require('passport')
 const passportJWT = require('passport-jwt')
 
-const { user } = require('../db/models')
+const { User } = require('../db/models')
 const ExtractJWT = require('passport-jwt').ExtractJwt
 const JWTStrategy = passportJWT.Strategy
 
@@ -10,8 +10,15 @@ const JWTStrategyOptions = {
   secretOrKey: process.env.ACCESS_TOKEN_SECRET
 }
 
-const JWTVerify = (payload, cb) => {
+async function JWTVerify(payload, cb) {
+  try {
+    const user = await User.findByPk(payload.id)
 
+    if (!user) return cb(null, false)
+    return cb(null, user.toJSON())
+  } catch (error) {
+    return cb(error, false)
+  }
 }
 
 passport.use(new JWTStrategy(JWTStrategyOptions, JWTVerify))
