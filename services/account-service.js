@@ -1,10 +1,10 @@
 const bcrypt = require('bcryptjs')
 const { APIError } = require('../helpers/api-error-helper')
 const { generateAccessToken } = require('../helpers/jwt-helper')
-const { postUsersFormDataValidator } = require('../helpers/formdata-check-helper')
+const { registerFormValidator, updateFormValidator } = require('../helpers/formdata-check-helper')
 const { User } = require('../db/models')
 const { status, code } = require('../config/result-status-table').errorTable
-const { getUser } = require('../helpers/auth-helper')
+const { getUser, getUserId } = require('../helpers/auth-helper')
 const {
   blackListRoleIn
 } = require('../config/project').generalConfig
@@ -44,7 +44,7 @@ class AccountService {
 
   async register(req, cb) {
     try {
-      const message = await postUsersFormDataValidator(req)
+      const message = await registerFormValidator(req)
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
@@ -60,6 +60,33 @@ class AccountService {
       })
 
       return cb(null, null, '註冊成功')
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
+    }
+  }
+
+  async putSelf(req, cb) {
+    try {
+      const id = getUserId(req)
+      const message = await updateFormValidator(req)
+      if (message.length > 0) {
+        return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
+      }
+      const { nickname, email, account, password, avatar } = req.body
+
+      await User.update({
+        nickname,
+        email,
+        account,
+        password: bcrypt.hashSync(password, DEFAULT_BCRYPT_COMPLEXITY),
+        avatar
+      }, { where: { id } })
+
+      const resultUser = req.body
+      delete resultUser.password
+      delete resultUser.confirmPassword
+
+      return cb(null, resultUser, '修改成功')
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }

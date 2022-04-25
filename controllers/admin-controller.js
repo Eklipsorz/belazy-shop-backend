@@ -14,6 +14,11 @@ const adminController = {
     adminServices.getSelf(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  putSelf: (req, res, next) => {
+    adminServices.putSelf(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

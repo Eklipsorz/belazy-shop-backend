@@ -17,7 +17,7 @@ function authenticate(req, res, next) {
   verify(req, res, next)
 }
 
-function authenticateUser(req, res, next) {
+function authenticateUser(req, _, next) {
   const user = getUser(req)
   if (!user || blackListRoleIn.user.includes(user.role)) {
     return next(new APIError({ code: code.NOTFOUND, message: '帳號不存在' }))
@@ -25,7 +25,7 @@ function authenticateUser(req, res, next) {
   return next()
 }
 
-function authenticateAdmin(req, res, next) {
+function authenticateAdmin(req, _, next) {
   const user = getUser(req)
   if (!user || blackListRoleIn.admin.includes(user.role)) {
     return next(new APIError({ code: code.NOTFOUND, message: '帳號不存在' }))
