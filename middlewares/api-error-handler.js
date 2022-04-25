@@ -6,19 +6,20 @@ const {
   DEFAULT_DATA
 } = require('../config/middleware').APIErrorHandler
 
+const { code } = require('../config/result-status-table').errorTable
 function APIErrorHandler(error, _, res, next) {
-  const code = error.code || DEFAULT_CODE
+  const errorCode = error.code || DEFAULT_CODE
   const message = error.message || DEFAULT_MESSAGE
   const status = error.status || DEFAULT_STATUS
   const data = error.data || DEFAULT_DATA
 
   switch (error.code) {
-    case 400:
-    case 401:
-    case 403:
-    case 404:
-    case 500:
-      res.status(code).json({ status, message, data })
+    case code.BADREQUEST:
+    case code.UNAUTHORIZED:
+    case code.FORBIDDEN:
+    case code.NOTFOUND:
+    case code.SERVERERROR:
+      res.status(errorCode).json({ status, message, data })
       break
   }
   next(error)

@@ -14,16 +14,20 @@ const {
 
 const DEFAULT_BCRYPT_COMPLEXITY = 10
 
-const accountServices = {
-  login: async (req, type, cb) => {
+class AccountService {
+  constructor(serviceType) {
+    this.serviceType = serviceType
+  }
+
+  async login(req, cb) {
     try {
       const { account, password } = req.body
+      const type = this.serviceType
 
       if (!account || !password) {
         return cb(new APIError({ code: code.FORBIDDEN, status, message: '未填寫完所有欄位' }))
       }
-
-      const user = await User.findOne({ where: { account }, raw: true })
+      const user = await User.findOne({ where: { account } })
 
       if (!user || blackListRoleIn[type].includes(user.role)) {
         return cb(new APIError({ code: code.NOTFOUND, status, message: '帳號不存在' }))
@@ -32,14 +36,16 @@ const accountServices = {
       if (!bcrypt.compareSync(password, user.password)) {
         return cb(new APIError({ code: code.FORBIDDEN, status, message: '帳號或密碼不正確' }))
       }
-      const resultUser = user
+      const resultUser = user.toJSON()
       const accessToken = generateAccessToken(resultUser)
+      delete resultUser.password
       return cb(null, { accessToken, ...resultUser }, '登入成功')
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }
-  },
-  register: async (req, cb) => {
+  }
+
+  async register(req, cb) {
     try {
       const message = await postUsersFormDataValidator(req)
       if (message.length > 0) {
@@ -64,5 +70,5 @@ const accountServices = {
 }
 
 exports = module.exports = {
-  accountServices
+  AccountService
 }

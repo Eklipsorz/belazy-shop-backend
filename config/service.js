@@ -1,7 +1,7 @@
 
 const accountService = {
   blackListRoleIn: {
-    users: ['admin'],
+    user: ['admin'],
     admin: ['user']
   }
 }

@@ -1,7 +1,7 @@
 
 class APIError extends Error {
   constructor(options) {
-    super(options)
+    super(options.message)
     this.code = options.code
     // solve that error object cannot output array info
     this.message = options.message

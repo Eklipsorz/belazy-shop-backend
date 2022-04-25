@@ -1,4 +1,4 @@
-const { accountServices } = require('../services/account-service')
+const { userServices } = require('../services/user-service')
 const {
   status,
   code
@@ -6,12 +6,12 @@ const {
 
 const userController = {
   login: (req, res, next) => {
-    accountServices.login(req, 'users', (error, data, message) =>
+    userServices.login(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
   register: (req, res, next) => {
-    accountServices.register(req, (error, data, message) =>
+    userServices.register(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   }

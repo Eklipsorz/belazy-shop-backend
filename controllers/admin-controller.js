@@ -1,4 +1,4 @@
-const { accountServices } = require('../services/account-service')
+const { adminServices } = require('../services/admin-service')
 const {
   status,
   code
@@ -6,7 +6,7 @@ const {
 
 const adminController = {
   login: (req, res, next) => {
-    accountServices.login(req, 'admin', (error, data, message) =>
+    adminServices.login(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   }
