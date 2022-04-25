@@ -9,6 +9,11 @@ const adminController = {
     adminServices.login(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getSelf: (req, res, next) => {
+    adminServices.getSelf(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

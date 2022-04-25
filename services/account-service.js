@@ -4,7 +4,7 @@ const { generateAccessToken } = require('../helpers/jwt-helper')
 const { postUsersFormDataValidator } = require('../helpers/formdata-check-helper')
 const { User } = require('../db/models')
 const { status, code } = require('../config/result-status-table').errorTable
-
+const { getUser } = require('../helpers/auth-helper')
 const {
   blackListRoleIn
 } = require('../config/service').accountService
@@ -67,7 +67,9 @@ class AccountService {
 
   async getSelf(req, cb) {
     try {
-      console.log('hi this user getself')
+      const resultUser = getUser(req)
+      delete resultUser.password
+      return cb(null, resultUser, '獲取成功')
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }
