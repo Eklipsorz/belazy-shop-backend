@@ -5,6 +5,8 @@ const { registerFormValidator, updateFormValidator } = require('../helpers/formd
 const { User } = require('../db/models')
 const { status, code } = require('../config/result-status-table').errorTable
 const { getUser, getUserId } = require('../helpers/auth-helper')
+const { ImgurFileHandler } = require('../helpers/file-upload-helper')
+
 const {
   blackListRoleIn
 } = require('../config/project').generalConfig
@@ -72,14 +74,15 @@ class AccountService {
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
-      const { nickname, email, account, password, avatar } = req.body
-
+      const { nickname, email, account, password } = req.body
+      const { file } = req
+      ImgurFileHandler(file)
       await User.update({
         nickname,
         email,
         account,
-        password: bcrypt.hashSync(password, DEFAULT_BCRYPT_COMPLEXITY),
-        avatar
+        password: bcrypt.hashSync(password, DEFAULT_BCRYPT_COMPLEXITY)
+        // avatar:
       }, { where: { id } })
 
       const resultUser = req.body
