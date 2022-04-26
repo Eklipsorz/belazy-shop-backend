@@ -12,9 +12,11 @@ async function ImgurFileHandler(file) {
     })
 
     const result = response
-    return result.status === code.OK ? result.data.link : null
+    return result.status === code.OK
+      ? result.data.link
+      : 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
   } catch (_) {
-    return null
+    return 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
   }
 }
 

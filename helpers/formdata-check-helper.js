@@ -3,7 +3,7 @@ const validator = require('validator')
 const { User } = require('../db/models')
 const { getUserId } = require('./auth-helper')
 
-async function registerFormValidator (req) {
+async function registerFormValidator(req) {
   const messageQueue = []
   const {
     account, nickname,
@@ -52,7 +52,7 @@ async function registerFormValidator (req) {
   return messageQueue
 }
 
-async function updateFormValidator (req) {
+async function updateFormValidator(req) {
   const messageQueue = []
   const currentUserId = getUserId(req)
   const {
@@ -85,6 +85,7 @@ async function updateFormValidator (req) {
     messageQueue.push('密碼和確認密碼不一致')
   }
 
+  // 確認電子郵件、帳號、暱稱
   const [resultByEmail, resultByAccount, resultByNickname] = await Promise.all([
     User.findOne({ where: { email } }),
     User.findOne({ where: { account } }),

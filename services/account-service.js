@@ -1,17 +1,19 @@
 const bcrypt = require('bcryptjs')
 const { APIError } = require('../helpers/api-error-helper')
-const { generateAccessToken } = require('../helpers/jwt-helper')
-const { registerFormValidator, updateFormValidator } = require('../helpers/formdata-check-helper')
-const { User } = require('../db/models')
 const { status, code } = require('../config/result-status-table').errorTable
-const { getUser, getUserId } = require('../helpers/auth-helper')
+
+const { getUser } = require('../helpers/auth-helper')
+const { generateAccessToken } = require('../helpers/jwt-helper')
 const { ImgurFileHandler } = require('../helpers/file-upload-helper')
+const { registerFormValidator, updateFormValidator } = require('../helpers/formdata-check-helper')
 
+const { User } = require('../db/models')
+
+const { blackListRoleIn } = require('../config/project').generalConfig
 const {
-  blackListRoleIn
-} = require('../config/project').generalConfig
-
-const DEFAULT_BCRYPT_COMPLEXITY = 10
+  DEFAULT_BCRYPT_COMPLEXITY,
+  DEL_OPERATION_CODE
+} = require('../config/project').service
 
 class AccountService {
   constructor(serviceType) {
@@ -69,23 +71,32 @@ class AccountService {
 
   async putSelf(req, cb) {
     try {
-      const id = getUserId(req)
+      const user = getUser(req)
       const message = await updateFormValidator(req)
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
-      const { nickname, email, account, password } = req.body
+      const { nickname, email, account, password, avatar } = req.body
       const { file } = req
-      ImgurFileHandler(file)
+
+      let uploadAvatar = ''
+      if (avatar === DEL_OPERATION_CODE) {
+        uploadAvatar = 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1646039874/twitter/project/defaultAvatar_a0hkxw.png'
+      } else {
+        uploadAvatar = file?.path
+          ? await ImgurFileHandler(file)
+          : user.avatar
+      }
+
       await User.update({
         nickname,
         email,
         account,
-        password: bcrypt.hashSync(password, DEFAULT_BCRYPT_COMPLEXITY)
-        // avatar:
-      }, { where: { id } })
+        password: bcrypt.hashSync(password, DEFAULT_BCRYPT_COMPLEXITY),
+        avatar: uploadAvatar
+      }, { where: { id: user.id } })
 
-      const resultUser = req.body
+      const resultUser = { ...req.body, avatar: uploadAvatar }
       delete resultUser.password
       delete resultUser.confirmPassword
 

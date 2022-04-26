@@ -24,17 +24,18 @@ const generalConfig = {
 // }
 
 /* service config */
-// const service = {
-//   accountService: {
+const service = {
+  accountService: {
+    DEFAULT_BCRYPT_COMPLEXITY: 10,
+    DEL_OPERATION_CODE: '-1'
+  }
+  // userService: {
 
-//   },
-//   userService: {
+  // },
+  // adminService: {
 
-//   },
-//   adminService: {
-
-//   }
-// }
+  // }
+}
 
 /* middleware config */
 const middleware = {
@@ -62,7 +63,7 @@ const seeder = {
 
 exports = module.exports = {
   // controller,
-  // service
+  service,
   generalConfig,
   middleware,
   seeder
