@@ -64,6 +64,10 @@ const seeder = {
     DEFAULT_USER_NUMBER: 20,
     DEFAULT_EMAIL_PREFIX: process.env.SEEDER_EMAIL_PREFIX || 'user',
     DEFAULT_EMAIL_SUFFIX: process.env.SEEDER_EMAIL_SUFFIX || 'example.com'
+  },
+  categoriesSeeder: {
+    DEFAULT_CATEGORY_NUMBER: 8,
+    DEFAULT_CATEGORY: ['食物', '3C', '傢俱', '文具', '廚具', '書籍', '衣服', '燈具']
   }
 }
 
