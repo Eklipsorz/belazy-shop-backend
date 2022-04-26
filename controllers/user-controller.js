@@ -1,8 +1,5 @@
 const { userServices } = require('../services/user-service')
-const {
-  status,
-  code
-} = require('../config/result-status-table').successTable
+const { status, code } = require('../config/result-status-table').successTable
 
 const userController = {
   login: (req, res, next) => {

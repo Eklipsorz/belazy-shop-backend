@@ -1,9 +1,12 @@
 const express = require('express')
-const userRoutes = require('./modules/users.js')
-const adminRoutes = require('./modules/admin.js')
+const userRoutes = require('./modules/users')
+const adminRoutes = require('./modules/admin')
+const productRoutes = require('./modules/product')
+
 const { userController } = require('../controllers/user-controller')
 const { adminController } = require('../controllers/admin-controller')
 const { APIErrorHandler } = require('../middlewares/api-error-handler')
+
 const {
   authenticate,
   authenticateUser,
@@ -21,6 +24,7 @@ router.post('/users', userController.register)
 router.post('/admin/login', adminController.login)
 
 router.use('/users', authenticate, authenticateUser, userRoutes)
+router.use('/products', authenticate, authenticateUser, productRoutes)
 router.use('/admin', authenticate, authenticateAdmin, adminRoutes)
 
 router.use(APIErrorHandler)

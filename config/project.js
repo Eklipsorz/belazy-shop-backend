@@ -44,6 +44,12 @@ const middleware = {
     DEFAULT_CODE: code.SERVERERROR,
     DEFAULT_MESSAGE: '系統出錯',
     DEFAULT_DATA: null
+  },
+  pageHandler: {
+    DEFAULT_PAGE: 1,
+    DEFAULT_LIMIT: 10,
+    DEFAULT_ORDER: 'DESC',
+    ORDER_OPTIONS: ['DESC', 'ASC']
   }
 }
 

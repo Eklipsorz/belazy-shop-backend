@@ -1,8 +1,5 @@
 const { adminServices } = require('../services/admin-service')
-const {
-  status,
-  code
-} = require('../config/result-status-table').successTable
+const { status, code } = require('../config/result-status-table').successTable
 
 const adminController = {
   login: (req, res, next) => {
