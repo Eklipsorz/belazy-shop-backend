@@ -10,6 +10,10 @@ const generalConfig = {
   blackListRoleIn: {
     user: ['admin'],
     admin: ['user']
+  },
+  tokenExpiresIn: {
+    accessToken: '600s',
+    refreshToken: '3600s'
   }
 }
 

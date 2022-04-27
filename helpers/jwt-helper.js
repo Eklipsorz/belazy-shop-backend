@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken')
+const { tokenExpiresIn } = require('../config/app').generalConfig
+
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET
 const ACCESS_TOKEN_OPTIONS = {
-  expiresIn: '600s'
+  expiresIn: tokenExpiresIn.accessToken
 }
 
 function generateAccessToken(payload) {

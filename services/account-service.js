@@ -9,11 +9,11 @@ const { registerFormValidator, updateFormValidator } = require('../helpers/formd
 
 const { User } = require('../db/models')
 
-const { blackListRoleIn } = require('../config/project').generalConfig
+const { blackListRoleIn } = require('../config/app').generalConfig
 const {
   DEFAULT_BCRYPT_COMPLEXITY,
   DEL_OPERATION_CODE
-} = require('../config/project').service
+} = require('../config/app').service
 
 class AccountService {
   constructor(serviceType) {

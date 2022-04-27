@@ -6,7 +6,7 @@ const {
   DEFAULT_EMAIL_PREFIX,
   DEFAULT_EMAIL_SUFFIX,
   DEFAULT_USER_NUMBER
-} = require('../../config/project').seeder.usersSeeder
+} = require('../../config/app').seeder.usersSeeder
 
 const { faker } = require('@faker-js/faker')
 const bcrypt = require('bcryptjs')

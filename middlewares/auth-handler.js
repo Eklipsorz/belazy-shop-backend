@@ -1,6 +1,6 @@
 const passport = require('../config/passport')
 const { getUser } = require('../helpers/auth-helper')
-const { blackListRoleIn } = require('../config/project').generalConfig
+const { blackListRoleIn } = require('../config/app').generalConfig
 const { code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error-helper')
 

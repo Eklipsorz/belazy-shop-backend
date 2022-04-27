@@ -3,7 +3,7 @@ const {
   DEFAULT_PAGE,
   DEFAULT_ORDER,
   ORDER_OPTIONS
-} = require('../config/project').middleware.pageHandler
+} = require('../config/app').middleware.pageHandler
 
 function orderSetter(order) {
   const resultOrder = order.toUpperCase()
@@ -18,7 +18,7 @@ function paging(req, _, next) {
   order = order ? orderSetter(order) : DEFAULT_ORDER
 
   const offset = (page - 1) * limit
-  req.query = { page, limit, order, offset }
+  req.query = { ...req.query, page, limit, order, offset }
 
   return next()
 }
