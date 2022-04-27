@@ -71,7 +71,23 @@ const seeder = {
   },
   categoriesSeeder: {
     DEFAULT_CATEGORY_NUMBER: 8,
-    DEFAULT_CATEGORY: ['食物', '3C', '傢俱', '文具', '廚具', '書籍', '衣服', '燈具']
+    DEFAULT_CATEGORY: [
+      { name: 'snack', image: 'fa-solid fa-cookie' },
+      { name: 'computer', image: 'fa-solid fa-computer' },
+      { name: 'furniture', image: 'fa-solid fa-couch' },
+      { name: 'stationery', image: 'fa-solid fa-pen-ruler' },
+      { name: 'kitchenware', image: 'fa-solid fa-kitchen-set' },
+      { name: 'book', image: 'fa-solid fa-books' },
+      { name: 'clothing', image: 'fa-solid fa-shirt' },
+      { name: 'lamp', image: 'fa-solid fa-lamp' }
+    ],
+    DEFEAULT_PRICE: {
+      MIN: 100,
+      MAX: 1000
+    }
+  },
+  productsSeeder: {
+    DEFAULT_PRODUCT_NUMBER_EACH_CATEGORY: 10
   }
 }
 
