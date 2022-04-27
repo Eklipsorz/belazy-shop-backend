@@ -80,14 +80,22 @@ const seeder = {
       { name: 'book', image: 'fa-solid fa-books' },
       { name: 'clothing', image: 'fa-solid fa-shirt' },
       { name: 'lamp', image: 'fa-solid fa-lamp' }
-    ],
+    ]
+
+  },
+  productsSeeder: {
+    DEFAULT_PRODUCT_NUMBER: 100,
     DEFEAULT_PRICE: {
       MIN: 100,
       MAX: 1000
     }
   },
-  productsSeeder: {
-    DEFAULT_PRODUCT_NUMBER_EACH_CATEGORY: 10
+  categoryStatisticsSeeder: {
+    // 每一個產品能選的種類數，預設為1~3個
+    DEFAULT_OPTIONS_NUMBER: {
+      MIN: 1,
+      MAX: 3
+    }
   }
 }
 
