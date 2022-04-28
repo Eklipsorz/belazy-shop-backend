@@ -104,6 +104,13 @@ const seeder = {
       MAX: 5,
       CURRENT: 5
     }
+  },
+  repliesSeeder: {
+    DEFAULT_OPTIONS_NUMBER: {
+      MIN: 0,
+      MAX: 5,
+      CURRENT: 5
+    }
   }
 }
 
