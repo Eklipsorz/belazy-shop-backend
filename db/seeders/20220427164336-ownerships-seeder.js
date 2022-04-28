@@ -1,18 +1,7 @@
 'use strict'
 
-const { categoryStatisticsSeeder } = require('../../config/app').seeder
-
-// 產出不重複的索引值
-function generateOptions(optionNum, optionMaxNum) {
-  const optionHashTab = {}
-  while (true) {
-    const selectedOption = Math.floor(Math.random() * optionMaxNum)
-    optionHashTab[`${selectedOption}`] = true
-    if (Object.keys(optionHashTab).length === optionNum) break
-  }
-
-  return Object.keys(optionHashTab)
-}
+const { ownershipsSeeder } = require('../../config/app').seeder
+const { generateOptions } = require('../../helpers/number-generator')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -39,7 +28,7 @@ module.exports = {
       { type: queryInterface.sequelize.QueryTypes.SELECT }
     ))
 
-    const { MAX, MIN } = categoryStatisticsSeeder.DEFAULT_OPTIONS_NUMBER
+    const { MAX, MIN } = ownershipsSeeder.DEFAULT_OPTIONS_NUMBER
     const categoryNum = seedCategories.length
     const statisticsArray = []
 

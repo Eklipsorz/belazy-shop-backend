@@ -90,11 +90,19 @@ const seeder = {
       MAX: 1000
     }
   },
-  categoryStatisticsSeeder: {
+  ownershipsSeeder: {
     // 每一個產品能選的種類數，預設為1~3個
     DEFAULT_OPTIONS_NUMBER: {
       MIN: 1,
-      MAX: 3
+      MAX: 3,
+      CURRENT: 3
+    }
+  },
+  likesSeeder: {
+    DEFAULT_OPTIONS_NUMBER: {
+      MIN: 0,
+      MAX: 5,
+      CURRENT: 5
     }
   }
 }
