@@ -14,6 +14,10 @@ const generalConfig = {
   tokenExpiresIn: {
     accessToken: '600s',
     refreshToken: '3600s'
+  },
+  DEFAULT_TALLY: {
+    LIKED: 5,
+    REPLIED: 5
   }
 }
 
@@ -101,15 +105,15 @@ const seeder = {
   likesSeeder: {
     DEFAULT_OPTIONS_NUMBER: {
       MIN: 0,
-      MAX: 5,
-      CURRENT: 5
+      MAX: generalConfig.DEFAULT_TALLY.LIKED,
+      CURRENT: generalConfig.DEFAULT_TALLY.LIKED
     }
   },
   repliesSeeder: {
     DEFAULT_OPTIONS_NUMBER: {
       MIN: 0,
-      MAX: 5,
-      CURRENT: 5
+      MAX: generalConfig.DEFAULT_TALLY.REPLIED,
+      CURRENT: generalConfig.DEFAULT_TALLY.REPLIED
     }
   },
   stockSeeder: {
@@ -118,6 +122,12 @@ const seeder = {
       SUM: 100,
       // 剩餘能賣的數量
       REST: 50
+    }
+  },
+  productStatisticsSeeder: {
+    DEFAULT_TALLY: {
+      LIKED: generalConfig.DEFAULT_TALLY.LIKED,
+      RELIED: generalConfig.DEFAULT_TALLY.REPLIED
     }
   }
 }
