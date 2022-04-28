@@ -1,18 +1,18 @@
 'use strict'
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('categories', {
+    await queryInterface.createTable('likes', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      name: {
-        type: Sequelize.STRING(30)
+      user_id: {
+        type: Sequelize.INTEGER
       },
-      image: {
-        type: Sequelize.STRING(255)
+      product_id: {
+        type: Sequelize.INTEGER
       },
       created_at: {
         allowNull: false,
@@ -25,6 +25,6 @@ module.exports = {
     })
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('categories')
+    await queryInterface.dropTable('likes')
   }
 }

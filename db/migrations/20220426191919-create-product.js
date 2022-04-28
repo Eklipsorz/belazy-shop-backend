@@ -12,13 +12,13 @@ module.exports = {
         type: Sequelize.STRING(30)
       },
       introduction: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(255)
       },
       price: {
         type: Sequelize.INTEGER
       },
       image: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(255)
       },
       created_at: {
         allowNull: false,

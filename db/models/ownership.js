@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       Ownership.belongsTo(models.Category, { foreignKey: 'categoryId' })
     }
   }
-  Ownershipc.init({
+  Ownership.init({
     productId: DataTypes.INTEGER,
     categoryId: DataTypes.INTEGER,
     categoryName: DataTypes.STRING(30),
