@@ -12,7 +12,8 @@ module.exports = {
         type: Sequelize.STRING(30)
       },
       image: {
-        type: Sequelize.STRING(255)
+        type: Sequelize.STRING(255),
+        defaultValue: 'fa-solid fa-box'
       },
       created_at: {
         allowNull: false,

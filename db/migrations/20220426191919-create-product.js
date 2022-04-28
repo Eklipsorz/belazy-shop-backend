@@ -18,7 +18,8 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       image: {
-        type: Sequelize.STRING(255)
+        type: Sequelize.STRING(255),
+        defaultValue: 'https://loremflickr.com/320/240/product?lock=3000'
       },
       created_at: {
         allowNull: false,

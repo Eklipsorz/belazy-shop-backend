@@ -13,16 +13,16 @@ module.exports = {
         type: Sequelize.STRING(10)
       },
       password: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(255)
       },
       role: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(30)
       },
       email: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(255)
       },
       avatar: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(255),
         defaultValue: 'https://i.imgur.com/6xxypgv.png'
       },
       nickname: {
