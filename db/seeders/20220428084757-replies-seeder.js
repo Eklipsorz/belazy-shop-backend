@@ -1,4 +1,9 @@
 'use strict'
+/*
+同個產品會有5個人評論
+在同個產品上，每個評論者皆為不同人
+在同個產品上，每個評論者只會對產品擁有一次的評論
+*/
 const { repliesSeeder } = require('../../config/app').seeder
 const { generateOptions } = require('../../helpers/number-generator')
 const { faker } = require('@faker-js/faker')

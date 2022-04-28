@@ -1,5 +1,7 @@
 'use strict'
-
+/*
+每一個紀錄都必須記錄著產品ID和其對應的產品類別ID、名稱
+*/
 const { ownershipsSeeder } = require('../../config/app').seeder
 const { generateOptions } = require('../../helpers/number-generator')
 

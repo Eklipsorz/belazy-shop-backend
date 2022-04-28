@@ -111,6 +111,14 @@ const seeder = {
       MAX: 5,
       CURRENT: 5
     }
+  },
+  stockSeeder: {
+    DEFAULT_QUANTITY: {
+      // 產品總數
+      SUM: 100,
+      // 剩餘能賣的數量
+      REST: 50
+    }
   }
 }
 
