@@ -1,19 +1,19 @@
 const bcrypt = require('bcryptjs')
-const { APIError } = require('../helpers/api-error-helper')
-const { status, code } = require('../config/result-status-table').errorTable
+const { APIError } = require('../../helpers/api-error')
+const { status, code } = require('../../config/result-status-table').errorTable
 
-const { getUser } = require('../helpers/auth-helper')
-const { generateAccessToken } = require('../helpers/jwt-helper')
-const { ImgurFileHandler } = require('../helpers/file-upload-helper')
-const { registerFormValidator, updateFormValidator } = require('../helpers/formdata-check-helper')
+const { getUser } = require('../../helpers/auth-user-getter')
+const { generateAccessToken } = require('../../helpers/jwt-generator')
+const { ImgurFileHandler } = require('../../helpers/file-uploader')
+const { registerFormValidator, updateFormValidator } = require('../../helpers/form-data-checker')
 
-const { User } = require('../db/models')
+const { User } = require('../../db/models')
 
-const { blackListRoleIn } = require('../config/app').generalConfig
+const { blackListRoleIn } = require('../../config/app').generalConfig
 const {
   DEFAULT_BCRYPT_COMPLEXITY,
   DEL_OPERATION_CODE
-} = require('../config/app').service
+} = require('../../config/app').service
 
 class AccountService {
   constructor(serviceType) {

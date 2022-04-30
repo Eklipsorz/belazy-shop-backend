@@ -4,6 +4,9 @@ const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const { createReadStream } = require('fs')
 const client = new ImgurClient({ clientId: IMGUR_CLIENT_ID })
 
+const multer = require('multer')
+const upload = multer({ dest: 'temp/' })
+
 async function ImgurFileHandler(file) {
   try {
     const response = await client.upload({
@@ -21,5 +24,6 @@ async function ImgurFileHandler(file) {
 }
 
 exports = module.exports = {
+  upload,
   ImgurFileHandler
 }

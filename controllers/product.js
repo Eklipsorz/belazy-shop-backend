@@ -1,4 +1,4 @@
-const { adminServices } = require('../services/admin-service')
+const { adminServices } = require('../services/roles/admin')
 const { status, code } = require('../config/result-status-table').successTable
 
 const productController = {

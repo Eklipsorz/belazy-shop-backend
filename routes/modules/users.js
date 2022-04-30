@@ -1,6 +1,6 @@
 const express = require('express')
-const { userController } = require('../../controllers/user-controller')
-const { upload } = require('../../helpers/multer-helper')
+const { userController } = require('../../controllers/user')
+const { upload } = require('../../helpers/file-uploader')
 const router = express.Router()
 
 router.get('/self', userController.getSelf)

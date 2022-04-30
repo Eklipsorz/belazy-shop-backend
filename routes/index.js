@@ -3,15 +3,15 @@ const userRoutes = require('./modules/users')
 const adminRoutes = require('./modules/admin')
 const productRoutes = require('./modules/product')
 
-const { userController } = require('../controllers/user-controller')
-const { adminController } = require('../controllers/admin-controller')
+const { userController } = require('../controllers/user')
+const { adminController } = require('../controllers/admin')
 const { APIErrorHandler } = require('../middlewares/api-error-handler')
 
 const {
   authenticate,
   authenticateUser,
   authenticateAdmin
-} = require('../middlewares/auth-handler')
+} = require('../middlewares/authenticator')
 const router = express.Router()
 
 // 前台登入

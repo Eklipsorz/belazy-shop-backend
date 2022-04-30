@@ -1,8 +1,8 @@
 const passport = require('../config/passport')
-const { getUser } = require('../helpers/auth-helper')
+const { getUser } = require('../helpers/auth-user-getter')
 const { blackListRoleIn } = require('../config/app').generalConfig
 const { code } = require('../config/result-status-table').errorTable
-const { APIError } = require('../helpers/api-error-helper')
+const { APIError } = require('../helpers/api-error')
 
 function authenticate(req, res, next) {
   function cb(error, user) {

@@ -1,7 +1,7 @@
 
 const validator = require('validator')
 const { User } = require('../db/models')
-const { getUserId } = require('./auth-helper')
+const { getUserId } = require('./auth-user-getter')
 
 async function registerFormValidator(req) {
   const messageQueue = []

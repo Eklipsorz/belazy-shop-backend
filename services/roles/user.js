@@ -1,5 +1,5 @@
-const { AccountService } = require('../services/account-service')
-const { ProductService } = require('../services/product-service')
+const { AccountService } = require('./account')
+const { ProductService } = require('../resources/product')
 
 class UserService extends AccountService {
   constructor() {

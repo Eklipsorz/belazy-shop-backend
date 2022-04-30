@@ -1,29 +1,24 @@
-const { userServices } = require('../services/user-service')
+const { adminServices } = require('../services/roles/admin')
 const { status, code } = require('../config/result-status-table').successTable
 
-const userController = {
+const adminController = {
   login: (req, res, next) => {
-    userServices.login(req, (error, data, message) =>
-      error ? next(error) : res.status(code.OK).json({ status, message, data })
-    )
-  },
-  register: (req, res, next) => {
-    userServices.register(req, (error, data, message) =>
+    adminServices.login(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
   getSelf: (req, res, next) => {
-    userServices.getSelf(req, (error, data, message) =>
+    adminServices.getSelf(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
   putSelf: (req, res, next) => {
-    userServices.putSelf(req, (error, data, message) =>
+    adminServices.putSelf(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   }
 }
 
 exports = module.exports = {
-  userController
+  adminController
 }
