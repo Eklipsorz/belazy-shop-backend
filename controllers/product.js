@@ -7,6 +7,11 @@ const productController = {
     userServices.getProducts(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getProduct: (req, res, next) => {
+    userServices.getProduct(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

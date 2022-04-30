@@ -9,7 +9,6 @@ const { getUserId } = require('../../helpers/auth-user-getter')
 class UserService extends AccountService {
   constructor() {
     super('user')
-    // this.getProducts = ProductService.getProducts
   }
 
   async getProducts(req, cb) {
@@ -40,7 +39,37 @@ class UserService extends AccountService {
 
       return cb(null, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
+  }
+
+  async getProduct(req, cb) {
+    const { error, data, message } = await ProductService.getProduct(req)
+
+    if (error) return cb(error, data, message)
+    try {
+      const product = data
+      const loginUserId = getUserId(req)
+      // 獲取當前使用者所喜歡的產品清單
+      const likedProducts = await Like.findAll({
+        attributes: ['productId'],
+        where: { userId: loginUserId },
+        raw: true
+      })
+
+      // 獲取當前使用者所評論的產品清單
+      const repliedProducts = await Reply.findAll({
+        attributes: ['productId'],
+        where: { userId: loginUserId },
+        raw: true
+      })
+
+      product.isLiked = likedProducts.some(lp => lp.productId === product.id)
+      product.isReplied = repliedProducts.some(rp => rp.productId === product.id)
+
+      return cb(null, data, message)
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
   }
 }

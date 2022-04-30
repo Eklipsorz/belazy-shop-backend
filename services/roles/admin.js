@@ -10,6 +10,11 @@ class AdminService extends AccountService {
     const { error, data, message } = await ProductService.getProducts(req)
     return cb(error, data, message)
   }
+
+  async getProduct(req, cb) {
+    const { error, data, message } = await ProductService.getProduct(req)
+    return cb(error, data, message)
+  }
 }
 
 const adminServices = new AdminService()

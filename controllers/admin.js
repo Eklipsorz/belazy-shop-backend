@@ -21,6 +21,12 @@ const adminController = {
     adminServices.getProducts(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getProduct: (req, res, next) => {
+    console.log('hasdsa')
+    adminServices.getProduct(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 
