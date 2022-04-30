@@ -4,7 +4,11 @@ const { ProductService } = require('../resources/product')
 class AdminService extends AccountService {
   constructor() {
     super('admin')
-    this.getProducts = ProductService.getProducts
+  }
+
+  async getProducts(req, cb) {
+    const { error, data, message } = await ProductService.getProducts(req)
+    return cb(error, data, message)
   }
 }
 
