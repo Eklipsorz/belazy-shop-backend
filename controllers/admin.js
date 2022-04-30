@@ -16,6 +16,11 @@ const adminController = {
     adminServices.putSelf(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getProducts: (req, res, next) => {
+    adminServices.getProducts(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 
