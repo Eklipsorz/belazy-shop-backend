@@ -36,6 +36,9 @@ const service = {
   accountService: {
     DEFAULT_BCRYPT_COMPLEXITY: 10,
     DEL_OPERATION_CODE: '-1'
+  },
+  userService: {
+    SEARCH_HINT_NUMBER: 10
   }
   // userService: {
 

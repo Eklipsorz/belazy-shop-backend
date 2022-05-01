@@ -3,6 +3,7 @@ const { productController } = require('../../controllers/product')
 const { paging } = require('../../middlewares/pager')
 const router = express.Router()
 
+router.get('/search/hints', productController.getSearchHints)
 router.get('/:productId', productController.getProduct)
 router.get('/', paging, productController.getProducts)
 

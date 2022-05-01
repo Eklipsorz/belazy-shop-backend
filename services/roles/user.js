@@ -1,5 +1,6 @@
 const { AccountService } = require('./account')
 const { ProductService } = require('../resources/product')
+const { userService } = require('../../config/app').service
 const { Like, Reply } = require('../../db/models')
 const { APIError } = require('../../helpers/api-error')
 const { code } = require('../../config/result-status-table').errorTable
@@ -70,6 +71,19 @@ class UserService extends AccountService {
       return cb(null, data, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
+  }
+
+  async getSearchHints(req, cb) {
+    const { error, data, message } = await ProductService.getSearchHints(req)
+    if (error) return cb(error, data, message)
+
+    try {
+      const hintNumber = userService.SEARCH_HINT_NUMBER
+      const result = data.slice(0, hintNumber)
+      return cb(error, result, message)
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message }))
     }
   }
 }
