@@ -31,7 +31,7 @@ const app = express()
 
 app.use(express.json())
 app.get('/', (req, res) => {
-  res.send('<h1>hi apple</h1>')
+  res.send(`<h1>hi apple ${process.env.MY_VAR}</h1>`)
 })
 app.get('/.well-known/pki-validation/:something', (req, res) => {
   const file = `${__dirname}/.well-known/pki-validation/654502BBFBBDD117695EFD0DB6504378.txt`

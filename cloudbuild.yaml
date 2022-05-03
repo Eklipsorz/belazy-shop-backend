@@ -1,0 +1,12 @@
+steps:
+- name: node:16
+  entrypoint: npm
+  args: ['install']
+- name: node:16
+  entrypoint: npm
+  args: ['run', 'create-env']
+  env:
+    - 'MY_VAR=${_MY_VAR}'
+- name: node:16
+  entrypoint: npm
+  args: ['run', 'start']
