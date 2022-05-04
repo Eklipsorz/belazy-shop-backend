@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_ENV=development node app.js",
-    "dev": "NODE_ENV=development nodemon app.js",
+    "start": "NODE_ENV=deve2lopment node app.js",
+    "dev": "NODE_ENV=develo2pment nodemon app.js",
     "create-env": "printenv > .env",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
