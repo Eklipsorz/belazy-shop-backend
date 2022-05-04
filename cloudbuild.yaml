@@ -2,5 +2,14 @@ steps:
 - name: node:16
   entrypoint: npm
   args: ['install']
+- name: node:16
+  entrypoint: npm
+  args: ['run', 'create-env']
+  env:
+    - '_PROD_ACCESS_TOKEN_SECRET_=${_ACCESS_TOKEN_SECRET_}'
+    - '_PROD_REFRESH_TOKEN_SECRET_=${_REFRESH_TOKEN_SECRET_}' 
+    - '_PROD_SEEDER_EMAIL_PREFIX_=${_SEEDER_EMAIL_PREFIX_}' 
+    - '_PROD_SEEDER_EMAIL_SUFFIX_=${_SEEDER_EMAIL_SUFFIX_}' 
+    - '_PROD_IMGUR_CLIENT_ID_=${_IMGUR_CLIENT_ID_}'   
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [ 'app', 'deploy' ]
