@@ -13,6 +13,4 @@
 
 # [START gae_quickstart_yaml]
 runtime: nodejs16
-env_variables:
-    NODE_ENV: production
 # [END gae_quickstart_yaml]
