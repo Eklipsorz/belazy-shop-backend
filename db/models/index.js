@@ -1,6 +1,5 @@
 'use strict'
-require('dotenv').config()
-console.log('index.js ', process.env)
+
 const fs = require('fs')
 const path = require('path')
 const Sequelize = require('sequelize')
