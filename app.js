@@ -22,6 +22,7 @@ const app = express()
 
 app.use(express.json())
 app.get('/', (req, res) => {
+  console.log('all env: ', process.env)
   res.send(`<h1>hi apple ${process.env.MY_VAR} ${process.env.NODE_ENV}</h1>`)
 })
 
