@@ -1,5 +1,5 @@
 
-require('dotenv').config()
+const { ENV } = require('./config/env')
 
 const express = require('express')
 // const routes = require('./routes')
@@ -16,8 +16,8 @@ const app = express()
 
 app.use(express.json())
 app.get('/', (req, res) => {
-  console.log('all env: ', process.env)
-  res.send(`<h1>hi apple ${process.env.PRODUCT_ACCESS_TOKEN_SECRET} ${process.env.NODE_ENV}</h1>`)
+  console.log('all env: ', ENV)
+  res.send(`<h1>hi apple ${ENV.ACCESS_TOKEN_SECRET} ${ENV.SEEDER_EMAIL_PREFIX}</h1>`)
 })
 
 // app.use(routes)
