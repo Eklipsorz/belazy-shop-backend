@@ -1,3 +1,5 @@
+
+console.log('result: ', process.env.NODE_ENV, process.env.NODE_ENV !== 'production')
 if (process.env.NODE_ENV !== 'production') {
   console.log('test true condition')
   require('dotenv').config()
