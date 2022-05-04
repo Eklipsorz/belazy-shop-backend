@@ -17,7 +17,7 @@ const app = express()
 app.use(express.json())
 app.get('/', (req, res) => {
   console.log('all env: ', process.env)
-  res.send(`<h1>hi apple ${process.env.MY_VAR} ${process.env.NODE_ENV}</h1>`)
+  res.send(`<h1>hi apple ${process.env.PROD_SEEDER_EMAIL_PREFIX} ${process.env.NODE_ENV}</h1>`)
 })
 
 // app.use(routes)
