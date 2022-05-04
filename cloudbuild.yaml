@@ -16,11 +16,11 @@ steps:
     - 'PROD_DB_NAME=${_DB_NAME_}'
     - 'PROD_DB_USERNAME=${_DB_USERNAME_}'
     - 'PROD_DB_PASSWORD=${_DB_PASSWORD_}'
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: [ 'app', 'deploy' ]
 - name: node:16
   entrypoint: npx
   args: ['sequelize', 'db:migrate']   
 - name: node:16
   entrypoint: npx
   args: ['sequelize', 'db:seed:all']   
-- name: 'gcr.io/cloud-builders/gcloud'
-  args: [ 'app', 'deploy' ]
