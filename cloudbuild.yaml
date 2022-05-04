@@ -7,6 +7,5 @@ steps:
   args: ['run', 'create-env']
   env:
     - 'MY_VAR=${_MY_VAR}'
-
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [ 'app', 'deploy' ]
