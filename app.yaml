@@ -14,5 +14,6 @@
 # [START gae_quickstart_yaml]
 runtime: nodejs16
 env_variables:
+  GAE_SERVICE: "belazy-shop-service"
   NODE_ENV: "production"
 # [END gae_quickstart_yaml]
