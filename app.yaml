@@ -13,6 +13,5 @@
 
 # [START gae_quickstart_yaml]
 runtime: nodejs16
-env_variables:
-    NODE_ENV: develosq3e2ment
+
 # [END gae_quickstart_yaml]
