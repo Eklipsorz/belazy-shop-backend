@@ -1,5 +1,5 @@
 require('dotenv').config()
-
+const { ENV } = require('./env')
 const { status, code } = require('./result-status-table').errorTable
 
 /* general config */
@@ -77,8 +77,8 @@ const seeder = {
     DEFAULT_BCRYPT_COMPLEXITY: 10,
     // 設定使用者預設數量
     DEFAULT_USER_NUMBER: 20,
-    DEFAULT_EMAIL_PREFIX: process.env.SEEDER_EMAIL_PREFIX || 'user',
-    DEFAULT_EMAIL_SUFFIX: process.env.SEEDER_EMAIL_SUFFIX || 'example.com'
+    DEFAULT_EMAIL_PREFIX: ENV.SEEDER_EMAIL_PREFIX || 'user',
+    DEFAULT_EMAIL_SUFFIX: ENV.SEEDER_EMAIL_SUFFIX || 'example.com'
   },
   categoriesSeeder: {
     DEFAULT_CATEGORY_NUMBER: 8,
