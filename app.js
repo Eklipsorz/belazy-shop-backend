@@ -2,7 +2,7 @@
 const { ENV } = require('./config/env')
 
 const express = require('express')
-// const routes = require('./routes')
+const routes = require('./routes')
 
 const PORT = parseInt(process.env.PORT) || 8080
 
@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
   res.send(`<h1>hi apple ${ENV.ACCESS_TOKEN_SECRET} ${ENV.SEEDER_EMAIL_PREFIX}</h1>`)
 })
 
-// app.use(routes)
+app.use(routes)
 
 app.listen(PORT, () => {
   console.log(`The express server is running at ${PORT}`)

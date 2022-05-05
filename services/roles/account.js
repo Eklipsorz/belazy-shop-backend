@@ -13,7 +13,7 @@ const { blackListRoleIn } = require('../../config/app').generalConfig
 const {
   DEFAULT_BCRYPT_COMPLEXITY,
   DEL_OPERATION_CODE
-} = require('../../config/app').service
+} = require('../../config/app').service.accountService
 
 class AccountService {
   constructor(serviceType) {
@@ -78,14 +78,17 @@ class AccountService {
       }
       const { nickname, email, account, password, avatar } = req.body
       const { file } = req
-
+      console.log('ready: ', file, avatar)
       let uploadAvatar = ''
+      console.log('answer:', avatar === DEL_OPERATION_CODE, DEL_OPERATION_CODE)
       if (avatar === DEL_OPERATION_CODE) {
+        console.log('change1 avatar')
         uploadAvatar = 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1646039874/twitter/project/defaultAvatar_a0hkxw.png'
       } else {
-        uploadAvatar = file?.path
+        uploadAvatar = file
           ? await ImgurFileHandler(file)
           : user.avatar
+        console.log('change2 avatar', file ? 1 : 0)
       }
 
       await User.update({

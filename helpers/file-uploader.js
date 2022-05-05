@@ -5,7 +5,14 @@ const { createReadStream } = require('fs')
 const client = new ImgurClient({ clientId: IMGUR_CLIENT_ID })
 
 const multer = require('multer')
-const upload = multer({ dest: 'temp/' })
+
+const upload = multer({
+  // storage: multer.memoryStorage(),
+  // limits: {
+  //   fileSize: 10 * 1024 * 1024
+  // }
+  dest: 'temp/'
+})
 
 async function ImgurFileHandler(file) {
   try {
