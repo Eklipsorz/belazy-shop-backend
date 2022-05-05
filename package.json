@@ -7,7 +7,7 @@
     "start": "node app.js",
     "dev": "NODE_ENV=development nodemon app.js",
     "create-env": "printenv | grep PROD_ > .env",
-    "deploydb": "NODE_ENV=production ./deploydb.sh",
+    "deploydb": "NODE_ENV=production ./deploy-tools/migrate-db.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
