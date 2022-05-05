@@ -1,4 +1,4 @@
 #!/bin/bash
-dig +short myip.opendns.com @resolver1.opendns.com
+host myip.opendns.com resolver1.opendns.com | grep "myip.opendns.com has" | awk '{print $4}'
 npx sequelize db:migrate
 npx sequelize db:seed:all
