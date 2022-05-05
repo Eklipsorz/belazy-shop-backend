@@ -1,4 +1,5 @@
 #!/bin/bash
-host myip.opendns.com resolver1.opendns.com | grep "myip.opendns.com has" | awk '{print $4}'
+npm install --global public-ip-cli
+public-ip
 npx sequelize db:migrate
 npx sequelize db:seed:all
