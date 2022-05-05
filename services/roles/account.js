@@ -4,7 +4,7 @@ const { status, code } = require('../../config/result-status-table').errorTable
 
 const { getUser } = require('../../helpers/auth-user-getter')
 const { generateAccessToken } = require('../../helpers/jwt-generator')
-const { ImgurFileHandler } = require('../../helpers/file-uploader')
+const { fileUpload } = require('../../helpers/file-uploader')
 const { registerFormValidator, updateFormValidator } = require('../../helpers/form-data-checker')
 
 const { User } = require('../../db/models')
@@ -13,7 +13,7 @@ const { blackListRoleIn } = require('../../config/app').generalConfig
 const {
   DEFAULT_BCRYPT_COMPLEXITY,
   DEL_OPERATION_CODE
-} = require('../../config/app').service
+} = require('../../config/app').service.accountService
 
 class AccountService {
   constructor(serviceType) {
@@ -80,11 +80,12 @@ class AccountService {
       const { file } = req
 
       let uploadAvatar = ''
+
       if (avatar === DEL_OPERATION_CODE) {
         uploadAvatar = 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1646039874/twitter/project/defaultAvatar_a0hkxw.png'
       } else {
-        uploadAvatar = file?.path
-          ? await ImgurFileHandler(file)
+        uploadAvatar = file
+          ? await fileUpload(file)
           : user.avatar
       }
 

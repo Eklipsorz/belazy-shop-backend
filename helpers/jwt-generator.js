@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken')
+const { ENV } = require('../config/env')
 const { tokenExpiresIn } = require('../config/app').generalConfig
 
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET
+const ACCESS_TOKEN_SECRET = ENV.ACCESS_TOKEN_SECRET
 const ACCESS_TOKEN_OPTIONS = {
   expiresIn: tokenExpiresIn.accessToken
 }

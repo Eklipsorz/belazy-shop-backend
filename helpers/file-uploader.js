@@ -1,29 +1,46 @@
-const { ImgurClient } = require('imgur')
-const { code } = require('../config/result-status-table').successTable
-const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
-const { createReadStream } = require('fs')
-const client = new ImgurClient({ clientId: IMGUR_CLIENT_ID })
-
+const { Storage } = require('@google-cloud/storage')
+const { format } = require('util')
+const { fileUploader } = require('../config/app').helper
 const multer = require('multer')
-const upload = multer({ dest: 'temp/' })
 
-async function ImgurFileHandler(file) {
-  try {
-    const response = await client.upload({
-      image: createReadStream(file.path),
-      type: 'stream'
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: fileUploader.MAXFILESIZE
+  }
+})
+
+const PROD_GCLOUD_STORAGE_BUCKET = process.env.PROD_GCLOUD_STORAGE_BUCKET
+const storage = new Storage()
+const bucket = storage.bucket(PROD_GCLOUD_STORAGE_BUCKET)
+
+function cloudStorageHandler(file) {
+  return new Promise((resolve, reject) => {
+    const blob = bucket.file(file.originalname)
+    const blobStream = blob.createWriteStream({ resumable: false })
+    blobStream.on('error', err => reject(err))
+    blobStream.on('finish', () => {
+      const dirname = bucket.name
+      const filename = encodeURI(blob.name)
+      const publicURL = format(
+        `https://storage.googleapis.com/${dirname}/${filename}`
+      )
+      return resolve(publicURL)
     })
+    blobStream.end(file.buffer)
+  })
+}
 
-    const result = response
-    return result.status === code.OK
-      ? result.data.link
-      : 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
+async function fileUpload(file) {
+  try {
+    const resultURL = await cloudStorageHandler(file)
+    return resultURL
   } catch (_) {
-    return 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
+    return fileUploader.DEFAULT_AVATAR
   }
 }
 
 exports = module.exports = {
   upload,
-  ImgurFileHandler
+  fileUpload
 }

@@ -1,8 +1,5 @@
-// If this is called standby, then load env variable with dotenv
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config()
-}
-
+require('dotenv').config()
+const { ENV } = require('./env')
 const { status, code } = require('./result-status-table').errorTable
 
 /* general config */
@@ -63,6 +60,13 @@ const middleware = {
     ORDER_OPTIONS: ['DESC', 'ASC']
   }
 }
+/* helper config */
+const helper = {
+  fileUploader: {
+    MAXFILESIZE: 5 * 1024 * 1024,
+    DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
+  }
+}
 
 /* seeder config */
 const seeder = {
@@ -73,8 +77,8 @@ const seeder = {
     DEFAULT_BCRYPT_COMPLEXITY: 10,
     // 設定使用者預設數量
     DEFAULT_USER_NUMBER: 20,
-    DEFAULT_EMAIL_PREFIX: process.env.SEEDER_EMAIL_PREFIX || 'user',
-    DEFAULT_EMAIL_SUFFIX: process.env.SEEDER_EMAIL_SUFFIX || 'example.com'
+    DEFAULT_EMAIL_PREFIX: ENV.SEEDER_EMAIL_PREFIX || 'user',
+    DEFAULT_EMAIL_SUFFIX: ENV.SEEDER_EMAIL_SUFFIX || 'example.com'
   },
   categoriesSeeder: {
     DEFAULT_CATEGORY_NUMBER: 8,
@@ -137,6 +141,7 @@ const seeder = {
 
 exports = module.exports = {
   // controller,
+  helper,
   service,
   generalConfig,
   middleware,

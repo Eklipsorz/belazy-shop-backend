@@ -1,13 +1,13 @@
 const passport = require('passport')
 const passportJWT = require('passport-jwt')
-
+const { ENV } = require('./env')
 const { User } = require('../db/models')
 const ExtractJWT = require('passport-jwt').ExtractJwt
 const JWTStrategy = passportJWT.Strategy
 
 const JWTStrategyOptions = {
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.ACCESS_TOKEN_SECRET
+  secretOrKey: ENV.ACCESS_TOKEN_SECRET
 }
 
 async function JWTVerify(payload, cb) {
