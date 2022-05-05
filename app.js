@@ -1,6 +1,6 @@
 
 require('dotenv').config()
-
+const cors = require('cors')
 const express = require('express')
 const routes = require('./routes')
 
@@ -13,7 +13,7 @@ const app = express()
 //   }
 //   return next()
 // })
-
+app.use(cors())
 app.use(express.json())
 app.get('/', (req, res) => {
   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
