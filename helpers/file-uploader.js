@@ -20,8 +20,10 @@ function cloudStorageHandler(file) {
     const blobStream = blob.createWriteStream({ resumable: false })
     blobStream.on('error', err => reject(err))
     blobStream.on('finish', () => {
+      const dirname = bucket.name
+      const filename = encodeURI(blob.name)
       const publicURL = format(
-        `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+        `https://storage.googleapis.com/${dirname}/${filename}`
       )
       return resolve(publicURL)
     })
