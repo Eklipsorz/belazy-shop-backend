@@ -60,6 +60,13 @@ const middleware = {
     ORDER_OPTIONS: ['DESC', 'ASC']
   }
 }
+/* helper config */
+const helper = {
+  fileUploader: {
+    MAXFILESIZE: 5 * 1024 * 1024,
+    DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
+  }
+}
 
 /* seeder config */
 const seeder = {
@@ -134,6 +141,7 @@ const seeder = {
 
 exports = module.exports = {
   // controller,
+  helper,
   service,
   generalConfig,
   middleware,
