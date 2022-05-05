@@ -4,9 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_ENV=development node app.js",
+    "start": "node app.js",
     "dev": "NODE_ENV=development nodemon app.js",
-    "create-env": "printenv > .env",
+    "create-env": "printenv | grep PROD_ > .env",
+    "deploydb": "NODE_ENV=production ./deploy-tools/migrate-db.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

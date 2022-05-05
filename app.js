@@ -1,7 +1,5 @@
 
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config()
-}
+require('dotenv').config()
 
 const express = require('express')
 const routes = require('./routes')
@@ -18,9 +16,8 @@ const app = express()
 
 app.use(express.json())
 app.get('/', (req, res) => {
-  res.send(`<h1>hi apple ${process.env.MY_VAR} ${process.env.NODE_ENV}</h1>`)
+  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 })
-
 app.use(routes)
 
 app.listen(PORT, () => {

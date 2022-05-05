@@ -1,7 +1,4 @@
-// If this is called standby, then load env variable with dotenv
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config()
-}
+require('dotenv').config()
 
 const { status, code } = require('./result-status-table').errorTable
 

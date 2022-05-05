@@ -6,6 +6,19 @@ steps:
   entrypoint: npm
   args: ['run', 'create-env']
   env:
-    - 'MY_VAR=${_MY_VAR}'
+    - 'PROD_ACCESS_TOKEN_SECRET=${_ACCESS_TOKEN_SECRET_}'
+    - 'PROD_REFRESH_TOKEN_SECRET=${_REFRESH_TOKEN_SECRET_}' 
+    - 'PROD_SEEDER_EMAIL_PREFIX=${_SEEDER_EMAIL_PREFIX_}' 
+    - 'PROD_SEEDER_EMAIL_SUFFIX=${_SEEDER_EMAIL_SUFFIX_}' 
+    - 'PROD_IMGUR_CLIENT_ID=${_IMGUR_CLIENT_ID_}'
+    - 'PROD_DB_HOSTNAME=${_DB_HOSTNAME_}'
+    - 'PROD_DB_PORT=${_DB_PORT_}'
+    - 'PROD_DB_NAME=${_DB_NAME_}'
+    - 'PROD_DB_USERNAME=${_DB_USERNAME_}'
+    - 'PROD_DB_PASSWORD=${_DB_PASSWORD_}'
+    - 'PROD_GCLOUD_STORAGE_BUCKET=${_GCLOUD_STORAGE_BUCKET_}'
+- name: node:16
+  entrypoint: npm
+  args: ['run', 'deploydb']   
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [ 'app', 'deploy' ]

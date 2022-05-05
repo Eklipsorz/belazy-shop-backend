@@ -1,9 +1,5 @@
 const fs = require('fs')
-
-// If this is called standby, then load env variable with dotenv
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config()
-}
+require('dotenv').config()
 
 module.exports = {
   development: {
