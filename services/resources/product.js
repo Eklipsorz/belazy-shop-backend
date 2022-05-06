@@ -47,8 +47,8 @@ class ProductService {
       if (!products.length) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
       }
-      const resultProduct = products.map(product => product.toJSON())
-      return { error: null, data: { currentPage: page, resultProduct }, message: '獲取成功' }
+      const resultProducts = products.map(product => product.toJSON())
+      return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

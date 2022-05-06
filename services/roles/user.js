@@ -18,7 +18,7 @@ class UserService extends AccountService {
     if (error) return cb(error, data, message)
 
     try {
-      const products = data.resultProduct
+      const products = data.resultProducts
       const loginUserId = getUserId(req)
       // 獲取當前使用者所喜歡的產品清單
       const likedProducts = await Like.findAll({
@@ -90,7 +90,7 @@ class UserService extends AccountService {
 
   async searchProduct(req, cb) {
     try {
-      const { keyword, by, page, limit, order, offset } = req.query
+      const { keyword, by, page, limit, offset } = req.query
       const { AVABILABLE_BY_OPTION } = userService
       // check whether keyword is empty
       if (!keyword) {
@@ -102,6 +102,7 @@ class UserService extends AccountService {
         return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
       }
 
+      // check whether by is correct
       if (!AVABILABLE_BY_OPTION.includes(by.toLowerCase())) {
         return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為錯誤' }))
       }
@@ -118,7 +119,8 @@ class UserService extends AccountService {
           result = exactSearch(data, keyword)
           break
       }
-      return cb(null, result, message)
+      const resultProducts = result.slice(offset, offset + limit)
+      return cb(null, { currentPage: page, resultProducts }, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
@@ -127,7 +129,7 @@ class UserService extends AccountService {
       const fuseOptions = {
         keys: ['name']
       }
-      const products = data.resultProduct
+      const products = data.resultProducts
       const fuse = new Fuse(products, fuseOptions)
       const fuseResults = fuse.search(keyword)
 
@@ -135,7 +137,7 @@ class UserService extends AccountService {
     }
 
     function exactSearch(data, keyword) {
-      const products = data.resultProduct
+      const products = data.resultProducts
       return products.filter(p => p.name === keyword)
     }
   }
