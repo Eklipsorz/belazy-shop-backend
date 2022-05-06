@@ -4,6 +4,7 @@ const { userService } = require('../../config/app').service
 const { Like, Reply } = require('../../db/models')
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
+const Fuse = require('fuse.js')
 
 const { getUserId } = require('../../helpers/auth-user-getter')
 
@@ -13,7 +14,7 @@ class UserService extends AccountService {
   }
 
   async getProducts(req, cb) {
-    const { error, data, message } = await ProductService.getProducts(req)
+    const { error, data, message } = await ProductService.getProducts(req, 'get')
     if (error) return cb(error, data, message)
 
     try {
@@ -88,10 +89,51 @@ class UserService extends AccountService {
   }
 
   async searchProduct(req, cb) {
-    console.log('search product')
-    await ProductService.searchProduct(req)
-    // const { error, data, message } = await ProductService.searchProduct(req)
-    // if (error) return cb(error, data, message)
+    try {
+      const { keyword, by, page, limit, order, offset } = req.query
+
+      // check whether keyword is empty
+      if (!keyword) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
+      }
+
+      // check whether by is empty
+      if (!by) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
+      }
+
+      const { error, data, message } = await ProductService.getProducts(req, 'search')
+      if (error) return cb(error, data, message)
+      let result = ''
+
+      switch (by) {
+        case 'relevancy':
+          result = fuzzySearch(data, keyword)
+          break
+        case 'accuracy':
+          result = exactSearch(data, keyword)
+          break
+      }
+      return cb(null, result, message)
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
+
+    function fuzzySearch(data, keyword) {
+      const fuseOptions = {
+        keys: ['name']
+      }
+      const products = data.resultProduct
+      const fuse = new Fuse(products, fuseOptions)
+      const fuseResults = fuse.search(keyword)
+
+      return fuseResults.map(fr => fr.item)
+    }
+
+    function exactSearch(data, keyword) {
+      const products = data.resultProduct
+      return products.filter(p => p.name === keyword)
+    }
   }
 }
 
