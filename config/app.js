@@ -35,7 +35,8 @@ const service = {
     DEL_OPERATION_CODE: '-1'
   },
   userService: {
-    SEARCH_HINT_NUMBER: 10
+    SEARCH_HINT_NUMBER: 10,
+    AVABILABLE_BY_OPTION: ['relevancy', 'accuracy']
   }
   // userService: {
 

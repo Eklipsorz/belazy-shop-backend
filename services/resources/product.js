@@ -6,7 +6,7 @@ const { status, code } = require('../../config/result-status-table').errorTable
 const { Product, Category, Ownership, Stock, ProductStatistic } = require('../../db/models')
 
 class ProductService {
-  static async getProducts(req) {
+  static async getProducts(req, type) {
     try {
       const { page, limit, offset, order } = req.query
 
@@ -29,17 +29,26 @@ class ProductService {
           }
         ],
         order: [['updatedAt', order]],
-        limit,
-        offset,
         nest: true
       }
+
+      switch (type) {
+        case 'get':
+          findOption.limit = limit
+          findOption.offset = offset
+          break
+        case 'search':
+          // do something for searching
+          break
+      }
+
       const products = await Product.findAll(findOption)
 
       if (!products.length) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
       }
-      const resultProduct = products.map(product => product.toJSON())
-      return { error: null, data: { currentPage: page, resultProduct }, message: '獲取成功' }
+      const resultProducts = products.map(product => product.toJSON())
+      return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

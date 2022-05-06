@@ -4,6 +4,7 @@ const { userService } = require('../../config/app').service
 const { Like, Reply } = require('../../db/models')
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
+const Fuse = require('fuse.js')
 
 const { getUserId } = require('../../helpers/auth-user-getter')
 
@@ -13,11 +14,11 @@ class UserService extends AccountService {
   }
 
   async getProducts(req, cb) {
-    const { error, data, message } = await ProductService.getProducts(req)
+    const { error, data, message } = await ProductService.getProducts(req, 'get')
     if (error) return cb(error, data, message)
 
     try {
-      const products = data.resultProduct
+      const products = data.resultProducts
       const loginUserId = getUserId(req)
       // 獲取當前使用者所喜歡的產品清單
       const likedProducts = await Like.findAll({
@@ -84,6 +85,60 @@ class UserService extends AccountService {
       return cb(error, results, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
+  }
+
+  async searchProduct(req, cb) {
+    try {
+      const { keyword, by, page, limit, offset } = req.query
+      const { AVABILABLE_BY_OPTION } = userService
+      // check whether keyword is empty
+      if (!keyword) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
+      }
+
+      // check whether by is empty
+      if (!by) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
+      }
+
+      // check whether by is correct
+      if (!AVABILABLE_BY_OPTION.includes(by.toLowerCase())) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為錯誤' }))
+      }
+
+      const { error, data, message } = await ProductService.getProducts(req, 'search')
+      if (error) return cb(error, data, message)
+      let result = ''
+
+      switch (by) {
+        case 'relevancy':
+          result = fuzzySearch(data, keyword)
+          break
+        case 'accuracy':
+          result = exactSearch(data, keyword)
+          break
+      }
+      const resultProducts = result.slice(offset, offset + limit)
+      return cb(null, { currentPage: page, resultProducts }, message)
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
+
+    function fuzzySearch(data, keyword) {
+      const fuseOptions = {
+        keys: ['name']
+      }
+      const products = data.resultProducts
+      const fuse = new Fuse(products, fuseOptions)
+      const fuseResults = fuse.search(keyword)
+
+      return fuseResults.map(fr => fr.item)
+    }
+
+    function exactSearch(data, keyword) {
+      const products = data.resultProducts
+      return products.filter(p => p.name === keyword)
     }
   }
 }
