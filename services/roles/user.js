@@ -3,7 +3,7 @@ const { ProductService } = require('../resources/product')
 const { userService } = require('../../config/app').service
 const { Like, Reply } = require('../../db/models')
 const { APIError } = require('../../helpers/api-error')
-const { code } = require('../../config/result-status-table').errorTable
+const { code, status } = require('../../config/result-status-table').errorTable
 
 const { getUserId } = require('../../helpers/auth-user-getter')
 
@@ -80,10 +80,10 @@ class UserService extends AccountService {
 
     try {
       const hintNumber = userService.SEARCH_HINT_NUMBER
-      const result = data.slice(0, hintNumber)
-      return cb(error, result, message)
+      const results = data.slice(0, hintNumber)
+      return cb(error, results, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message }))
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
   }
 }
