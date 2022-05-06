@@ -91,7 +91,7 @@ class UserService extends AccountService {
   async searchProduct(req, cb) {
     try {
       const { keyword, by, page, limit, order, offset } = req.query
-
+      const { AVABILABLE_BY_OPTION } = userService
       // check whether keyword is empty
       if (!keyword) {
         return cb(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
@@ -100,6 +100,10 @@ class UserService extends AccountService {
       // check whether by is empty
       if (!by) {
         return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
+      }
+
+      if (!AVABILABLE_BY_OPTION.includes(by.toLowerCase())) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為錯誤' }))
       }
 
       const { error, data, message } = await ProductService.getProducts(req, 'search')
