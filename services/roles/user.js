@@ -92,18 +92,19 @@ class UserService extends AccountService {
     try {
       const { keyword, by, page, limit, offset } = req.query
       const { AVABILABLE_BY_OPTION } = userService
+      const matchingType = by.toLowerCase()
       // check whether keyword is empty
       if (!keyword) {
         return cb(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
       }
 
       // check whether by is empty
-      if (!by) {
+      if (!matchingType) {
         return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
       }
 
       // check whether by is correct
-      if (!AVABILABLE_BY_OPTION.includes(by.toLowerCase())) {
+      if (!AVABILABLE_BY_OPTION.includes(matchingType)) {
         return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為錯誤' }))
       }
 
@@ -111,7 +112,7 @@ class UserService extends AccountService {
       if (error) return cb(error, data, message)
       let result = ''
 
-      switch (by) {
+      switch (matchingType) {
         case 'relevancy':
           result = fuzzySearch(data, keyword)
           break
