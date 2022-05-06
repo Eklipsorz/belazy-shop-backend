@@ -116,6 +116,42 @@ class ProductService {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
   }
+
+  static async searchProduct(req) {
+    try {
+      const { keyword, by, page, limit, order, offset } = req.query
+      // check whether keyword is empty
+      if (!keyword) {
+        return { error: new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }) }
+      }
+
+      // check whether by is empty
+      if (!by) {
+        return { error: new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }) }
+      }
+
+      // define search rule for product
+      const findOption = {
+        include: [
+          { model: Ownership, attributes: ['categoryId', 'categoryName'], as: 'productCategory' },
+          { model: Stock, attributes: ['quantity', 'categoryName'], as: 'stock' },
+          { model: ProductStatistic, attributes: ['likedCount', 'repliedCount'], as: 'statistics' }
+        ],
+        offset,
+        limit,
+        order: ['updatedAt', order]
+      }
+      // begin to find
+      const products = await Product.findAll(findOption)
+      // nothing to find
+      if (!products.length) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到搜尋結果' }) }
+      }
+      // return search results
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
 }
 
 exports = module.exports = {

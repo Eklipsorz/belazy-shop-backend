@@ -86,6 +86,13 @@ class UserService extends AccountService {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
   }
+
+  async searchProduct(req, cb) {
+    console.log('search product')
+    await ProductService.searchProduct(req)
+    // const { error, data, message } = await ProductService.searchProduct(req)
+    // if (error) return cb(error, data, message)
+  }
 }
 
 const userServices = new UserService()

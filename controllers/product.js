@@ -17,6 +17,11 @@ const productController = {
     userServices.getSearchHints(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  searchProduct: (req, res, next) => {
+    userServices.searchProduct(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 
