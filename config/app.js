@@ -9,7 +9,7 @@ const generalConfig = {
     admin: ['user']
   },
   tokenExpiresIn: {
-    accessToken: '1200s',
+    accessToken: '3600s',
     refreshToken: '3600s'
   },
   DEFAULT_TALLY: {

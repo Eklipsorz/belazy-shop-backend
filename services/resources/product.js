@@ -99,6 +99,9 @@ class ProductService {
         raw: true
       })
 
+      categories.forEach(category => { category.type = 'category' })
+      products.forEach(product => { product.type = 'product' })
+
       keywords.push(...categories, ...products)
 
       const fuseOptions = {
@@ -107,9 +110,8 @@ class ProductService {
       const fuse = new Fuse(keywords, fuseOptions)
       const fuseResults = fuse.search(keyword)
 
-      const result = fuseResults.map(fuseResult => fuseResult.item.name)
-
-      return { error: null, data: result, message: '獲取成功' }
+      const results = fuseResults.map(fuseResult => fuseResult.item)
+      return { error: null, data: results, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
