@@ -1,7 +1,7 @@
 const passport = require('passport')
 const passportJWT = require('passport-jwt')
 const { ENV } = require('./env')
-const { User } = require('../db/models')
+const { User, Like, Reply } = require('../db/models')
 const ExtractJWT = require('passport-jwt').ExtractJwt
 const JWTStrategy = passportJWT.Strategy
 
@@ -12,7 +12,13 @@ const JWTStrategyOptions = {
 
 async function JWTVerify(payload, cb) {
   try {
-    const user = await User.findByPk(payload.id)
+    const findOption = {
+      include: [
+        { model: Like, attributes: ['productId'], as: 'likedProducts' },
+        { model: Reply, attributes: ['productId'], as: 'repliedProducts' }
+      ]
+    }
+    const user = await User.findByPk(payload.id, findOption)
 
     if (!user) return cb(null, false)
     return cb(null, user.toJSON())

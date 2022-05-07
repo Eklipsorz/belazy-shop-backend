@@ -1,12 +1,26 @@
 const { AccountService } = require('./account')
 const { ProductService } = require('../resources/product')
 const { userService } = require('../../config/app').service
-const { Like, Reply } = require('../../db/models')
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
 const Fuse = require('fuse.js')
 
-const { getUserId } = require('../../helpers/auth-user-getter')
+const { getUser } = require('../../helpers/auth-user-getter')
+
+// 標記是否喜歡或者是否評論過
+function statusMarker(req, products) {
+  const loginUser = getUser(req)
+
+  products = Array.isArray(products) ? products : [products]
+
+  const likedProducts = loginUser.likedProducts
+  const repliedProducts = loginUser.repliedProducts
+
+  products.forEach(product => {
+    product.isLiked = likedProducts.some(lp => lp.productId === product.id)
+    product.isReplied = repliedProducts.some(rp => rp.productId === product.id)
+  })
+}
 
 class UserService extends AccountService {
   constructor() {
@@ -19,26 +33,7 @@ class UserService extends AccountService {
 
     try {
       const products = data.resultProducts
-      const loginUserId = getUserId(req)
-      // 獲取當前使用者所喜歡的產品清單
-      const likedProducts = await Like.findAll({
-        attributes: ['productId'],
-        where: { userId: loginUserId },
-        raw: true
-      })
-
-      // 獲取當前使用者所評論的產品清單
-      const repliedProducts = await Reply.findAll({
-        attributes: ['productId'],
-        where: { userId: loginUserId },
-        raw: true
-      })
-      // 將所有產品資訊整理好可回傳的形式
-      products.forEach(product => {
-        product.isLiked = likedProducts.some(lp => lp.productId === product.id)
-        product.isReplied = repliedProducts.some(rp => rp.productId === product.id)
-      })
-
+      statusMarker(req, products)
       return cb(null, data, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
@@ -51,24 +46,7 @@ class UserService extends AccountService {
     if (error) return cb(error, data, message)
     try {
       const product = data
-      const loginUserId = getUserId(req)
-      // 獲取當前使用者所喜歡的產品清單
-      const likedProducts = await Like.findAll({
-        attributes: ['productId'],
-        where: { userId: loginUserId },
-        raw: true
-      })
-
-      // 獲取當前使用者所評論的產品清單
-      const repliedProducts = await Reply.findAll({
-        attributes: ['productId'],
-        where: { userId: loginUserId },
-        raw: true
-      })
-
-      product.isLiked = likedProducts.some(lp => lp.productId === product.id)
-      product.isReplied = repliedProducts.some(rp => rp.productId === product.id)
-
+      statusMarker(req, product)
       return cb(null, data, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
@@ -121,6 +99,7 @@ class UserService extends AccountService {
           break
       }
       const resultProducts = result.slice(offset, offset + limit)
+      statusMarker(req, resultProducts)
       return cb(null, { currentPage: page, resultProducts }, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
