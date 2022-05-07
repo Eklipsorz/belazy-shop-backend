@@ -125,7 +125,8 @@ class UserService extends AccountService {
 
   async searchCategory(req, cb) {
     console.log('hi this user service')
-    await CategoryService.getProducts(req)
+    const { error, data, message } = await CategoryService.getProductsFromCategories(req)
+    return cb(error, data, message)
   }
 }
 

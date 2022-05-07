@@ -31,27 +31,23 @@ class CategoryService {
           ['name', 'categoryName']
         ],
         order: [
-          [sequelize.literal('`Ownerships.Product.updatedAt`'), order]
+          // [sequelize.literal('`Ownerships.Product.updatedAt`'), order]
         ]
       }
 
-      switch (type) {
-        case 'get':
-          findOption.limit = limit
-          findOption.offset = offset
-          break
-        case 'search':
-          // do something for searching
-          break
+      // begin to find
+      const products = await Category.findAll(findOption)
+
+      // nothing to find
+      if (!products.length) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
       }
 
-      // begin to find
-      const categories = await Category.findAll(findOption)
-      // nothing to find
-
       // return data
+      const resultProducts = products.map(product => product.toJSON())
+      return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
     } catch (error) {
-      return { error: new APIError({ code, status, message: error.message }) }
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
   }
 }
