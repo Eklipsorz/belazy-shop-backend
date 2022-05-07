@@ -8,9 +8,8 @@ class CategoryService {
   // Get every product from every category
   static async getProductsFromCategories(req, type = 'get') {
     try {
-      const { page, limit, offset, order } = req.query
+      const { order } = req.query
       // define how to find
-
       const includeProductOption = [
         { model: Stock, attributes: ['quantity', 'restQuantity'], as: 'stock' },
         { model: ProductStatistic, attributes: ['likedTally', 'repliedTally'], as: 'statistics' }
@@ -31,7 +30,7 @@ class CategoryService {
           ['name', 'categoryName']
         ],
         order: [
-          // [sequelize.literal('`Ownerships.Product.updatedAt`'), order]
+          [sequelize.literal('`Ownerships.Product.updatedAt`'), order]
         ]
       }
 
@@ -45,7 +44,7 @@ class CategoryService {
 
       // return data
       const resultProducts = products.map(product => product.toJSON())
-      return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
+      return { error: null, data: { resultProducts }, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
