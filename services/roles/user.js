@@ -1,5 +1,6 @@
 const { AccountService } = require('./account')
 const { ProductService } = require('../resources/product')
+const { CategoryService } = require('../resources/category')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -120,6 +121,11 @@ class UserService extends AccountService {
       const products = data.resultProducts
       return products.filter(p => p.name === keyword)
     }
+  }
+
+  async searchCategory(req, cb) {
+    console.log('hi this user service')
+    await CategoryService.getProducts(req)
   }
 }
 

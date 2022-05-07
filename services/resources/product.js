@@ -6,7 +6,7 @@ const { status, code } = require('../../config/result-status-table').errorTable
 const { Product, Category, Ownership, Stock, ProductStatistic } = require('../../db/models')
 
 class ProductService {
-  static async getProducts(req, type) {
+  static async getProducts(req, type = 'get') {
     try {
       const { page, limit, offset, order } = req.query
 
