@@ -28,8 +28,12 @@ class AdminService extends AccountService {
   }
 
   async getProductsFromCategory(req, cb) {
-    console.log('inside service')
     const { error, data, message } = await CategoryService.getProductsFromCategory(req)
+    return cb(error, data, message)
+  }
+
+  async getProductsFromCategories(req, cb) {
+    const { error, data, message } = await CategoryService.getProductsFromCategories(req)
     return cb(error, data, message)
   }
 }

@@ -19,6 +19,7 @@ const categoryController = {
     )
   },
   getProductsFromCategories: (req, res, next) => {
+    console.log('categories controller')
     userServices.getProductsFromCategories(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )

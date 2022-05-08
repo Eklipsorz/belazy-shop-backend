@@ -78,12 +78,13 @@ class CategoryService {
             attributes: ['productId', 'categoryId'],
             include: [
               { model: Product, include: includeProductOption }
-            ]
+            ],
+            as: 'ownedProducts'
           }
         ],
         where: { id: categoryId },
         order: [
-          [sequelize.literal('`Ownerships.Product.createdAt`'), order]
+          [sequelize.literal('`ownedProducts.Product.createdAt`'), order]
         ]
 
       }
@@ -96,7 +97,7 @@ class CategoryService {
       // return data
       const results = products.toJSON()
 
-      let resultProducts = results.Ownerships.map(result => ({ ...result.Product }))
+      let resultProducts = results.ownedProducts.map(result => ({ ...result.Product }))
 
       switch (type) {
         case 'get':
@@ -136,7 +137,8 @@ class CategoryService {
             attributes: ['categoryId', 'productId'],
             include: [
               { model: Product, include: includeProductOption }
-            ]
+            ],
+            as: 'ownedProducts'
           }
         ],
         attributes: [
@@ -144,21 +146,26 @@ class CategoryService {
           ['name', 'categoryName']
         ],
         order: [
-          [sequelize.literal('`Ownerships.Product.updatedAt`'), order]
+          [sequelize.literal('`ownedProducts.Product.createdAt`'), order]
         ]
       }
 
       // begin to find
-      const products = await Category.findAll(findOption)
+      const categories = await Category.findAll(findOption)
 
       // nothing to find
-      if (!products.length) {
+      if (!categories.length) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
       }
 
       // return data
-      const resultProducts = products.map(product => product.toJSON())
-      return { error: null, data: { resultProducts }, message: '獲取成功' }
+      const resultProducts = categories.map(category => category.toJSON())
+      resultProducts.forEach(productSet => {
+        const ownerships = productSet.ownedProducts
+        productSet.ownedProducts = ownerships.map(ownership => ({ ...ownership.Product }))
+      })
+
+      return { error: null, data: resultProducts, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

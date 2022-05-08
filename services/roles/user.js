@@ -150,6 +150,22 @@ class UserService extends AccountService {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
   }
+
+  async getProductsFromCategories(req, cb) {
+    const { error, data, message } = await CategoryService.getProductsFromCategories(req)
+
+    if (error) return cb(error, data, message)
+    try {
+      const resultSets = data
+      resultSets.forEach(set => {
+        const products = set.ownedProducts
+        statusMarker(req, products)
+      })
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
+  }
 }
 
 const userServices = new UserService()

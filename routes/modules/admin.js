@@ -7,6 +7,7 @@ const router = express.Router()
 router.get('/self', adminController.getSelf)
 router.put('/self', adminController.putSelf)
 
+router.get('/categories/products', adminController.getProductsFromCategories)
 router.get('/categories/:categoryId/products', ExistURIValidator, paging, adminController.getProductsFromCategory)
 router.get('/categories/:categoryId', ExistURIValidator, adminController.getCategory)
 router.get('/categories', paging, adminController.getCategories)
