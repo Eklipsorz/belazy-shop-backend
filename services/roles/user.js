@@ -16,9 +16,7 @@ function statusMarker(req, products) {
 
   const likedProducts = loginUser.likedProducts
   const repliedProducts = loginUser.repliedProducts
-  // console.log(likedProducts)
-  // console.log(repliedProducts)
-  // console.log(products)
+
   products.forEach(product => {
     product.isLiked = likedProducts.some(lp => lp.productId === product.id)
     product.isReplied = repliedProducts.some(rp => rp.productId === product.id)

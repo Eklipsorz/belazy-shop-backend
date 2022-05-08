@@ -36,6 +36,11 @@ const adminController = {
     adminServices.getCategories(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getProductsFromCategory: (req, res, next) => {
+    adminServices.getProductsFromCategory(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 
