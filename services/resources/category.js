@@ -36,6 +36,15 @@ class CategoryService {
     }
   }
 
+  // Get a specific category
+  static async getCategory(req) {
+    try {
+      const { categoryId } = req.params
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   // Get every product from a specific category
   static async getProductsFromCategory(req, type = 'get') {
 
