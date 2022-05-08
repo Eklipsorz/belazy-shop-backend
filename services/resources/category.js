@@ -7,10 +7,9 @@ class CategoryService {
   static async getCategories(req, type = 'get') {
     try {
       const { page, limit, offset, order } = req.query
-
       const findOption = {
         // define how to find
-        order: [['updatedAt', order]]
+        order: [['createdAt', order]]
       }
       switch (type) {
         case 'get':
@@ -25,7 +24,7 @@ class CategoryService {
 
       // nothing to find
       if (!categories.length) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到類別' }) }
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品類別' }) }
       }
 
       const resultCategories = categories.map(category => category.toJSON())
@@ -37,13 +36,13 @@ class CategoryService {
   }
 
   // Get a specific category
-  static async getCategory(req) {
-    try {
-      const { categoryId } = req.params
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
-    }
-  }
+  // static async getCategory(req) {
+  //   try {
+  //     const { categoryId } = req.params
+  //   } catch (error) {
+  //     return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+  //   }
+  // }
 
   // Get every product from a specific category
   static async getProductsFromCategory(req, type = 'get') {

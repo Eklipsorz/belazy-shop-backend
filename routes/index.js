@@ -1,6 +1,7 @@
 const express = require('express')
 const userRoutes = require('./modules/users')
 const adminRoutes = require('./modules/admin')
+const categoryRoutes = require('./modules/category')
 const productRoutes = require('./modules/product')
 
 const { userController } = require('../controllers/user')
@@ -23,6 +24,7 @@ router.post('/users', userController.register)
 // 後台登入
 router.post('/admin/login', adminController.login)
 
+router.use('/categories', authenticate, categoryRoutes)
 router.use('/users', authenticate, authenticateUser, userRoutes)
 router.use('/products', authenticate, authenticateUser, productRoutes)
 router.use('/admin', authenticate, authenticateAdmin, adminRoutes)

@@ -5,6 +5,8 @@ const router = express.Router()
 
 router.get('/self', adminController.getSelf)
 router.put('/self', adminController.putSelf)
+
+router.get('/categories', paging, adminController.getCategories)
 router.get('/products/:productId', adminController.getProduct)
 router.get('/products', paging, adminController.getProducts)
 
