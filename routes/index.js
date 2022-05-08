@@ -25,8 +25,8 @@ router.post('/users', userController.register)
 router.post('/admin/login', adminController.login)
 
 router.use('/categories', authenticate, categoryRoutes)
+router.use('/products', authenticate, productRoutes)
 router.use('/users', authenticate, authenticateUser, userRoutes)
-router.use('/products', authenticate, authenticateUser, productRoutes)
 router.use('/admin', authenticate, authenticateAdmin, adminRoutes)
 
 router.use(APIErrorHandler)
