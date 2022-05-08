@@ -5,5 +5,7 @@ const { ExistURIValidator } = require('../../middlewares/URI-format-validator')
 const router = express.Router()
 
 router.get('/', paging, categoryController.getCategories)
+router.get('/:categoryId/products', ExistURIValidator, paging, categoryController.getProductsFromCategory)
 router.get('/:categoryId', ExistURIValidator, categoryController.getCategory)
+
 exports = module.exports = router

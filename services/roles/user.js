@@ -16,7 +16,9 @@ function statusMarker(req, products) {
 
   const likedProducts = loginUser.likedProducts
   const repliedProducts = loginUser.repliedProducts
-
+  // console.log(likedProducts)
+  // console.log(repliedProducts)
+  // console.log(products)
   products.forEach(product => {
     product.isLiked = likedProducts.some(lp => lp.productId === product.id)
     product.isReplied = repliedProducts.some(rp => rp.productId === product.id)
@@ -137,6 +139,18 @@ class UserService extends AccountService {
   async getCategories(req, cb) {
     const { error, data, message } = await CategoryService.getCategories(req)
     return cb(error, data, message)
+  }
+
+  async getProductsFromCategory(req, cb) {
+    const { error, data, message } = await CategoryService.getProductsFromCategory(req)
+    if (error) return cb(error, data, message)
+    try {
+      const products = data.resultProducts
+      statusMarker(req, products)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
   }
 }
 

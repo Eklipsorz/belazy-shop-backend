@@ -62,7 +62,61 @@ class CategoryService {
 
   // Get every product from a specific category
   static async getProductsFromCategory(req, type = 'get') {
+    try {
+      const { page, limit, offset, order } = req.query
+      const { categoryId } = req.params
 
+      // define how to find
+      const includeProductOption = [
+        { model: Stock, attributes: ['quantity', 'restQuantity'], as: 'stock' },
+        { model: ProductStatistic, attributes: ['likedTally', 'repliedTally'], as: 'statistics' }
+      ]
+      const findOption = {
+        include: [
+          {
+            model: Ownership,
+            attributes: ['productId', 'categoryId'],
+            include: [
+              { model: Product, include: includeProductOption }
+            ]
+          }
+        ],
+        where: { id: categoryId },
+        order: [
+          [sequelize.literal('`Ownerships.Product.createdAt`'), order]
+        ]
+
+      }
+      // begin to find
+      const products = await Category.findOne(findOption)
+      // nothing to find
+      if (!products) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
+      }
+      // return data
+      const results = products.toJSON()
+
+      let resultProducts = results.Ownerships.map(result => ({ ...result.Product }))
+
+      switch (type) {
+        case 'get':
+          resultProducts = resultProducts.slice(offset, offset + limit)
+          break
+        case 'search':
+          break
+      }
+
+      const returnObject = {
+        categoryId,
+        categoryName: results.name,
+        currentPage: page,
+        resultProducts
+      }
+
+      return { error: null, data: returnObject, message: '獲取成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
   }
 
   // Get every product from every category
