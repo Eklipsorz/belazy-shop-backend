@@ -130,8 +130,8 @@ class UserService extends AccountService {
   }
 
   async getCategory(req, cb) {
-    console.log('this category id')
-    await CategoryService.getCategory(req)
+    const { error, data, message } = await CategoryService.getCategory(req)
+    return cb(error, data, message)
   }
 
   async getCategories(req, cb) {

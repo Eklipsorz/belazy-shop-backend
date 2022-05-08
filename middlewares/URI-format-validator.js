@@ -3,6 +3,7 @@ const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 function ExistURIValidator(req, _, next) {
   const URIParams = req.params
+
   const isExistURI = Object.values(URIParams).every(key => !isNaN(key))
 
   if (isExistURI) {
