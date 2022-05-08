@@ -23,8 +23,27 @@ const adminController = {
     )
   },
   getProduct: (req, res, next) => {
-    console.log('hasdsa')
     adminServices.getProduct(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
+  getCategory: (req, res, next) => {
+    adminServices.getCategory(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
+  getCategories: (req, res, next) => {
+    adminServices.getCategories(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
+  getProductsFromCategory: (req, res, next) => {
+    adminServices.getProductsFromCategory(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
+  getProductsFromCategories: (req, res, next) => {
+    adminServices.getProductsFromCategories(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   }

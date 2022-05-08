@@ -1,5 +1,6 @@
 const { AccountService } = require('./account')
 const { ProductService } = require('../resources/product')
+const { CategoryService } = require('../resources/category')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -119,6 +120,50 @@ class UserService extends AccountService {
     function exactSearch(data, keyword) {
       const products = data.resultProducts
       return products.filter(p => p.name === keyword)
+    }
+  }
+
+  async searchCategory(req, cb) {
+    console.log('hi this user service')
+    // const { error, data, message } = await CategoryService.getCategory(req)
+    // return cb(error, data, message)
+  }
+
+  async getCategory(req, cb) {
+    const { error, data, message } = await CategoryService.getCategory(req)
+    return cb(error, data, message)
+  }
+
+  async getCategories(req, cb) {
+    const { error, data, message } = await CategoryService.getCategories(req)
+    return cb(error, data, message)
+  }
+
+  async getProductsFromCategory(req, cb) {
+    const { error, data, message } = await CategoryService.getProductsFromCategory(req)
+    if (error) return cb(error, data, message)
+    try {
+      const products = data.resultProducts
+      statusMarker(req, products)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
+  }
+
+  async getProductsFromCategories(req, cb) {
+    const { error, data, message } = await CategoryService.getProductsFromCategories(req)
+
+    if (error) return cb(error, data, message)
+    try {
+      const resultSets = data
+      resultSets.forEach(set => {
+        const products = set.ownedProducts
+        statusMarker(req, products)
+      })
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
   }
 }

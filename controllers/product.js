@@ -22,6 +22,12 @@ const productController = {
     userServices.searchProduct(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  searchCategory: (req, res, next) => {
+    console.log('hi this product controller')
+    userServices.searchCategory(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 
