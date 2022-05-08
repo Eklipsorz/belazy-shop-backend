@@ -4,9 +4,45 @@ const { Ownership, Category, Product, Stock, ProductStatistic, sequelize } = req
 
 class CategoryService {
   // Get all category (Only include category)
+  static async getCategories(req, type = 'get') {
+    try {
+      const { page, limit, offset, order } = req.query
+
+      const findOption = {
+        // define how to find
+        order: [['updatedAt', order]]
+      }
+      switch (type) {
+        case 'get':
+          findOption.limit = limit
+          findOption.offset = offset
+          break
+        case 'search':
+          break
+      }
+      // begin to find
+      const categories = await Category.findAll(findOption)
+
+      // nothing to find
+      if (!categories.length) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到類別' }) }
+      }
+
+      const resultCategories = categories.map(category => category.toJSON())
+
+      return { error: null, data: { currentPage: page, resultCategories }, message: '獲取成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   // Get every product from a specific category
+  static async getProductsFromCategory(req, type = 'get') {
+
+  }
+
   // Get every product from every category
-  static async getProductsFromCategories(req, type = 'get') {
+  static async getProductsFromCategories(req) {
     try {
       const { order } = req.query
       // define how to find
