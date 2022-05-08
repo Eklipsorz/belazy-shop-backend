@@ -28,7 +28,7 @@ class ProductService {
             as: 'statistics'
           }
         ],
-        order: [['updatedAt', order]],
+        order: [['createdAt', order]],
         nest: true
       }
 
@@ -80,7 +80,7 @@ class ProductService {
       const product = await Product.findByPk(productId, findOption)
 
       if (!product) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應產品' }) }
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
       }
       const resultProduct = product.toJSON()
       return { error: null, data: resultProduct, message: '獲取成功' }
