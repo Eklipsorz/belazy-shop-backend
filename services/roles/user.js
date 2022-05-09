@@ -58,7 +58,7 @@ class UserService extends AccountService {
 
   // get search hint when user input something in search bar
   async getSearchHints(req, cb) {
-    const { error, data, message } = await ProductService.getSearchHints(req)
+    const { error, data, message } = await SearchService.getSearchHints(req)
     if (error) return cb(error, data, message)
 
     try {

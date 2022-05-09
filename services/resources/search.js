@@ -3,9 +3,42 @@ const { CategoryService } = require('./category')
 const { ProductService } = require('./product')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { ArrayToolKit } = require('../../helpers/array-tool-kit')
-const { Ownership, Category, Product, Stock, ProductStatistic, sequelize } = require('../../db/models')
+const { Category, Product } = require('../../db/models')
 
 class SearchService {
+  static async getSearchHints(req) {
+    try {
+      const { keyword } = req.query
+      if (!keyword) {
+        return { error: new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }) }
+      }
+      // 建立一個搜尋用的關鍵字陣列
+      const keywords = []
+      // 獲取所有類別的名稱，來加進關鍵字陣列
+      const categories = await Category.findAll({
+        attributes: ['name'],
+        raw: true
+      })
+      // 獲取所有產品的名稱，來加進關鍵字陣列
+      const products = await Product.findAll({
+        attributes: ['name'],
+        raw: true
+      })
+
+      categories.forEach(category => { category.type = 'category' })
+      products.forEach(product => { product.type = 'product' })
+
+      keywords.push(...categories, ...products)
+
+      const searchOption = { data: keywords, field: 'name', keyword }
+      const fuseResults = ArrayToolKit.fuzzySearch(searchOption)
+
+      return { error: null, data: fuseResults, message: '獲取成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   static async searchProducts(req) {
     const { error, data, message } = await ProductService.getProducts(req, 'search')
     if (error) return { error, data, message }
@@ -97,6 +130,9 @@ class SearchService {
       })
       // [{data.productSet1}, {data.productSet2}] -> [product1, product2, ....]
       let resultProducts = resultProductArrays.reduce((prev, next) => prev.concat(next))
+      if (!resultProducts.length) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
+      }
       // paging
       resultProducts = resultProducts.slice(offset, offset + limit)
 

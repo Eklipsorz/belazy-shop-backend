@@ -92,7 +92,6 @@ class CategoryService {
       const products = await Category.findOne(findOption)
 
       // nothing to find
-      // return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
       if (!products) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
       }
