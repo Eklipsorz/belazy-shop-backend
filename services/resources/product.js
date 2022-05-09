@@ -1,6 +1,6 @@
 
 const { APIError } = require('../../helpers/api-error')
-const { ArrayToolKit } = require('../../helpers/array-tool-kit')
+const { ArrayToolKit } = require('../../utils/array-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { Product, Ownership, Stock, ProductStatistic } = require('../../db/models')
 

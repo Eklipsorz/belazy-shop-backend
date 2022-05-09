@@ -2,7 +2,7 @@ const { APIError } = require('../../helpers/api-error')
 const { CategoryService } = require('./category')
 const { ProductService } = require('./product')
 const { status, code } = require('../../config/result-status-table').errorTable
-const { ArrayToolKit } = require('../../helpers/array-tool-kit')
+const { ArrayToolKit } = require('../../utils/array-tool-kit')
 const { Category, Product } = require('../../db/models')
 
 class SearchService {

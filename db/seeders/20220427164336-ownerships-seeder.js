@@ -3,7 +3,7 @@
 每一個紀錄都必須記錄著產品ID和其對應的產品類別ID、名稱
 */
 const { ownershipsSeeder } = require('../../config/app').seeder
-const { generateOptions } = require('../../helpers/number-generator')
+const { ArrayToolKit } = require('../../utils/array-tool-kit')
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -39,7 +39,7 @@ module.exports = {
       // 確定每個產品能選多少個種類
       const optionNum = Math.floor(Math.random() * (MAX - MIN) + 1) + MIN
       // 以種類的索引值為選項來產出
-      const options = generateOptions(optionNum, categoryNum)
+      const options = ArrayToolKit.generateOptions(optionNum, categoryNum)
       // 分配種類並轉換準備要產出的資料
       options.forEach(option => {
         const index = Number(option)

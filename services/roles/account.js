@@ -1,11 +1,9 @@
 const bcrypt = require('bcryptjs')
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
-
-const { getUser } = require('../../helpers/auth-user-getter')
-const { generateAccessToken } = require('../../helpers/jwt-generator')
-const { fileUpload } = require('../../helpers/file-uploader')
-const { registerFormValidator, updateFormValidator } = require('../../helpers/form-data-checker')
+const { AuthToolKit } = require('../../utils/auth-tool-kit')
+const { FileUploadToolKit } = require('../../utils/file-upload-tool-kit')
+const { ParameterValidator } = require('../../utils/parameter-validator')
 
 const { User } = require('../../db/models')
 
@@ -38,7 +36,7 @@ class AccountService {
         return cb(new APIError({ code: code.FORBIDDEN, status, message: '帳號或密碼不正確' }))
       }
       const resultUser = user.toJSON()
-      const accessToken = generateAccessToken(resultUser)
+      const accessToken = AuthToolKit.generateAccessToken(resultUser)
       delete resultUser.password
       return cb(null, { accessToken, ...resultUser }, '登入成功')
     } catch (error) {
@@ -48,7 +46,7 @@ class AccountService {
 
   async register(req, cb) {
     try {
-      const message = await registerFormValidator(req)
+      const message = await ParameterValidator.registerFormValidate(req)
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
@@ -71,8 +69,8 @@ class AccountService {
 
   async putSelf(req, cb) {
     try {
-      const user = getUser(req)
-      const message = await updateFormValidator(req)
+      const user = AuthToolKit.getUser(req)
+      const message = await ParameterValidator.updateFormValidate(req)
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
@@ -85,7 +83,7 @@ class AccountService {
         uploadAvatar = 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1646039874/twitter/project/defaultAvatar_a0hkxw.png'
       } else {
         uploadAvatar = file
-          ? await fileUpload(file)
+          ? await FileUploadToolKit.fileUpload(file)
           : user.avatar
       }
 
@@ -109,7 +107,7 @@ class AccountService {
 
   async getSelf(req, cb) {
     try {
-      const resultUser = getUser(req)
+      const resultUser = AuthToolKit.getUser(req)
       delete resultUser.password
       return cb(null, resultUser, '獲取成功')
     } catch (error) {

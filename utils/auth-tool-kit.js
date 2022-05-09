@@ -7,10 +7,20 @@ const ACCESS_TOKEN_OPTIONS = {
   expiresIn: tokenExpiresIn.accessToken
 }
 
-function generateAccessToken(payload) {
-  return jwt.sign(payload, ACCESS_TOKEN_SECRET, ACCESS_TOKEN_OPTIONS)
+class AuthToolKit {
+  static getUser(req) {
+    return req.user || null
+  }
+
+  static getUserId(req) {
+    return this.getUser(req)?.id
+  }
+
+  static generateAccessToken(payload) {
+    return jwt.sign(payload, ACCESS_TOKEN_SECRET, ACCESS_TOKEN_OPTIONS)
+  }
 }
 
 exports = module.exports = {
-  generateAccessToken
+  AuthToolKit
 }
