@@ -5,7 +5,7 @@ const { status, code } = require('../../config/result-status-table').errorTable
 const { getUser } = require('../../helpers/auth-user-getter')
 const { generateAccessToken } = require('../../helpers/jwt-generator')
 const { fileUpload } = require('../../helpers/file-uploader')
-const { registerFormValidator, updateFormValidator } = require('../../helpers/form-data-checker')
+const { ParameterValidator } = require('../../utils/parameter-validator')
 
 const { User } = require('../../db/models')
 
@@ -48,7 +48,7 @@ class AccountService {
 
   async register(req, cb) {
     try {
-      const message = await registerFormValidator(req)
+      const message = await ParameterValidator.registerFormValidate(req)
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
@@ -72,7 +72,7 @@ class AccountService {
   async putSelf(req, cb) {
     try {
       const user = getUser(req)
-      const message = await updateFormValidator(req)
+      const message = await ParameterValidator.updateFormValidate(req)
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
