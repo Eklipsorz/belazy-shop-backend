@@ -2,7 +2,6 @@ const bcrypt = require('bcryptjs')
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
-const { generateAccessToken } = require('../../helpers/jwt-generator')
 const { fileUpload } = require('../../helpers/file-uploader')
 const { ParameterValidator } = require('../../utils/parameter-validator')
 
@@ -37,7 +36,7 @@ class AccountService {
         return cb(new APIError({ code: code.FORBIDDEN, status, message: '帳號或密碼不正確' }))
       }
       const resultUser = user.toJSON()
-      const accessToken = generateAccessToken(resultUser)
+      const accessToken = AuthToolKit.generateAccessToken(resultUser)
       delete resultUser.password
       return cb(null, { accessToken, ...resultUser }, '登入成功')
     } catch (error) {
