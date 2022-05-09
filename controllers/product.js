@@ -18,14 +18,15 @@ const productController = {
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
-  searchProduct: (req, res, next) => {
-    userServices.searchProduct(req, (error, data, message) =>
+  searchProducts: (req, res, next) => {
+    userServices.searchProducts(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
-  searchCategory: (req, res, next) => {
-    console.log('hi this product controller')
-    userServices.searchCategory(req, (error, data, message) =>
+
+  searchProductsFromCategory: (req, res, next) => {
+    console.log('searchProductsFromCategory')
+    userServices.searchProductsFromCategory(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   }

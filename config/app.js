@@ -37,6 +37,9 @@ const service = {
   userService: {
     SEARCH_HINT_NUMBER: 10,
     AVABILABLE_BY_OPTION: ['relevancy', 'accuracy']
+  },
+  searchService: {
+
   }
   // userService: {
 
@@ -59,6 +62,9 @@ const middleware = {
     DEFAULT_LIMIT: 10,
     DEFAULT_ORDER: 'DESC',
     ORDER_OPTIONS: ['DESC', 'ASC']
+  },
+  parameterValidator: {
+    AVABILABLE_BY_OPTION: ['relevancy', 'accuracy']
   }
 }
 /* helper config */
