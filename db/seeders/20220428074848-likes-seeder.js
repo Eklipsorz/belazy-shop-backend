@@ -1,7 +1,7 @@
 'use strict'
 
 const { likesSeeder } = require('../../config/app').seeder
-const { generateOptions } = require('../../helpers/number-generator')
+const { ArrayToolKit } = require('../../utils/array-tool-kit')
 
 /*
 同個產品會有5個人喜歡
@@ -39,7 +39,7 @@ module.exports = {
     // 依據產品來給予五個人的喜歡
     seedProducts.forEach(productId => {
       // 從使用者挑出五位不重複的使用者索引值
-      const options = generateOptions(CURRENT, optionMaxNum)
+      const options = ArrayToolKit.generateOptions(CURRENT, optionMaxNum)
       options.forEach(option => {
         const index = Number(option)
         const userId = seedUsers[index]

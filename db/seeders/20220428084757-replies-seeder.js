@@ -5,7 +5,7 @@
 在同個產品上，每個評論者只會對產品擁有一次的評論
 */
 const { repliesSeeder } = require('../../config/app').seeder
-const { generateOptions } = require('../../helpers/number-generator')
+const { ArrayToolKit } = require('../../utils/array-tool-kit')
 const { faker } = require('@faker-js/faker')
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -37,7 +37,7 @@ module.exports = {
     // 依據產品來給予五個人的回覆
     seedProducts.forEach(productId => {
       // 從使用者挑出五位不重複的使用者索引值
-      const options = generateOptions(CURRENT, optionMaxNum)
+      const options = ArrayToolKit.generateOptions(CURRENT, optionMaxNum)
 
       options.forEach(option => {
         const index = Number(option)
