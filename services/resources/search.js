@@ -1,12 +1,41 @@
 const { APIError } = require('../../helpers/api-error')
 const { CategoryService } = require('./category')
+const { ProductService } = require('./product')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { ArrayToolKit } = require('../../helpers/array-tool-kit')
 const { Ownership, Category, Product, Stock, ProductStatistic, sequelize } = require('../../db/models')
 
 class SearchService {
   static async searchProducts(req) {
+    const { error, data, message } = await ProductService.getProducts(req, 'search')
+    if (error) return { error, data, message }
+    try {
+      const { keyword, by, page, limit, offset } = req.query
+      const matchingType = by
+      // match category according "by" parameter
+      let result = ''
 
+      const searchOption = { data: data.resultProducts, field: 'name', keyword }
+
+      switch (matchingType) {
+        case 'relevancy':
+          result = ArrayToolKit.fuzzySearch(searchOption)
+          break
+        case 'accuracy':
+          result = ArrayToolKit.exactSearch(searchOption)
+          break
+      }
+
+      if (!result.length) {
+        return { error: APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
+      }
+      // paging
+      const resultProducts = result.slice(offset, offset + limit)
+
+      return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
   }
 
   static async searchProductsFromCategory(req) {
@@ -32,8 +61,8 @@ class SearchService {
       if (!result.length) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
       }
-      // get all products from some specific categories
 
+      // get all products from some specific categories
       const products = await Promise
         .all(
           result.map(async item => {

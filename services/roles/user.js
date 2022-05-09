@@ -72,49 +72,13 @@ class UserService extends AccountService {
 
   // search product with a specific product name
   async searchProducts(req, cb) {
+    const { error, data, message } = await SearchService.searchProducts(req)
+    if (error) return cb(error, data, message)
     try {
-      const { keyword, by, page, limit, offset } = req.query
-      const { AVABILABLE_BY_OPTION } = userService
-      const matchingType = by?.toLowerCase()
-      // check whether keyword is empty
-      if (!keyword) {
-        return cb(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
-      }
-
-      // check whether by is empty
-      if (!matchingType) {
-        return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
-      }
-
-      // check whether by is correct
-      if (!AVABILABLE_BY_OPTION.includes(matchingType)) {
-        return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為錯誤' }))
-      }
-
-      const { error, data, message } = await ProductService.getProducts(req, 'search')
-      if (error) return cb(error, data, message)
-      let result = ''
-
-      const searchOption = { data: data.resultProducts, field: 'name', keyword }
-
-      switch (matchingType) {
-        case 'relevancy':
-          result = ArrayToolKit.fuzzySearch(searchOption)
-          break
-        case 'accuracy':
-          result = ArrayToolKit.exactSearch(searchOption)
-          break
-      }
-
-      if (!result.length) {
-        return cb(new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }))
-      }
-      // paging
-      const resultProducts = result.slice(offset, offset + limit)
+      const resultProducts = data.resultProducts
       // mark isLiked & isReplied
       statusMarker(req, resultProducts)
-
-      return cb(null, { currentPage: page, resultProducts }, message)
+      return cb(null, data, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }

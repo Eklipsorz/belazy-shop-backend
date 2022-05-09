@@ -20,7 +20,8 @@ const searchCategoryMiddlewares = [
 
 const searchProductsMiddlewares = [
   // add middleware to route (get /products/search)
-  paging
+  paging,
+  ParameterValidator.queryStringValidate
 ]
 
 router.get('/search/hints', ...SearchHintsMiddlewares, productController.getSearchHints)
