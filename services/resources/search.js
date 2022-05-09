@@ -19,7 +19,7 @@ class SearchService {
       let result = ''
       const categories = data.resultCategories
       const searchOption = { data: categories, field: 'name', keyword }
-      console.log('categories: ', categories)
+
       switch (matchingType) {
         case 'relevancy':
           result = ArrayToolKit.fuzzySearch(searchOption)
@@ -28,7 +28,7 @@ class SearchService {
           result = ArrayToolKit.exactSearch(searchOption)
           break
       }
-      console.log('result:', result, keyword)
+
       if (!result.length) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
       }
@@ -67,9 +67,10 @@ class SearchService {
         return results
       })
       // [{data.productSet1}, {data.productSet2}] -> [product1, product2, ....]
-      const resultProducts = resultProductArrays.reduce((prev, next) => prev.concat(next))
+      let resultProducts = resultProductArrays.reduce((prev, next) => prev.concat(next))
+      // paging
+      resultProducts = resultProducts.slice(offset, offset + limit)
 
-      // resultProducts = resultProducts.slice(offset, offset + limit)
       return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
