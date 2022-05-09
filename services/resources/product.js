@@ -1,7 +1,7 @@
 
 const { APIError } = require('../../helpers/api-error')
 const Fuse = require('fuse.js')
-
+const { NumberToolKit } = require('../../helpers/number-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { Product, Category, Ownership, Stock, ProductStatistic } = require('../../db/models')
 
@@ -112,15 +112,11 @@ class ProductService {
       products.forEach(product => { product.type = 'product' })
 
       keywords.push(...categories, ...products)
+      const fuseOption = { data: keywords, field: 'name', keyword }
 
-      const fuseOptions = {
-        keys: ['name']
-      }
-      const fuse = new Fuse(keywords, fuseOptions)
-      const fuseResults = fuse.search(keyword)
+      const fuseResults = NumberToolKit.fuzzySearch(fuseOption)
 
-      const results = fuseResults.map(fuseResult => fuseResult.item)
-      return { error: null, data: results, message: '獲取成功' }
+      return { error: null, data: fuseResults, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

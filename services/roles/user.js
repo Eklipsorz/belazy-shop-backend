@@ -5,7 +5,7 @@ const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
 const Fuse = require('fuse.js')
-
+const { NumberToolKit } = require('../../helpers/number-tool-kit')
 const { getUser } = require('../../helpers/auth-user-getter')
 
 // 標記是否喜歡或者是否評論過
@@ -21,6 +21,22 @@ function statusMarker(req, products) {
     product.isLiked = likedProducts.some(lp => lp.productId === product.id)
     product.isReplied = repliedProducts.some(rp => rp.productId === product.id)
   })
+}
+
+function fuzzySearch(data, keyword) {
+  const fuseOptions = {
+    keys: ['name']
+  }
+  const products = data.resultProducts
+  const fuse = new Fuse(products, fuseOptions)
+  const fuseResults = fuse.search(keyword)
+
+  return fuseResults.map(fr => fr.item)
+}
+
+function exactSearch(data, keyword) {
+  const products = data.resultProducts
+  return products.filter(p => p.name === keyword)
 }
 
 class UserService extends AccountService {
@@ -67,11 +83,11 @@ class UserService extends AccountService {
     }
   }
 
-  async searchProduct(req, cb) {
+  async searchProducts(req, cb) {
     try {
       const { keyword, by, page, limit, offset } = req.query
       const { AVABILABLE_BY_OPTION } = userService
-      const matchingType = by.toLowerCase()
+      const matchingType = by?.toLowerCase()
       // check whether keyword is empty
       if (!keyword) {
         return cb(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
@@ -93,10 +109,12 @@ class UserService extends AccountService {
 
       switch (matchingType) {
         case 'relevancy':
-          result = fuzzySearch(data, keyword)
+          result = NumberToolKit.fuzzySearch(data.resultProducts, keyword)
+          // result = fuzzySearch(data, keyword)
           break
         case 'accuracy':
-          result = exactSearch(data, keyword)
+          result = NumberToolKit.exactSearch(data.resultProducts, keyword)
+          // result = exactSearch(data, keyword)
           break
       }
       const resultProducts = result.slice(offset, offset + limit)
@@ -105,28 +123,40 @@ class UserService extends AccountService {
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
-
-    function fuzzySearch(data, keyword) {
-      const fuseOptions = {
-        keys: ['name']
-      }
-      const products = data.resultProducts
-      const fuse = new Fuse(products, fuseOptions)
-      const fuseResults = fuse.search(keyword)
-
-      return fuseResults.map(fr => fr.item)
-    }
-
-    function exactSearch(data, keyword) {
-      const products = data.resultProducts
-      return products.filter(p => p.name === keyword)
-    }
   }
 
-  async searchCategory(req, cb) {
-    console.log('hi this user service')
-    // const { error, data, message } = await CategoryService.getCategory(req)
-    // return cb(error, data, message)
+  async searchProductsFromCategory(req, cb) {
+    console.log('search service')
+    try {
+      const { keyword, by, page, limit, offset } = req.query
+      const { AVABILABLE_BY_OPTION } = userService
+      const matchingType = by?.toLowerCase()
+
+      // check whether keyword is empty
+      if (!keyword) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
+      }
+
+      // check whether by is empty
+      if (!by) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
+      }
+
+      // check whether by is correct
+      if (!AVABILABLE_BY_OPTION.includes(matchingType)) {
+        return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為錯誤' }))
+      }
+
+      // get all category
+      const { error, data, message } = await CategoryService.getCategories(req, 'search')
+      if (error) return cb(error, data, message)
+
+      const categories = data.resultCategories
+      // match category according by parameter
+      // get all products from some specific categories
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
   }
 
   async getCategory(req, cb) {

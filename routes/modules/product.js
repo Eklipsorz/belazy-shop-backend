@@ -7,8 +7,8 @@ const { authenticateUser } = require('../../middlewares/authenticator')
 const router = express.Router()
 
 router.get('/search/hints', productController.getSearchHints)
-router.get('/categories/search', paging, productController.searchCategory)
-router.get('/search', paging, productController.searchProduct)
+router.get('/categories/search', paging, productController.searchProductsFromCategory)
+router.get('/search', paging, productController.searchProducts)
 
 router.get('/:productId', ExistURIValidator, productController.getProduct)
 router.get('/', paging, productController.getProducts)
