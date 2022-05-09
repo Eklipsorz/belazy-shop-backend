@@ -6,6 +6,7 @@ const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
 const { ArrayToolKit } = require('../../helpers/array-tool-kit')
 const { getUser } = require('../../helpers/auth-user-getter')
+const { SearchService } = require('../resources/search')
 
 // isLiked & isReplied status marker for each product
 function statusMarker(req, products) {
@@ -121,87 +122,13 @@ class UserService extends AccountService {
 
   // search products with a specific category
   async searchProductsFromCategory(req, cb) {
+    const { error, data, message } = await SearchService.searchProductsFromCategory(req)
+    if (error) return cb(error, data, message)
     try {
-
-      // const { keyword, by, page, limit, offset } = req.query
-      // const { AVABILABLE_BY_OPTION } = userService
-      // const matchingType = by?.toLowerCase()
-
-      // // check whether keyword is empty
-      // if (!keyword) {
-      //   return cb(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
-      // }
-
-      // // check whether by is empty
-      // if (!by) {
-      //   return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
-      // }
-
-      // // check whether by is correct
-      // if (!AVABILABLE_BY_OPTION.includes(matchingType)) {
-      //   return cb(new APIError({ code: code.BADREQUEST, status, message: 'by參數為錯誤' }))
-      // }
-
-      // // get all category
-      // const { error, data, message } = await CategoryService.getCategories(req, 'search')
-      // if (error) return cb(error, data, message)
-
-      // const categories = data.resultCategories
-
-      // // match category according "by" parameter
-      // let result = ''
-      // const searchOption = { data: categories, field: 'name', keyword }
-
-      // switch (matchingType) {
-      //   case 'relevancy':
-      //     result = ArrayToolKit.fuzzySearch(searchOption)
-      //     break
-      //   case 'accuracy':
-      //     result = ArrayToolKit.exactSearch(searchOption)
-      //     break
-      // }
-      // if (!result.length) {
-      //   return cb(new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }))
-      // }
-      // // get all products from some specific categories
-
-      // const products = await Promise
-      //   .all(
-      //     result.map(async item => {
-      //       req.params.categoryId = item.id
-      //       return await CategoryService.getProductsFromCategory(req, 'search')
-      //     })
-      //   )
-
-      // // [{error,data,message}, ..] -> [{data.productSet1}, {data.productSet2}]
-      // // every productSet is all products for each category
-      // // BTW, I use HashTable to de-duplicate the same product
-      // const productHashTable = {}
-      // const resultProductArrays = products.map(set => {
-      //   if (set.error) return []
-      //   const productCategory = {
-      //     categoryId: set.data.categoryId,
-      //     categoryName: set.data.categoryName
-      //   }
-      //   const products = set.data.resultProducts
-
-      //   const results = products.filter(product => {
-      //     if (!productHashTable[product.id]) {
-      //       product.productCategory = productCategory
-      //       productHashTable[product.id] = true
-      //       return product
-      //     }
-      //   })
-
-      //   return results
-      // })
-      // // [{data.productSet1}, {data.productSet2}] -> [product1, product2, ....]
-      // let resultProducts = resultProductArrays.reduce((prev, next) => prev.concat(next))
-      // // paging
-      // resultProducts = resultProducts.slice(offset, offset + limit)
-      // // mark isLiked & isReplied
-      // statusMarker(req, resultProducts)
-      // return cb(null, { currentPage: page, resultProducts }, '獲取成功')
+      const resultProducts = data.resultProducts
+      // mark isLiked & isReplied
+      statusMarker(req, resultProducts)
+      return cb(null, data, '獲取成功')
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }

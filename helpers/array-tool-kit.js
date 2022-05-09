@@ -7,6 +7,7 @@ class ArrayToolKit {
 
     const fuse = new Fuse(data, fuseOptions)
     const fuseResults = fuse.search(keyword)
+
     return fuseResults.map(fr => fr.item)
   }
 
