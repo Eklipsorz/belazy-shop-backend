@@ -1,8 +1,7 @@
 const bcrypt = require('bcryptjs')
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
-
-const { getUser } = require('../../helpers/auth-user-getter')
+const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { generateAccessToken } = require('../../helpers/jwt-generator')
 const { fileUpload } = require('../../helpers/file-uploader')
 const { ParameterValidator } = require('../../utils/parameter-validator')
@@ -71,7 +70,7 @@ class AccountService {
 
   async putSelf(req, cb) {
     try {
-      const user = getUser(req)
+      const user = AuthToolKit.getUser(req)
       const message = await ParameterValidator.updateFormValidate(req)
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
@@ -109,7 +108,7 @@ class AccountService {
 
   async getSelf(req, cb) {
     try {
-      const resultUser = getUser(req)
+      const resultUser = AuthToolKit.getUser(req)
       delete resultUser.password
       return cb(null, resultUser, '獲取成功')
     } catch (error) {

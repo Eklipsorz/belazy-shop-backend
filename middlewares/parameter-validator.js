@@ -8,7 +8,7 @@ class ParameterValidator {
     const { keyword, by } = req.query
     const { AVABILABLE_BY_OPTION } = parameterValidator
     const matchingType = by?.toLowerCase()
-    console.log('inside middleware')
+
     if (!keyword) {
       return next(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
     }

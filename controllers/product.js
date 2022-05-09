@@ -25,7 +25,6 @@ const productController = {
   },
 
   searchProductsFromCategory: (req, res, next) => {
-    console.log('searchProductsFromCategory')
     userServices.searchProductsFromCategory(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )

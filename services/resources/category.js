@@ -124,7 +124,7 @@ class CategoryService {
   // Get every product from every category
   static async getProductsFromCategories(req) {
     try {
-      const { order } = req.query
+      const order = 'DESC'
       // define how to find
       const includeProductOption = [
         { model: Stock, attributes: ['quantity', 'restQuantity'], as: 'stock' },
@@ -161,6 +161,7 @@ class CategoryService {
 
       // return data
       const resultProducts = categories.map(category => category.toJSON())
+
       resultProducts.forEach(productSet => {
         const ownerships = productSet.ownedProducts
         productSet.ownedProducts = ownerships.map(ownership => ({ ...ownership.Product }))

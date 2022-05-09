@@ -4,13 +4,12 @@ const { CategoryService } = require('../resources/category')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
-const { ArrayToolKit } = require('../../helpers/array-tool-kit')
-const { getUser } = require('../../helpers/auth-user-getter')
+const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { SearchService } = require('../resources/search')
 
 // isLiked & isReplied status marker for each product
 function statusMarker(req, products) {
-  const loginUser = getUser(req)
+  const loginUser = AuthToolKit.getUser(req)
 
   products = Array.isArray(products) ? products : [products]
 

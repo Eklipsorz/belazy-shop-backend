@@ -1,6 +1,6 @@
 const validator = require('validator')
 const { User } = require('../db/models')
-const { getUserId } = require('../helpers/auth-user-getter')
+const { AuthToolKit } = require('../utils/auth-tool-kit')
 
 class ParameterValidator {
   static async registerFormValidate(req) {
@@ -54,7 +54,8 @@ class ParameterValidator {
 
   static async updateFormValidate(req) {
     const messageQueue = []
-    const currentUserId = getUserId(req)
+    const currentUserId = AuthToolKit.getUserId(req)
+
     const {
       account, nickname,
       email, password,

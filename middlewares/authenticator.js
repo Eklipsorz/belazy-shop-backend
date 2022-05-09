@@ -1,5 +1,5 @@
 const passport = require('../config/passport')
-const { getUser } = require('../helpers/auth-user-getter')
+const { AuthToolKit } = require('../utils/auth-tool-kit')
 const { blackListRoleIn } = require('../config/app').generalConfig
 const { code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
@@ -18,7 +18,7 @@ function authenticate(req, res, next) {
 }
 
 function authenticateUser(req, _, next) {
-  const user = getUser(req)
+  const user = AuthToolKit.getUser(req)
   if (!user || blackListRoleIn.user.includes(user.role)) {
     return next(new APIError({ code: code.NOTFOUND, message: '帳號不存在' }))
   }
@@ -26,7 +26,7 @@ function authenticateUser(req, _, next) {
 }
 
 function authenticateAdmin(req, _, next) {
-  const user = getUser(req)
+  const user = AuthToolKit.getUser(req)
   if (!user || blackListRoleIn.admin.includes(user.role)) {
     return next(new APIError({ code: code.NOTFOUND, message: '帳號不存在' }))
   }

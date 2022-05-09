@@ -3,7 +3,6 @@ const { status, code } = require('../config/result-status-table').successTable
 
 const categoryController = {
   getCategory: (req, res, next) => {
-    console.log('controller getCategory')
     userServices.getCategory(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
@@ -19,7 +18,6 @@ const categoryController = {
     )
   },
   getProductsFromCategories: (req, res, next) => {
-    console.log('categories controller')
     userServices.getProductsFromCategories(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
