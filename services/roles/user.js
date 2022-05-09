@@ -4,11 +4,10 @@ const { CategoryService } = require('../resources/category')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
-const Fuse = require('fuse.js')
-const { NumberToolKit } = require('../../helpers/number-tool-kit')
+const { ArrayToolKit } = require('../../helpers/array-tool-kit')
 const { getUser } = require('../../helpers/auth-user-getter')
 
-// 標記是否喜歡或者是否評論過
+// isLiked & isReplied status marker for each product
 function statusMarker(req, products) {
   const loginUser = getUser(req)
 
@@ -23,27 +22,12 @@ function statusMarker(req, products) {
   })
 }
 
-function fuzzySearch(data, keyword) {
-  const fuseOptions = {
-    keys: ['name']
-  }
-  const products = data.resultProducts
-  const fuse = new Fuse(products, fuseOptions)
-  const fuseResults = fuse.search(keyword)
-
-  return fuseResults.map(fr => fr.item)
-}
-
-function exactSearch(data, keyword) {
-  const products = data.resultProducts
-  return products.filter(p => p.name === keyword)
-}
-
 class UserService extends AccountService {
   constructor() {
     super('user')
   }
 
+  // get all products
   async getProducts(req, cb) {
     const { error, data, message } = await ProductService.getProducts(req, 'get')
     if (error) return cb(error, data, message)
@@ -57,6 +41,7 @@ class UserService extends AccountService {
     }
   }
 
+  // get a specific product
   async getProduct(req, cb) {
     const { error, data, message } = await ProductService.getProduct(req)
 
@@ -70,6 +55,7 @@ class UserService extends AccountService {
     }
   }
 
+  // get search hint when user input something in search bar
   async getSearchHints(req, cb) {
     const { error, data, message } = await ProductService.getSearchHints(req)
     if (error) return cb(error, data, message)
@@ -83,6 +69,7 @@ class UserService extends AccountService {
     }
   }
 
+  // search product with a specific product name
   async searchProducts(req, cb) {
     try {
       const { keyword, by, page, limit, offset } = req.query
@@ -107,26 +94,33 @@ class UserService extends AccountService {
       if (error) return cb(error, data, message)
       let result = ''
 
+      const searchOption = { data: data.resultProducts, field: 'name', keyword }
+
       switch (matchingType) {
         case 'relevancy':
-          result = NumberToolKit.fuzzySearch(data.resultProducts, keyword)
-          // result = fuzzySearch(data, keyword)
+          result = ArrayToolKit.fuzzySearch(searchOption)
           break
         case 'accuracy':
-          result = NumberToolKit.exactSearch(data.resultProducts, keyword)
-          // result = exactSearch(data, keyword)
+          result = ArrayToolKit.exactSearch(searchOption)
           break
       }
+
+      if (!result.length) {
+        return cb(new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }))
+      }
+      // paging
       const resultProducts = result.slice(offset, offset + limit)
+      // mark isLiked & isReplied
       statusMarker(req, resultProducts)
+
       return cb(null, { currentPage: page, resultProducts }, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
   }
 
+  // search products with a specific category
   async searchProductsFromCategory(req, cb) {
-    console.log('search service')
     try {
       const { keyword, by, page, limit, offset } = req.query
       const { AVABILABLE_BY_OPTION } = userService
@@ -152,23 +146,79 @@ class UserService extends AccountService {
       if (error) return cb(error, data, message)
 
       const categories = data.resultCategories
-      // match category according by parameter
+
+      // match category according "by" parameter
+      let result = ''
+      const searchOption = { data: categories, field: 'name', keyword }
+
+      switch (matchingType) {
+        case 'relevancy':
+          result = ArrayToolKit.fuzzySearch(searchOption)
+          break
+        case 'accuracy':
+          result = ArrayToolKit.exactSearch(searchOption)
+          break
+      }
+      if (!result.length) {
+        return cb(new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }))
+      }
       // get all products from some specific categories
+
+      const products = await Promise
+        .all(
+          result.map(async item => {
+            req.params.categoryId = item.id
+            return await CategoryService.getProductsFromCategory(req, 'search')
+          })
+        )
+
+      // [{error,data,message}, ..] -> [{data.productSet1}, {data.productSet2}]
+      // every productSet is all products for each category
+      // BTW, I use HashTable to de-duplicate the same product
+      const productHashTable = {}
+      const resultProductArrays = products.map(set => {
+        if (set.error) return []
+        const productCategory = {
+          categoryId: set.data.categoryId,
+          categoryName: set.data.categoryName
+        }
+        const products = set.data.resultProducts
+
+        const results = products.filter(product => {
+          if (!productHashTable[product.id]) {
+            product.productCategory = productCategory
+            productHashTable[product.id] = true
+            return product
+          }
+        })
+
+        return results
+      })
+      // [{data.productSet1}, {data.productSet2}] -> [product1, product2, ....]
+      let resultProducts = resultProductArrays.reduce((prev, next) => prev.concat(next))
+      // paging
+      resultProducts = resultProducts.slice(offset, offset + limit)
+      // mark isLiked & isReplied
+      statusMarker(req, resultProducts)
+      return cb(null, { currentPage: page, resultProducts }, '獲取成功')
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
   }
 
+  // get a specific category
   async getCategory(req, cb) {
     const { error, data, message } = await CategoryService.getCategory(req)
     return cb(error, data, message)
   }
 
+  // get all categories
   async getCategories(req, cb) {
     const { error, data, message } = await CategoryService.getCategories(req)
     return cb(error, data, message)
   }
 
+  // get all products from a specific category
   async getProductsFromCategory(req, cb) {
     const { error, data, message } = await CategoryService.getProductsFromCategory(req)
     if (error) return cb(error, data, message)
@@ -181,6 +231,7 @@ class UserService extends AccountService {
     }
   }
 
+  // get all products from each category
   async getProductsFromCategories(req, cb) {
     const { error, data, message } = await CategoryService.getProductsFromCategories(req)
 
