@@ -68,8 +68,13 @@ const middleware = {
   }
 }
 /* helper config */
-const helper = {
-  fileUploader: {
+// const helper = {
+
+// }
+
+/* utility config */
+const utility = {
+  FileUploadToolKit: {
     MAXFILESIZE: 5 * 1024 * 1024,
     DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
   }
@@ -148,7 +153,8 @@ const seeder = {
 
 exports = module.exports = {
   // controller,
-  helper,
+  // helper,
+  utility,
   service,
   generalConfig,
   middleware,
