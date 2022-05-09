@@ -2,7 +2,7 @@
 const { APIError } = require('../../helpers/api-error')
 const { ArrayToolKit } = require('../../helpers/array-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
-const { Product, Category, Ownership, Stock, ProductStatistic } = require('../../db/models')
+const { Product, Ownership, Stock, ProductStatistic } = require('../../db/models')
 
 class ProductService {
   static async getProducts(req, type = 'get') {
