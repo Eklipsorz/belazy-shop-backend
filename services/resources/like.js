@@ -50,7 +50,9 @@ class LikeService {
       // return success response
       userStatistic = userStatistic.toJSON()
       productStatistic = productStatistic.toJSON()
+
       const resultObject = {
+        like: { userId: like.userId, productId: like.productId },
         userStatistic: { ...userStatistic, likeTally: userStatistic.likeTally + 1 },
         productStatistic: { ...productStatistic, likedTally: productStatistic.likedTally + 1 }
       }
