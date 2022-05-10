@@ -124,13 +124,16 @@ class UserService extends AccountService {
     }
   }
 
+  // like a specific product
   async likeProduct(req, cb) {
     const { error, data, message } = await LikeService.likeProduct(req)
     return cb(error, message, data)
   }
 
+  // unlike a specific product
   async unlikeProduct(req, cb) {
-
+    const { error, data, message } = await LikeService.unlikeProduct(req)
+    return cb(error, message, data)
   }
 
   // get all products from each category
