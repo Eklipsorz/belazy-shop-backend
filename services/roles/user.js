@@ -1,6 +1,8 @@
 const { AccountService } = require('./account')
 const { ProductService } = require('../resources/product')
 const { CategoryService } = require('../resources/category')
+const { LikeService } = require('../resources/like')
+
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -120,6 +122,15 @@ class UserService extends AccountService {
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
+  }
+
+  async likeProduct(req, cb) {
+    const { error, data, message } = await LikeService.likeProduct(req)
+    return cb(error, message, data)
+  }
+
+  async unlikeProduct(req, cb) {
+
   }
 
   // get all products from each category
