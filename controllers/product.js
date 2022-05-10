@@ -13,6 +13,19 @@ const productController = {
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
+
+  likeProduct: (req, res, next) => {
+    userServices.likeProduct(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
+
+  unlikeProduct: (req, res, next) => {
+    userServices.unlikeProduct(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
+
   getSearchHints: (req, res, next) => {
     userServices.getSearchHints(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
