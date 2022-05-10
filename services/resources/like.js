@@ -65,7 +65,6 @@ class LikeService {
 
   static async unlikeProduct(req) {
     try {
-      console.log('unlike service')
       // current login user
       const loginUser = AuthToolKit.getUser(req)
       const { productId } = req.params
