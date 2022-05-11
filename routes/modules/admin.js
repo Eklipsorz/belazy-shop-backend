@@ -1,18 +1,22 @@
-const express = require('express')
+
+const { adminMiddleware } = require('../../config/route')
 const { adminController } = require('../../controllers/admin')
-const { ExistURIValidator } = require('../../middlewares/URI-format-validator')
-const { paging } = require('../../middlewares/pager')
+
+const express = require('express')
 const router = express.Router()
 
-router.get('/self', adminController.getSelf)
-router.put('/self', adminController.putSelf)
+const controller = adminController
+const middleware = adminMiddleware
 
-router.get('/categories/products', adminController.getProductsFromCategories)
-router.get('/categories/:categoryId/products', ExistURIValidator, paging, adminController.getProductsFromCategory)
-router.get('/categories/:categoryId', ExistURIValidator, adminController.getCategory)
-router.get('/categories', paging, adminController.getCategories)
+router.get('/self', ...middleware.getSelf, controller.getSelf)
+router.put('/self', ...middleware.putSelf, controller.putSelf)
 
-router.get('/products/:productId', adminController.getProduct)
-router.get('/products', paging, adminController.getProducts)
+router.get('/categories/products', ...middleware.getProductsFromCategories, controller.getProductsFromCategories)
+router.get('/categories/:categoryId/products', ...middleware.getProductsFromCategory, controller.getProductsFromCategory)
+router.get('/categories/:categoryId', ...middleware.getCategory, controller.getCategory)
+router.get('/categories', ...middleware.getCategories, controller.getCategories)
+
+router.get('/products/:productId', ...middleware.getProduct, controller.getProduct)
+router.get('/products', ...middleware.getProducts, controller.getProducts)
 
 exports = module.exports = router
