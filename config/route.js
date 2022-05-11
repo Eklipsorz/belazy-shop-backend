@@ -4,7 +4,35 @@ const { ParameterValidator } = require('../middlewares/parameter-validator')
 const { paging } = require('../middlewares/pager')
 
 // enable/disable user authentication via adding it
-const { authenticateUser } = require('../middlewares/authenticator')
+const { AuthValidator } = require('../middlewares/auth-validator')
+
+const generalMiddleware = {
+  // add middleware to route (All methods to /users)
+  users: [
+    AuthValidator.authenticate,
+    AuthValidator.authenticateUser
+  ],
+  // add middleware to route (POST /users)
+  userRegister: [],
+  // add middleware to route (POST /users/login)
+  userLogin: [],
+  // add middleware to route (All methods to /admin)
+  admin: [
+    AuthValidator.authenticate,
+    AuthValidator.authenticateAdmin
+  ],
+  // add middleware to route (POST /admin/login)
+  adminLogin: [],
+  // add middleware to route (All methods to /categories)
+  categories: [],
+  // add midddleware to route (All methods to /products)
+  products: []
+}
+
+// router.use('/categories', categoryRoutes)
+// router.use('/products', productRoutes)
+// router.use('/users', authenticate, authenticateUser, userRoutes)
+// router.use('/admin', authenticate, authenticateAdmin, adminRoutes)
 
 const adminMiddleware = {
   // add middleware to route (GET /admin/getSelf)
@@ -35,16 +63,6 @@ const adminMiddleware = {
     paging
   ]
 }
-// router.get('/self', adminController.getSelf)
-// router.put('/self', adminController.putSelf)
-
-// router.get('/categories/products', adminController.getProductsFromCategories)
-// router.get('/categories/:categoryId/products', ExistURIValidator, paging, adminController.getProductsFromCategory)
-// router.get('/categories/:categoryId', ExistURIValidator, adminController.getCategory)
-// router.get('/categories', paging, adminController.getCategories)
-
-// router.get('/products/:productId', adminController.getProduct)
-// router.get('/products', paging, adminController.getProducts)
 
 const productMiddleware = {
   // add middleware to route (GET /products/search/hints)
@@ -61,12 +79,14 @@ const productMiddleware = {
   ],
   // add middleware to route (POST /products/:productId/like)
   likeProduct: [
-    authenticateUser,
+    AuthValidator.authenticate,
+    AuthValidator.authenticateUser,
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (GET /products/:productId/unlike)
   unlikeProduct: [
-    authenticateUser,
+    AuthValidator.authenticate,
+    AuthValidator.authenticateUser,
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (GET /products)
@@ -101,6 +121,7 @@ const categoryMiddleware = {
 }
 
 exports = module.exports = {
+  generalMiddleware,
   adminMiddleware,
   productMiddleware,
   categoryMiddleware
