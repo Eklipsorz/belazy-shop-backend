@@ -13,6 +13,8 @@ const router = express.Router()
 
 const middleware = generalMiddleware
 
+router.use('/', ...middleware.all)
+
 // login for user
 router.post('/users/login', ...middleware.userLogin, userController.login)
 

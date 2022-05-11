@@ -1,15 +1,20 @@
 const { ParameterValidator } = require('../middlewares/parameter-validator')
 
-// enable/disable paging via adding it
-const { paging } = require('../middlewares/pager')
-
 // enable/disable user authentication via adding it
 const { AuthValidator } = require('../middlewares/auth-validator')
+// enable/disable paging via adding it
+const { ParameterPreprocessor } = require('../middlewares/parameter-preprocessor')
+const { FileUploadToolKit } = require('../utils/file-upload-tool-kit')
+// enable/disable file upload via adding it
+const upload = FileUploadToolKit.getMulter()
 
 const generalMiddleware = {
+  all: [
+    AuthValidator.authenticate
+  ],
   // add middleware to route (All methods to /users)
   users: [
-    AuthValidator.authenticate,
+    AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser
   ],
   // add middleware to route (POST /users)
@@ -18,7 +23,7 @@ const generalMiddleware = {
   userLogin: [],
   // add middleware to route (All methods to /admin)
   admin: [
-    AuthValidator.authenticate,
+    AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateAdmin
   ],
   // add middleware to route (POST /admin/login)
@@ -29,10 +34,14 @@ const generalMiddleware = {
   products: []
 }
 
-// router.use('/categories', categoryRoutes)
-// router.use('/products', productRoutes)
-// router.use('/users', authenticate, authenticateUser, userRoutes)
-// router.use('/admin', authenticate, authenticateAdmin, adminRoutes)
+const userMiddleware = {
+  // add middleware to route (GET /users/self)
+  getSelf: [],
+  // add middleware to route (PUT /users/self)
+  putSelf: [
+    upload.single('avatar')
+  ]
+}
 
 const adminMiddleware = {
   // add middleware to route (GET /admin/getSelf)
@@ -44,7 +53,7 @@ const adminMiddleware = {
   // add middleware to route (GET /admin/categories/:categoryId/products)
   getProductsFromCategory: [
     ParameterValidator.ExistURIValidate,
-    paging
+    ParameterPreprocessor.paging
   ],
   // add middleware to route (GET /admin/categories/:categoryId)
   getCategory: [
@@ -52,7 +61,7 @@ const adminMiddleware = {
   ],
   // add middleware to route (GET /admin/categories)
   getCategories: [
-    paging
+    ParameterPreprocessor.paging
   ],
   // add middleware to route (GET /admin/products/:productId)
   getProduct: [
@@ -60,7 +69,7 @@ const adminMiddleware = {
   ],
   // add middleware to route (GET /admin/products)
   getProducts: [
-    paging
+    ParameterPreprocessor.paging
   ]
 }
 
@@ -69,29 +78,29 @@ const productMiddleware = {
   searchHints: [],
   // add middleware to route (GET /products/categories/search)
   searchCategory: [
-    paging,
+    ParameterPreprocessor.paging,
     ParameterValidator.searchParameterValidate
   ],
   // add middleware to route (GET /products/search)
   searchProduct: [
-    paging,
+    ParameterPreprocessor.paging,
     ParameterValidator.searchParameterValidate
   ],
   // add middleware to route (POST /products/:productId/like)
   likeProduct: [
-    AuthValidator.authenticate,
+    AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (GET /products/:productId/unlike)
   unlikeProduct: [
-    AuthValidator.authenticate,
+    AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (GET /products)
   getProducts: [
-    paging
+    ParameterPreprocessor.paging
   ],
   // add middleware to route (GET /products/:productId)
   getProduct: [
@@ -103,7 +112,7 @@ const categoryMiddleware = {
 
   // add middleware to route (GET /categories)
   getCategories: [
-    paging
+    ParameterPreprocessor.paging
   ],
   // add middleware to route (GET /category/:categoryId)
   getCategory: [
@@ -116,13 +125,14 @@ const categoryMiddleware = {
   // add middleware to route (GET /categories/:categoryId/products)
   getProductsFromCategory: [
     ParameterValidator.ExistURIValidate,
-    paging
+    ParameterPreprocessor.paging
   ]
 }
 
 exports = module.exports = {
   generalMiddleware,
   adminMiddleware,
+  userMiddleware,
   productMiddleware,
   categoryMiddleware
 }

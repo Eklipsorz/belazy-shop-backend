@@ -7,15 +7,20 @@ const { APIError } = require('../helpers/api-error')
 class AuthValidator {
   static authenticate(req, res, next) {
     function cb(error, user) {
-      if (error || !user) {
-        return next(new APIError({ code: code.FORBIDDEN, message: '使用者未從登入驗證獲取憑證不予使用' }))
-      }
-      req.user = user
+      if (!error && user) req.user = user
       return next()
     }
 
     const verify = passport.authenticate('jwt', { session: false }, cb)
     verify(req, res, next)
+  }
+
+  static authenticateLoggedIn(req, _, next) {
+    const user = req?.user
+    if (!user) {
+      return next(new APIError({ code: code.UNAUTHORIZED, message: '使用者未從登入驗證獲取憑證不予使用' }))
+    }
+    return next()
   }
 
   static authenticateUser(req, _, next) {

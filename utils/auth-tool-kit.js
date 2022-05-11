@@ -9,6 +9,7 @@ const ACCESS_TOKEN_OPTIONS = {
 
 class AuthToolKit {
   static getUser(req) {
+    console.log('inside getUser')
     return req.user || null
   }
 

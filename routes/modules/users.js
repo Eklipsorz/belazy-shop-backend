@@ -1,10 +1,13 @@
-const express = require('express')
 const { userController } = require('../../controllers/user')
-const { FileUploadToolKit } = require('../../utils/file-upload-tool-kit')
-const upload = FileUploadToolKit.getMulter()
+const { userMiddleware } = require('../../config/route')
+
+const express = require('express')
 const router = express.Router()
 
-router.get('/self', userController.getSelf)
-router.put('/self', upload.single('avatar'), userController.putSelf)
+const middleware = userMiddleware
+const controller = userController
+
+router.get('/self', ...middleware.getSelf, controller.getSelf)
+router.put('/self', ...middleware.putSelf, controller.putSelf)
 
 exports = module.exports = router
