@@ -12,6 +12,8 @@ const { SearchResource } = require('../resources/search')
 // isLiked & isReplied status marker for each product
 function statusMarker(req, products) {
   const loginUser = AuthToolKit.getUser(req)
+  if (!loginUser) return
+
   products = Array.isArray(products) ? products : [products]
   const likedProducts = loginUser.likedProducts
   const repliedProducts = loginUser.repliedProducts
@@ -34,7 +36,7 @@ class UserService extends AccountService {
 
     try {
       const products = data.resultProducts
-      // statusMarker(req, products)
+      statusMarker(req, products)
       return cb(null, data, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))

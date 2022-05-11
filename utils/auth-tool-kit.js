@@ -9,12 +9,11 @@ const ACCESS_TOKEN_OPTIONS = {
 
 class AuthToolKit {
   static getUser(req) {
-    console.log('inside getUser')
     return req.user || null
   }
 
   static getUserId(req) {
-    return this.getUser(req)?.id
+    return AuthToolKit.getUser(req)?.id
   }
 
   static generateAccessToken(payload) {
