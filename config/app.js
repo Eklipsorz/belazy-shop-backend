@@ -38,7 +38,7 @@ const service = {
     SEARCH_HINT_NUMBER: 10,
     AVABILABLE_BY_OPTION: ['relevancy', 'accuracy']
   },
-  searchService: {
+  searchResource: {
 
   }
   // userService: {

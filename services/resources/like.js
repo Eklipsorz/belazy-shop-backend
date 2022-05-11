@@ -3,7 +3,7 @@ const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { Product, Like, ProductStatistic, UserStatistic } = require('../../db/models')
 
-class LikeService {
+class LikeResource {
   static async likeProduct(req) {
     try {
       // current login user
@@ -128,5 +128,5 @@ class LikeService {
 }
 
 exports = module.exports = {
-  LikeService
+  LikeResource
 }
