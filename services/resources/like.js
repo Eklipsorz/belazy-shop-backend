@@ -1,9 +1,8 @@
 const { APIError } = require('../../helpers/api-error')
-const { ProductService } = require('./product')
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { Product, Like, ProductStatistic, UserStatistic } = require('../../db/models')
-const { application } = require('express')
+
 class LikeService {
   static async likeProduct(req) {
     try {
