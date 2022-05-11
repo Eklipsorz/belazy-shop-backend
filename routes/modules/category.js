@@ -1,13 +1,15 @@
-const express = require('express')
+
 const { categoryController } = require('../../controllers/category')
-const { paging } = require('../../middlewares/pager')
-const { ExistURIValidator } = require('../../middlewares/URI-format-validator')
-const { authenticateUser } = require('../../middlewares/authenticator')
+const { categoryMiddleware } = require('../../config/route')
+const express = require('express')
 const router = express.Router()
 
-router.get('/', paging, categoryController.getCategories)
-router.get('/products', categoryController.getProductsFromCategories)
-router.get('/:categoryId/products', ExistURIValidator, paging, categoryController.getProductsFromCategory)
-router.get('/:categoryId', ExistURIValidator, categoryController.getCategory)
+const controller = categoryController
+const middleware = categoryMiddleware
+
+router.get('/', ...middleware.getCategories, controller.getCategories)
+router.get('/products', ...middleware.getProductsFromCategories, controller.getProductsFromCategories)
+router.get('/:categoryId/products', ...middleware.getProductsFromCategory, controller.getProductsFromCategory)
+router.get('/:categoryId', ...middleware.getCategory, controller.getCategory)
 
 exports = module.exports = router

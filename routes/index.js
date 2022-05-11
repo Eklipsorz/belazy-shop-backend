@@ -4,30 +4,30 @@ const adminRoutes = require('./modules/admin')
 const categoryRoutes = require('./modules/category')
 const productRoutes = require('./modules/product')
 
+const { generalMiddleware } = require('../config/route')
 const { userController } = require('../controllers/user')
 const { adminController } = require('../controllers/admin')
 const { APIErrorHandler } = require('../middlewares/api-error-handler')
 
-const {
-  authenticate,
-  authenticateUser,
-  authenticateAdmin
-} = require('../middlewares/authenticator')
 const router = express.Router()
 
-// 前台登入
-router.post('/users/login', userController.login)
+const middleware = generalMiddleware
 
-// 前台註冊
-router.post('/users', userController.register)
+router.use('/', ...middleware.all)
 
-// 後台登入
-router.post('/admin/login', adminController.login)
+// login for user
+router.post('/users/login', ...middleware.userLogin, userController.login)
 
-router.use('/categories', authenticate, categoryRoutes)
-router.use('/products', authenticate, productRoutes)
-router.use('/users', authenticate, authenticateUser, userRoutes)
-router.use('/admin', authenticate, authenticateAdmin, adminRoutes)
+// registeration for user
+router.post('/users', ...middleware.userRegister, userController.register)
+
+// login for admin
+router.post('/admin/login', ...middleware.adminLogin, adminController.login)
+
+router.use('/categories', ...middleware.categories, categoryRoutes)
+router.use('/products', ...middleware.products, productRoutes)
+router.use('/users', ...middleware.users, userRoutes)
+router.use('/admin', ...middleware.admin, adminRoutes)
 
 router.use(APIErrorHandler)
 exports = module.exports = router

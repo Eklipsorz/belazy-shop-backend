@@ -1,11 +1,11 @@
 const { APIError } = require('../../helpers/api-error')
-const { CategoryService } = require('./category')
-const { ProductService } = require('./product')
+const { CategoryResource } = require('./category')
+const { ProductResource } = require('./product')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { ArrayToolKit } = require('../../utils/array-tool-kit')
 const { Category, Product } = require('../../db/models')
 
-class SearchService {
+class SearchResource {
   static async getSearchHints(req) {
     try {
       const { keyword } = req.query
@@ -40,7 +40,7 @@ class SearchService {
   }
 
   static async searchProducts(req) {
-    const { error, data, message } = await ProductService.getProducts(req, 'search')
+    const { error, data, message } = await ProductResource.getProducts(req, 'search')
     if (error) return { error, data, message }
     try {
       const { keyword, by, page, limit, offset } = req.query
@@ -72,7 +72,7 @@ class SearchService {
   }
 
   static async searchProductsFromCategory(req) {
-    const { error, data, message } = await CategoryService.getCategories(req, 'search')
+    const { error, data, message } = await CategoryResource.getCategories(req, 'search')
     if (error) return { error, data, message }
     try {
       const { keyword, by, page, limit, offset } = req.query
@@ -100,7 +100,7 @@ class SearchService {
         .all(
           result.map(async item => {
             req.params.categoryId = item.id
-            return await CategoryService.getProductsFromCategory(req, 'search')
+            return await CategoryResource.getProductsFromCategory(req, 'search')
           })
         )
 
@@ -144,5 +144,5 @@ class SearchService {
 }
 
 exports = module.exports = {
-  SearchService
+  SearchResource
 }

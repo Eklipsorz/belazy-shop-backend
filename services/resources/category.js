@@ -2,7 +2,7 @@ const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { Ownership, Category, Product, Stock, ProductStatistic, sequelize } = require('../../db/models')
 
-class CategoryService {
+class CategoryResource {
   // Get all category (Only include category)
   static async getCategories(req, type = 'get') {
     try {
@@ -175,5 +175,5 @@ class CategoryService {
 }
 
 exports = module.exports = {
-  CategoryService
+  CategoryResource
 }

@@ -1,52 +1,19 @@
-const express = require('express')
 const { productController } = require('../../controllers/product')
-const { ExistURIValidator } = require('../../middlewares/URI-format-validator')
-const { ParameterValidator } = require('../../middlewares/parameter-validator')
-
-// enable/disable paging via adding it
-const { paging } = require('../../middlewares/pager')
-
-// enable/disable user authentication via adding it
-const { authenticateUser } = require('../../middlewares/authenticator')
-
+const { productMiddleware } = require('../../config/route')
+const express = require('express')
 const router = express.Router()
 
-const SearchHintsMiddlewares = [
-  // add middleware to route (get /products/search/hints)
-]
+const controller = productController
+const middleware = productMiddleware
 
-const searchCategoryMiddlewares = [
-  // add middleware to route (get /products/categories/search)
-  paging,
-  ParameterValidator.queryStringValidate
-]
+router.get('/search/hints', ...middleware.searchHints, controller.getSearchHints)
+router.get('/categories/search', ...middleware.searchCategory, controller.searchProductsFromCategory)
+router.get('/search', ...middleware.searchProduct, controller.searchProducts)
 
-const searchProductsMiddlewares = [
-  // add middleware to route (get /products/search)
-  paging,
-  ParameterValidator.queryStringValidate
-]
+router.post('/:productId/like', ...middleware.likeProduct, controller.likeProduct)
+router.post('/:productId/unlike', ...middleware.unlikeProduct, controller.unlikeProduct)
 
-const likeProductMiddleware = [
-  // add middleware to route (post /products/:productId/like)
-  authenticateUser,
-  ExistURIValidator
-]
-
-const unlikeProductMiddleware = [
-  // add middleware to route (get /products/:productId/unlike)
-  authenticateUser,
-  ExistURIValidator
-]
-
-router.get('/search/hints', ...SearchHintsMiddlewares, productController.getSearchHints)
-router.get('/categories/search', ...searchCategoryMiddlewares, productController.searchProductsFromCategory)
-router.get('/search', ...searchProductsMiddlewares, productController.searchProducts)
-
-router.post('/:productId/like', ...likeProductMiddleware, productController.likeProduct)
-router.post('/:productId/unlike', ...unlikeProductMiddleware, productController.unlikeProduct)
-
-router.get('/:productId', ExistURIValidator, productController.getProduct)
-router.get('/', paging, productController.getProducts)
+router.get('/:productId', ...middleware.getProduct, controller.getProduct)
+router.get('/', ...middleware.getProducts, controller.getProducts)
 
 exports = module.exports = router

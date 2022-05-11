@@ -13,7 +13,7 @@ class AuthToolKit {
   }
 
   static getUserId(req) {
-    return this.getUser(req)?.id
+    return AuthToolKit.getUser(req)?.id
   }
 
   static generateAccessToken(payload) {
