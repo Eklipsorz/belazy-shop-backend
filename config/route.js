@@ -105,6 +105,11 @@ const productMiddleware = {
   // add middleware to route (GET /products/:productId)
   getProduct: [
     ParameterValidator.ExistURIValidate
+  ],
+  // add middleware to route (GET /products/:productId/replies)
+  getReplies: [
+    ParameterValidator.ExistURIValidate,
+    ParameterPreprocessor.paging
   ]
 }
 
@@ -129,10 +134,15 @@ const categoryMiddleware = {
   ]
 }
 
+const replyMiddleware = {
+
+}
+
 exports = module.exports = {
   generalMiddleware,
   adminMiddleware,
   userMiddleware,
+  replyMiddleware,
   productMiddleware,
   categoryMiddleware
 }

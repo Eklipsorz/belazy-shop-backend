@@ -41,6 +41,11 @@ const productController = {
     userServices.searchProductsFromCategory(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getReplies: (req, res, next) => {
+    userServices.getReplies(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

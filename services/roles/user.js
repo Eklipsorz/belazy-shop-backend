@@ -2,6 +2,7 @@ const { AccountService } = require('./account')
 const { ProductResource } = require('../resources/product')
 const { CategoryResource } = require('../resources/category')
 const { LikeResource } = require('../resources/like')
+const { ReplyResource } = require('../resources/reply')
 
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
@@ -151,6 +152,11 @@ class UserService extends AccountService {
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
+  }
+
+  async getReplies(req, cb) {
+    const { error, data, message } = await ReplyResource.getReplies(req)
+    return cb(error, data, message)
   }
 }
 
