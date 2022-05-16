@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs')
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
-const { FileUploadToolKit } = require('../../utils/file-upload-tool-kit')
+const { FileUploader } = require('../../middlewares/file-uploader')
 const { ParameterValidator } = require('../../utils/parameter-validator')
 
 const { User } = require('../../db/models')
@@ -71,19 +71,21 @@ class AccountService {
     try {
       const user = AuthToolKit.getUser(req)
       const message = await ParameterValidator.updateFormValidate(req)
+
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
+
       const { nickname, email, account, password, avatar } = req.body
       const { file } = req
-
+      const destType = 'cloudStorage'
       let uploadAvatar = ''
 
       if (avatar === DEL_OPERATION_CODE) {
         uploadAvatar = 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1646039874/twitter/project/defaultAvatar_a0hkxw.png'
       } else {
         uploadAvatar = file
-          ? await FileUploadToolKit.fileUpload(file)
+          ? await FileUploader.upload(file, destType)
           : user.avatar
       }
 
