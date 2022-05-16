@@ -7,7 +7,7 @@ const PROD_GCLOUD_STORAGE_BUCKET = process.env.PROD_GCLOUD_STORAGE_BUCKET
 const storage = new Storage()
 const bucket = storage.bucket(PROD_GCLOUD_STORAGE_BUCKET)
 
-class FileUploadToolKit {
+class FileUploader {
   static cloudStorageHandler(file) {
     return new Promise((resolve, reject) => {
       const blob = bucket.file(file.originalname)
@@ -25,9 +25,15 @@ class FileUploadToolKit {
     })
   }
 
-  static async fileUpload(file) {
+  static async upload(file, destType = 'cloudStorage') {
     try {
-      const resultURL = await this.cloudStorageHandler(file)
+      let resultURL = ''
+      switch (destType) {
+        case 'cloudStorage':
+          resultURL = await FileUploader.cloudStorageHandler(file)
+          break
+      }
+
       return resultURL
     } catch (_) {
       return DEFAULT_AVATAR
@@ -46,5 +52,5 @@ class FileUploadToolKit {
 }
 
 exports = module.exports = {
-  FileUploadToolKit
+  FileUploader
 }

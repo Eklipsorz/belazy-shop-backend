@@ -4,9 +4,9 @@ const { ParameterValidator } = require('../middlewares/parameter-validator')
 const { AuthValidator } = require('../middlewares/auth-validator')
 // enable/disable paging via adding it
 const { ParameterPreprocessor } = require('../middlewares/parameter-preprocessor')
-const { FileUploadToolKit } = require('../utils/file-upload-tool-kit')
+const { FileUploader } = require('../middlewares/file-uploader')
 // enable/disable file upload via adding it
-const upload = FileUploadToolKit.getMulter()
+const upload = FileUploader.getMulter()
 
 const generalMiddleware = {
   all: [
