@@ -33,10 +33,7 @@ const generalMiddleware = {
   // add midddleware to route (All methods to /products)
   products: [],
   // add middleware to route (All methods to /replies)
-  replies: [
-    AuthValidator.authenticateLoggedIn,
-    AuthValidator.authenticateUser
-  ]
+  replies: []
 }
 
 const userMiddleware = {
@@ -150,10 +147,14 @@ const categoryMiddleware = {
 const replyMiddleware = {
   // add middleware to route (DELETE /replies/:replyId)
   deleteReply: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser,
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (PUT /replies/:replyId)
   putReply: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser,
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (GET /replies/:replyId)

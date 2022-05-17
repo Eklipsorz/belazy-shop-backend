@@ -158,7 +158,7 @@ class UserService extends AccountService {
     const { error, data, message } = await ReplyResource.getReplies(req)
     return cb(error, data, message)
   }
-
+  // 預計ㄎㄞ
   async getReply(req, cb) {
     const { error, data, message } = await ReplyResource.getReply(req)
     return cb(error, data, message)
