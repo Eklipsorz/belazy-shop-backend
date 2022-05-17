@@ -110,7 +110,15 @@ const productMiddleware = {
   getReplies: [
     ParameterValidator.ExistURIValidate,
     ParameterPreprocessor.paging
+  ],
+
+  // add middleware to route (POST /products/:productId/replies)
+  postReplies: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser,
+    ParameterValidator.ExistURIValidate
   ]
+
 }
 
 const categoryMiddleware = {

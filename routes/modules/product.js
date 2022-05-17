@@ -11,6 +11,7 @@ router.get('/categories/search', ...middleware.searchCategory, controller.search
 router.get('/search', ...middleware.searchProduct, controller.searchProducts)
 
 router.get('/:productId/replies', ...middleware.getReplies, controller.getReplies)
+router.post('/:productId/replies', ...middleware.postReplies, controller.postReplies)
 
 router.post('/:productId/like', ...middleware.likeProduct, controller.likeProduct)
 router.post('/:productId/unlike', ...middleware.unlikeProduct, controller.unlikeProduct)

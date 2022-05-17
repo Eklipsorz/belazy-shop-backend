@@ -40,6 +40,9 @@ const service = {
   },
   searchResource: {
 
+  },
+  replyResource: {
+    MAX_LENGTH_CONTENT: 255
   }
   // userService: {
 
