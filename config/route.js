@@ -31,7 +31,12 @@ const generalMiddleware = {
   // add middleware to route (All methods to /categories)
   categories: [],
   // add midddleware to route (All methods to /products)
-  products: []
+  products: [],
+  // add middleware to route (All methods to /replies)
+  replies: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser
+  ]
 }
 
 const userMiddleware = {
@@ -143,7 +148,10 @@ const categoryMiddleware = {
 }
 
 const replyMiddleware = {
-
+  // add middleware to route (Delete /replies/:replyId)
+  deleteReply: [
+    ParameterValidator.ExistURIValidate
+  ]
 }
 
 exports = module.exports = {

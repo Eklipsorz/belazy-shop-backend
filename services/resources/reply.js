@@ -97,6 +97,59 @@ class ReplyResource {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
   }
+
+  static async deleteReply(req) {
+    try {
+      const { replyId } = req.params
+
+      // check whether the reply exists
+      const reply = await Reply.findByPk(replyId)
+      if (!reply) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+      }
+
+      // check whether reply owner belongs to currnet user
+      const loginUser = AuthToolKit.getUser(req)
+      if (reply.userId !== loginUser.id) {
+        return { error: new APIError({ code: code.FORBIDDEN, status, message: '只能刪除自己的留言' }) }
+      }
+
+      // begin to delete the reply
+      const resultReply = await reply.destroy()
+
+      // update replyTally for current user
+      const findUserStatOption = {
+        where: { userId: loginUser.id },
+        attributes: ['id', 'userId', 'replyTally', 'createdAt', 'updatedAt']
+      }
+
+      const findUserStatResult = await UserStatistic.findOne(findUserStatOption)
+      let userStatistic = await findUserStatResult.decrement('replyTally')
+
+      // update repliedTally for the product
+      const findProductStatOption = {
+        where: { productId: reply.productId },
+        attributes: ['id', 'productId', 'repliedTally', 'createdAt', 'updatedAt']
+      }
+
+      const findProductStatResult = await ProductStatistic.findOne(findProductStatOption)
+      let productStatistic = await findProductStatResult.decrement('repliedTally')
+
+      // return success response
+      userStatistic = userStatistic.toJSON()
+      productStatistic = productStatistic.toJSON()
+
+      const resultObject = {
+        reply: { ...resultReply.toJSON() },
+        userStatistic: { ...userStatistic, replyTally: userStatistic.replyTally - 1 },
+        productStatistic: { ...productStatistic, repliedTally: productStatistic.repliedTally - 1 }
+      }
+
+      return { error: null, data: resultObject, message: '移除成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
 }
 
 exports = module.exports = {
