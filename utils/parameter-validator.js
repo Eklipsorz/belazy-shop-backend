@@ -1,6 +1,7 @@
 const validator = require('validator')
 const { User } = require('../db/models')
 const { AuthToolKit } = require('../utils/auth-tool-kit')
+const { MAX_LENGTH_CONTENT, MIN_LENGTH_CONTENT } = require('../config/app').service.replyResource
 
 class ParameterValidator {
   static async registerFormValidate(req) {
@@ -106,6 +107,17 @@ class ParameterValidator {
     // 暱稱重複註冊
     if (resultByNickname && currentUserId !== resultByNickname.id) {
       messageQueue.push('暱稱重複註冊')
+    }
+    return messageQueue
+  }
+
+  static replyContentValidate(content) {
+    const messageQueue = []
+    const minLength = MIN_LENGTH_CONTENT
+    const maxLength = MAX_LENGTH_CONTENT
+
+    if (!validator.isLength(content, { min: minLength, max: maxLength })) {
+      messageQueue.push(`留言字數範圍得為：${minLength} - ${maxLength} 字`)
     }
     return messageQueue
   }

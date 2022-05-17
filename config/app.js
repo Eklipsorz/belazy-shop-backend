@@ -42,7 +42,8 @@ const service = {
 
   },
   replyResource: {
-    MAX_LENGTH_CONTENT: 255
+    MIN_LENGTH_CONTENT: 1,
+    MAX_LENGTH_CONTENT: 5
   }
   // userService: {
 

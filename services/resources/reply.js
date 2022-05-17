@@ -2,8 +2,8 @@
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { Product, Reply, User, UserStatistic, ProductStatistic } = require('../../db/models')
+const { ParameterValidator } = require('../../utils/parameter-validator')
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
-const { MAX_LENGTH_CONTENT } = require('../../config/app').service.replyResource
 
 class ReplyResource {
   static async getReplies(req) {
@@ -53,9 +53,9 @@ class ReplyResource {
       if (!isExistProduct) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
       }
-
-      if (content.length > MAX_LENGTH_CONTENT) {
-        return { error: new APIError({ code: code.BADREQUEST, status, message: '留言字數超過255字' }) }
+      const message = ParameterValidator.replyContentValidate(content)
+      if (message.length) {
+        return { error: new APIError({ code: code.BADREQUEST, status, message, data: { content } }) }
       }
       // begin to add a reply
       const loginUser = AuthToolKit.getUser(req)
@@ -168,15 +168,11 @@ class ReplyResource {
 
       // begin to edit the reply
       const { content } = req.body
-      // check whether the length of reply content is greater than 0
-      if (!content.length) {
-        return { error: new APIError({ code: code.BADREQUEST, status, message: '請輸入留言' }) }
-      }
-      // check whether the length of reply content is less than 255
-      if (content.length > MAX_LENGTH_CONTENT) {
-        return { error: new APIError({ code: code.BADREQUEST, status, message: '留言字數不能超過255字', data: { content } }) }
-      }
 
+      const message = ParameterValidator.replyContentValidate(content)
+      if (message.length) {
+        return { error: new APIError({ code: code.BADREQUEST, status, message, data: { content } }) }
+      }
       // return success response
       const resultReply = await reply.update({ content })
       return { error: null, data: resultReply, message: '修改成功' }
