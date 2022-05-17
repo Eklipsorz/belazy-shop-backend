@@ -1,9 +1,9 @@
 const validator = require('validator')
 const { User } = require('../db/models')
-const { AuthToolKit } = require('../utils/auth-tool-kit')
+const { AuthToolKit } = require('./auth-tool-kit')
 const { MAX_LENGTH_CONTENT, MIN_LENGTH_CONTENT } = require('../config/app').service.replyResource
 
-class ParameterValidator {
+class ParameterValidationKit {
   static async registerFormValidate(req) {
     const messageQueue = []
     const {
@@ -111,8 +111,9 @@ class ParameterValidator {
     return messageQueue
   }
 
-  static replyContentValidate(content) {
+  static replyContentValidate(req) {
     const messageQueue = []
+    const { content } = req.body
     const minLength = MIN_LENGTH_CONTENT
     const maxLength = MAX_LENGTH_CONTENT
 
@@ -124,5 +125,5 @@ class ParameterValidator {
 }
 
 exports = module.exports = {
-  ParameterValidator
+  ParameterValidationKit
 }

@@ -2,8 +2,17 @@
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { Product, Reply, User, UserStatistic, ProductStatistic } = require('../../db/models')
-const { ParameterValidator } = require('../../utils/parameter-validator')
+const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
+
+// check whether the reply exists
+async function replyGetter(replyId) {
+  const reply = await Reply.findByPk(replyId)
+  if (!reply) {
+    return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+  }
+  return reply
+}
 
 class ReplyResource {
   static async getReplies(req) {
@@ -43,23 +52,33 @@ class ReplyResource {
     }
   }
 
+  static async getReply(req) {
+    try {
+
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   static async postReplies(req) {
     try {
       // check whether the product exists
       const { productId } = req.params
-      const { content } = req.body
       const isExistProduct = await Product.findByPk(productId)
 
       if (!isExistProduct) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
       }
-      const message = ParameterValidator.replyContentValidate(content)
+
+      const { content } = req.body
+      const message = ParameterValidationKit.replyContentValidate(req)
       if (message.length) {
         return { error: new APIError({ code: code.BADREQUEST, status, message, data: { content } }) }
       }
-      // begin to add a reply
-      const loginUser = AuthToolKit.getUser(req)
 
+      // begin to add a reply
+
+      const loginUser = AuthToolKit.getUser(req)
       const reply = await Reply.create({
         userId: loginUser.id,
         productId,
@@ -102,11 +121,7 @@ class ReplyResource {
     try {
       const { replyId } = req.params
 
-      // check whether the reply exists
-      const reply = await Reply.findByPk(replyId)
-      if (!reply) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-      }
+      const reply = await replyGetter(replyId)
 
       // check whether reply owner belongs to currnet user
       const loginUser = AuthToolKit.getUser(req)
@@ -154,26 +169,24 @@ class ReplyResource {
   static async putReply(req) {
     try {
       const { replyId } = req.params
-      // check whether the reply exists
-      const reply = await Reply.findByPk(replyId)
-      if (!reply) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-      }
+      const reply = await replyGetter(replyId)
 
       // check whether the reply owner is current user
       const loginUser = AuthToolKit.getUser(req)
+
       if (reply.userId !== loginUser.id) {
         return { error: new APIError({ code: code.FORBIDDEN, status, message: '只能編輯自己的留言' }) }
       }
 
       // begin to edit the reply
       const { content } = req.body
-
-      const message = ParameterValidator.replyContentValidate(content)
+      const message = ParameterValidationKit.replyContentValidate(req)
       if (message.length) {
         return { error: new APIError({ code: code.BADREQUEST, status, message, data: { content } }) }
       }
+
       // return success response
+
       const resultReply = await reply.update({ content })
       return { error: null, data: resultReply, message: '修改成功' }
     } catch (error) {

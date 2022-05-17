@@ -3,7 +3,7 @@ const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { FileUploader } = require('../../middlewares/file-uploader')
-const { ParameterValidator } = require('../../utils/parameter-validator')
+const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 
 const { User } = require('../../db/models')
 
@@ -46,7 +46,7 @@ class AccountService {
 
   async register(req, cb) {
     try {
-      const message = await ParameterValidator.registerFormValidate(req)
+      const message = await ParameterValidationKit.registerFormValidate(req)
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
       }
@@ -70,7 +70,7 @@ class AccountService {
   async putSelf(req, cb) {
     try {
       const user = AuthToolKit.getUser(req)
-      const message = await ParameterValidator.updateFormValidate(req)
+      const message = await ParameterValidationKit.updateFormValidate(req)
 
       if (message.length > 0) {
         return cb(new APIError({ code: code.BADREQUEST, message, data: req.body }))
