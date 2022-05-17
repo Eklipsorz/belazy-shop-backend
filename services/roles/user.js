@@ -168,6 +168,11 @@ class UserService extends AccountService {
     const { error, data, message } = await ReplyResource.deleteReply(req)
     return cb(error, data, message)
   }
+
+  async putReply(req, cb) {
+    const { error, data, message } = await ReplyResource.putReply(req)
+    return cb(error, data, message)
+  }
 }
 
 const userServices = new UserService()

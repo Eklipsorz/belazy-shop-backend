@@ -150,6 +150,40 @@ class ReplyResource {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
   }
+
+  static async putReply(req) {
+    try {
+      const { replyId } = req.params
+      // check whether the reply exists
+      const reply = await Reply.findByPk(replyId)
+      if (!reply) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+      }
+
+      // check whether the reply owner is current user
+      const loginUser = AuthToolKit.getUser(req)
+      if (reply.userId !== loginUser.id) {
+        return { error: new APIError({ code: code.FORBIDDEN, status, message: '只能編輯自己的留言' }) }
+      }
+
+      // begin to edit the reply
+      const { content } = req.body
+      // check whether the length of reply content is greater than 0
+      if (!content.length) {
+        return { error: new APIError({ code: code.BADREQUEST, status, message: '請輸入留言' }) }
+      }
+      // check whether the length of reply content is less than 255
+      if (content.length > MAX_LENGTH_CONTENT) {
+        return { error: new APIError({ code: code.BADREQUEST, status, message: '留言字數不能超過255字', data: { content } }) }
+      }
+
+      // return success response
+      const resultReply = await reply.update({ content })
+      return { error: null, data: resultReply, message: '修改成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
 }
 
 exports = module.exports = {

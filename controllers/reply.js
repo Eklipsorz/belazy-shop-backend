@@ -6,6 +6,11 @@ const replyController = {
     userServices.deleteReply(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  putReply: (req, res, next) => {
+    userServices.putReply(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

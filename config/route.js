@@ -151,6 +151,9 @@ const replyMiddleware = {
   // add middleware to route (Delete /replies/:replyId)
   deleteReply: [
     ParameterValidator.ExistURIValidate
+  ],
+  putReply: [
+    ParameterValidator.ExistURIValidate
   ]
 }
 
