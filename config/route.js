@@ -31,7 +31,9 @@ const generalMiddleware = {
   // add middleware to route (All methods to /categories)
   categories: [],
   // add midddleware to route (All methods to /products)
-  products: []
+  products: [],
+  // add middleware to route (All methods to /replies)
+  replies: []
 }
 
 const userMiddleware = {
@@ -105,7 +107,20 @@ const productMiddleware = {
   // add middleware to route (GET /products/:productId)
   getProduct: [
     ParameterValidator.ExistURIValidate
+  ],
+  // add middleware to route (GET /products/:productId/replies)
+  getReplies: [
+    ParameterValidator.ExistURIValidate,
+    ParameterPreprocessor.paging
+  ],
+
+  // add middleware to route (POST /products/:productId/replies)
+  postReplies: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser,
+    ParameterValidator.ExistURIValidate
   ]
+
 }
 
 const categoryMiddleware = {
@@ -129,10 +144,30 @@ const categoryMiddleware = {
   ]
 }
 
+const replyMiddleware = {
+  // add middleware to route (DELETE /replies/:replyId)
+  deleteReply: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser,
+    ParameterValidator.ExistURIValidate
+  ],
+  // add middleware to route (PUT /replies/:replyId)
+  putReply: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser,
+    ParameterValidator.ExistURIValidate
+  ],
+  // add middleware to route (GET /replies/:replyId)
+  getReply: [
+    ParameterValidator.ExistURIValidate
+  ]
+}
+
 exports = module.exports = {
   generalMiddleware,
   adminMiddleware,
   userMiddleware,
+  replyMiddleware,
   productMiddleware,
   categoryMiddleware
 }

@@ -1,5 +1,6 @@
 const express = require('express')
-const userRoutes = require('./modules/users')
+const userRoutes = require('./modules/user')
+const replyRoutes = require('./modules/reply')
 const adminRoutes = require('./modules/admin')
 const categoryRoutes = require('./modules/category')
 const productRoutes = require('./modules/product')
@@ -26,6 +27,7 @@ router.post('/admin/login', ...middleware.adminLogin, adminController.login)
 
 router.use('/categories', ...middleware.categories, categoryRoutes)
 router.use('/products', ...middleware.products, productRoutes)
+router.use('/replies', ...middleware.replies, replyRoutes)
 router.use('/users', ...middleware.users, userRoutes)
 router.use('/admin', ...middleware.admin, adminRoutes)
 
