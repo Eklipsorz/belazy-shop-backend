@@ -54,7 +54,21 @@ class ReplyResource {
 
   static async getReply(req) {
     try {
+      const { replyId } = req.params
 
+      const findOption = {
+        include: [
+          { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
+        ]
+      }
+
+      const reply = await Reply.findByPk(replyId, findOption)
+      if (!reply) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+      }
+
+      const resultReply = reply.toJSON()
+      return { error: null, data: resultReply, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

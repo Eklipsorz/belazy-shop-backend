@@ -159,6 +159,11 @@ class UserService extends AccountService {
     return cb(error, data, message)
   }
 
+  async getReply(req, cb) {
+    const { error, data, message } = await ReplyResource.getReply(req)
+    return cb(error, data, message)
+  }
+
   async postReplies(req, cb) {
     const { error, data, message } = await ReplyResource.postReplies(req)
     return cb(error, data, message)

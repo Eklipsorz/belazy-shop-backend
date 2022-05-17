@@ -148,11 +148,16 @@ const categoryMiddleware = {
 }
 
 const replyMiddleware = {
-  // add middleware to route (Delete /replies/:replyId)
+  // add middleware to route (DELETE /replies/:replyId)
   deleteReply: [
     ParameterValidator.ExistURIValidate
   ],
+  // add middleware to route (PUT /replies/:replyId)
   putReply: [
+    ParameterValidator.ExistURIValidate
+  ],
+  // add middleware to route (GET /replies/:replyId)
+  getReply: [
     ParameterValidator.ExistURIValidate
   ]
 }

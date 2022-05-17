@@ -6,6 +6,7 @@ const router = express.Router()
 const controller = replyController
 const middleware = replyMiddleware
 
+router.get('/:replyId', ...middleware.getReply, controller.getReply)
 router.delete('/:replyId', ...middleware.deleteReply, controller.deleteReply)
 router.put('/:replyId', ...middleware.putReply, controller.putReply)
 
