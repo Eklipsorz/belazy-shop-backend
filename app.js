@@ -27,7 +27,7 @@ async function main(projectId, location) {
     parent: formattedParent
   }
   const resp = (await client.listInstances(request))[0]
-  console.info(resp)
+  console.log(resp)
 }
 // [END redis_quickstart]
 
