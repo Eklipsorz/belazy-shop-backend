@@ -2,7 +2,7 @@
 require('dotenv').config()
 const cors = require('cors')
 const express = require('express')
-const routes = require('./routes')
+// const routes = require('./routes')
 const redis = require('redis')
 const redisURL = process.env.PROD_REDIS_URL
 const client = redis.createClient({ url: redisURL })
