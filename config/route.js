@@ -33,7 +33,9 @@ const generalMiddleware = {
   // add midddleware to route (All methods to /products)
   products: [],
   // add middleware to route (All methods to /replies)
-  replies: []
+  replies: [],
+  // add middleware to route (All methods to /carts)
+  carts: []
 }
 
 const userMiddleware = {
@@ -163,11 +165,17 @@ const replyMiddleware = {
   ]
 }
 
+const cartMiddleware = {
+  // add middleware to route (POST /carts)
+  postCarts: []
+}
+
 exports = module.exports = {
   generalMiddleware,
   adminMiddleware,
   userMiddleware,
   replyMiddleware,
+  cartMiddleware,
   productMiddleware,
   categoryMiddleware
 }
