@@ -34,6 +34,9 @@ async function main(projectId, location) {
 }
 // [END redis_quickstart]
 
+
+
+
 main('shop-cache', 'asia-east1').catch(err => {
   console.error(err)
   process.exitCode = 1
