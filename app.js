@@ -20,13 +20,15 @@ const app = express()
 // })
 // app.use(routes)
 async function main(projectId, location) {
+  console.log('hiiiiiiiii-start')
   const { CloudRedisClient } = require('@google-cloud/redis')
   const client = new CloudRedisClient()
+
   const formattedParent = client.locationPath(projectId, location)
   const request = {
     parent: formattedParent
   }
-  console.log('test environment')
+  console.log('hiiiiiiiii-end')
   const resp = (await client.listInstances(request))[0]
   console.log(resp)
 }
@@ -38,5 +40,5 @@ main('shop-cache', 'asia-east1').catch(err => {
 })
 
 app.listen(PORT, () => {
-  console.log(`The express server is running at ${PORT}`)
+  console.log(`The express servert is running at ${PORT}`)
 })
