@@ -13,12 +13,28 @@ const app = express()
 //   }
 //   return next()
 // })
-app.use(cors())
-app.use(express.json())
-app.get('/', (req, res) => {
-  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
+// app.use(cors())
+// app.use(express.json())
+// app.get('/', (req, res) => {
+//   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
+// })
+// app.use(routes)
+async function main(projectId, location) {
+  const { CloudRedisClient } = require('@google-cloud/redis')
+  const client = new CloudRedisClient()
+  const formattedParent = client.locationPath(projectId, location)
+  const request = {
+    parent: formattedParent
+  }
+  const resp = (await client.listInstances(request))[0]
+  console.info(resp)
+}
+// [END redis_quickstart]
+
+main('shop-cache', 'asia-east1').catch(err => {
+  console.error(err)
+  process.exitCode = 1
 })
-app.use(routes)
 
 app.listen(PORT, () => {
   console.log(`The express server is running at ${PORT}`)
