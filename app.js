@@ -26,6 +26,7 @@ async function main(projectId, location) {
   const request = {
     parent: formattedParent
   }
+  console.log('test environment')
   const resp = (await client.listInstances(request))[0]
   console.log(resp)
 }
