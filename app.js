@@ -3,7 +3,9 @@ require('dotenv').config()
 const cors = require('cors')
 const express = require('express')
 const routes = require('./routes')
-
+const redis = require('redis')
+const redisURL = process.env.PROD_REDIS_URL
+const client = redis.createClient({ url: redisURL })
 const PORT = parseInt(process.env.PORT) || 8080
 
 const app = express()
@@ -19,27 +21,20 @@ const app = express()
 //   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 // })
 // app.use(routes)
-async function main(projectId, location) {
-  console.log('hiiiiiiiii-start')
-  const { CloudRedisClient } = require('@google-cloud/redis')
-  const client = new CloudRedisClient()
-
-  const formattedParent = client.locationPath(projectId, location)
-  const request = {
-    parent: formattedParent
-  }
-  console.log('hiiiiiiiii-end')
-  const resp = (await client.listInstances(request))[0]
-  console.log(resp)
-}
-// [END redis_quickstart]
-
-
-
-
-main('shop-cache', 'asia-east1').catch(err => {
-  console.error(err)
-  process.exitCode = 1
+app.get('/', async (req, res, next) => {
+  await client.connect()
+  await client.set('key', 'value1')
+  const value = await client.get('key')
+  res.send(value)
+})
+app.get('/get', async (req, res, next) => {
+  await client.connect()
+  const value = await client.get('key')
+  res.send(`in get route: ${value}`)
+})
+app.get('/close', async (req, res, next) => {
+  await client.disconnect()
+  res.send('disconnected')
 })
 
 app.listen(PORT, () => {
