@@ -7,7 +7,7 @@ const redis = require('redis')
 const redisURL = process.env.PROD_REDIS_URL
 const client = redis.createClient({ url: redisURL })
 const PORT = parseInt(process.env.PORT) || 8080
-
+console.log('redisURL:', redisURL)
 const app = express()
 // app.use((req, res, next) => {
 //   if (req.protocol === 'http') {

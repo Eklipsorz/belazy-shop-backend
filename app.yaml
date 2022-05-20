@@ -13,7 +13,7 @@
 
 # [START gae_quickstart_yaml]
 runtime: nodejs16
-
-name: 'projects/belazy-shop/locations/asia-east1/connectors/belazy-shop-connector'
+vpc_access_connector:
+  name: 'projects/belazy-shop/locations/asia-east1/connectors/belazy-shop-connector'
 # [END gae_quickstart_yaml]
 
