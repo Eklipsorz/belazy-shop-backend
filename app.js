@@ -24,7 +24,7 @@ const app = express()
 client.on('error', (err) => console.log('Redis Client Error', err))
 app.get('/', async (req, res, next) => {
   await client.connect()
-  await client.set('key', 'value1')
+  await client.set('key', 'eazy cake')
   const value = await client.get('key')
   res.send(value)
 })
