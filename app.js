@@ -21,6 +21,7 @@ const app = express()
 //   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 // })
 // app.use(routes)
+client.on('error', (err) => console.log('Redis Client Error', err))
 app.get('/', async (req, res, next) => {
   await client.connect()
   await client.set('key', 'value1')
