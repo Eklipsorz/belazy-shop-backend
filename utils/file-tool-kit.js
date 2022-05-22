@@ -6,8 +6,8 @@ const { Storage } = require('@google-cloud/storage')
 const { projectSettings } = require('../config/project')
 require('dotenv').config({ path: projectSettings.ENVDIR })
 
-// const PROD_STORAGE_CONFIG_BUCKET = process.env.PROD_STORAGE_CONFIG_BUCKET
-const PROD_STORAGE_CONFIG_BUCKET = 'belazy-config'
+const PROD_STORAGE_CONFIG_BUCKET = process.env.PROD_STORAGE_CONFIG_BUCKET
+
 const storage = new Storage()
 const bucket = storage.bucket(PROD_STORAGE_CONFIG_BUCKET)
 
@@ -24,19 +24,18 @@ class FileToolKit {
   }
 
   static async readRemoteFile(file, destType = 'cloudStorage') {
-    /// try {
-    let result = ''
-    switch (destType) {
-      case 'cloudStorage':
-        result = await FileToolKit.readCloudStorageFile(file)
-        break
+    try {
+      let result = ''
+      switch (destType) {
+        case 'cloudStorage':
+          result = await FileToolKit.readCloudStorageFile(file)
+          break
+      }
+      const fileContent = result.reduce((prev, cur) => Buffer.concat([prev, cur]))
+      return fileContent
+    } catch (error) {
+      throw new APIError({ code: code.SERVERERROR, status, error: error.message })
     }
-    const fileContent = result.reduce((prev, cur) => Buffer.concat([prev, cur]))
-    return fileContent
-    // } catch (error) {
-    //  throw new APIError({ code: code.SERVERERROR, status, error: error.message })
-    // }
-    // }
   }
 }
 
