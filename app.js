@@ -1,5 +1,7 @@
 
-require('dotenv').config()
+const { projectSettings } = require('./config/project')
+require('dotenv').config({ path: projectSettings.ENVDIR })
+
 const cors = require('cors')
 const express = require('express')
 const routes = require('./routes')

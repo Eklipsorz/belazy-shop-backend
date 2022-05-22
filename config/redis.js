@@ -1,5 +1,6 @@
 
-require('dotenv').config()
+const { projectSettings } = require('./project')
+require('dotenv').config({ path: projectSettings.ENVDIR })
 
 module.exports = {
   development: {

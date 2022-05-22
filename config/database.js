@@ -1,5 +1,6 @@
 const fs = require('fs')
-require('dotenv').config()
+const { projectSettings } = require('./project')
+require('dotenv').config({ path: projectSettings.ENVDIR })
 
 module.exports = {
   development: {
@@ -10,7 +11,7 @@ module.exports = {
     port: process.env.DEV_DB_PORT,
     dialect: 'mysql',
     dialectOptions: {
-      bigNumberStrings: true,
+      bigNumberStrings: true
       // ssl: {
       //   key: fs.readFileSync(__dirname + '/ssl/db/client-key.pem'),
       //   cert: fs.readFileSync(__dirname + '/ssl/db/client-cert.pem'),
