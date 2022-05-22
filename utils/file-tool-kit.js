@@ -8,7 +8,7 @@ const PROD_GCLOUD_STORAGE_BUCKET = process.env.PROD_STORAGE_CONFIG_BUCKET
 const storage = new Storage()
 const bucket = storage.bucket(PROD_GCLOUD_STORAGE_BUCKET)
 
-class FileHandler {
+class FileToolKit {
   static readCloudStorageFile(filepath) {
     return new Promise((resolve, reject) => {
       const chunks = []
@@ -25,7 +25,7 @@ class FileHandler {
       let result = ''
       switch (destType) {
         case 'cloudStorage':
-          result = await FileHandler.readCloudStorageFile(file)
+          result = await FileToolKit.readCloudStorageFile(file)
           break
       }
       const fileContent = result.reduce((prev, cur) => Buffer.concat([prev, cur]))
@@ -35,12 +35,7 @@ class FileHandler {
     }
   }
 }
-// async function main() {
-//   const result = await FileHandler.readRemoteFile('db-ssl/client-key.pem')
-//   console.log(result)
-// }
-// main()
 
 exports = module.exports = {
-  FileHandler
+  FileToolKit
 }
