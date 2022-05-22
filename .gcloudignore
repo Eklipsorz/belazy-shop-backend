@@ -12,7 +12,6 @@
 # below:
 .git
 .gitignore
-.env
 temp/
 config/ssl/db/client-*
 config/ssl/db/server-*
