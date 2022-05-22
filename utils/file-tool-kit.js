@@ -24,18 +24,19 @@ class FileToolKit {
   }
 
   static async readRemoteFile(file, destType = 'cloudStorage') {
-    try {
-      let result = ''
-      switch (destType) {
-        case 'cloudStorage':
-          result = await FileToolKit.readCloudStorageFile(file)
-          break
-      }
-      const fileContent = result.reduce((prev, cur) => Buffer.concat([prev, cur]))
-      return fileContent
-    } catch (error) {
-      throw new APIError({ code: code.SERVERERROR, status, error: error.message })
+    /// try {
+    let result = ''
+    switch (destType) {
+      case 'cloudStorage':
+        result = await FileToolKit.readCloudStorageFile(file)
+        break
     }
+    const fileContent = result.reduce((prev, cur) => Buffer.concat([prev, cur]))
+    return fileContent
+    // } catch (error) {
+    //  throw new APIError({ code: code.SERVERERROR, status, error: error.message })
+    // }
+    // }
   }
 }
 
