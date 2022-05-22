@@ -13,8 +13,6 @@
 .git
 .gitignore
 temp/
-config/ssl/db/client-*
-config/ssl/db/server-*
 config/credentials/*
 
 # Node.js dependencies:
