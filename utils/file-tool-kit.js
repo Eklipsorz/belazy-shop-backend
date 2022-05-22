@@ -6,8 +6,8 @@ const { Storage } = require('@google-cloud/storage')
 const { projectSettings } = require('../config/project')
 require('dotenv').config({ path: projectSettings.ENVDIR })
 
-const PROD_STORAGE_CONFIG_BUCKET = process.env.PROD_STORAGE_CONFIG_BUCKET
-
+// const PROD_STORAGE_CONFIG_BUCKET = process.env.PROD_STORAGE_CONFIG_BUCKET
+const PROD_STORAGE_CONFIG_BUCKET = 'belazy-config'
 const storage = new Storage()
 const bucket = storage.bucket(PROD_STORAGE_CONFIG_BUCKET)
 
