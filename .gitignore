@@ -1,3 +1,5 @@
 /node_modules
 .env
 temp/
+config/ssl/db/client-*
+config/ssl/db/server-*

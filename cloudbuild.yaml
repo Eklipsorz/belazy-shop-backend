@@ -17,6 +17,7 @@ steps:
     - 'PROD_DB_USERNAME=${_DB_USERNAME_}'
     - 'PROD_DB_PASSWORD=${_DB_PASSWORD_}'
     - 'PROD_GCLOUD_STORAGE_BUCKET=${_GCLOUD_STORAGE_BUCKET_}'
+    - 'PROD_STORAGE_CONFIG_BUCKET=${_STORAGE_CONFIG_BUCKET_}'
 - name: node:16
   entrypoint: npm
   args: ['run', 'deploydb']   

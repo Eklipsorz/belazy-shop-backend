@@ -7,6 +7,7 @@
     "start": "node app.js",
     "dev": "NODE_ENV=development nodemon app.js",
     "create-env": "printenv | grep PROD_ > .env",
+    "deploy-config": "NODE_ENV=production node ./deploy-tools/deploy-config-file.js",
     "deploydb": "NODE_ENV=production ./deploy-tools/migrate-db.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@faker-js/faker": "^6.1.2",
-    "@google-cloud/storage": "^5.19.4",
+    "@google-cloud/storage": "^5.20.5",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
