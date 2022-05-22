@@ -5,6 +5,7 @@ const multer = require('multer')
 
 require('dotenv').config()
 const PROD_GCLOUD_STORAGE_BUCKET = process.env.PROD_GCLOUD_STORAGE_BUCKET
+console.log('PROD_GCLOUD_STORAGE_BUCKET', process.env.PROD_GCLOUD_STORAGE_BUCKET)
 const storage = new Storage()
 const bucket = storage.bucket(PROD_GCLOUD_STORAGE_BUCKET)
 

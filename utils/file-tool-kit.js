@@ -4,9 +4,9 @@ const { status, code } = require('../config/result-status-table').errorTable
 
 const { Storage } = require('@google-cloud/storage')
 
-const PROD_GCLOUD_STORAGE_BUCKET = process.env.PROD_STORAGE_CONFIG_BUCKET
+const PROD_STORAGE_CONFIG_BUCKET = process.env.PROD_STORAGE_CONFIG_BUCKET
 const storage = new Storage()
-const bucket = storage.bucket(PROD_GCLOUD_STORAGE_BUCKET)
+const bucket = storage.bucket(PROD_STORAGE_CONFIG_BUCKET)
 
 class FileToolKit {
   static readCloudStorageFile(filepath) {
