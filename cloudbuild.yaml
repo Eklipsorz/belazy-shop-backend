@@ -20,9 +20,9 @@ steps:
     - 'PROD_STORAGE_CONFIG_BUCKET=${_STORAGE_CONFIG_BUCKET_}'
 - name: node:16
   entrypoint: npm
-  args: ['run', 'deploydb']   
+  args: ['run', 'deploy-config']  
 - name: node:16
   entrypoint: npm
-  args: ['run', 'deploy-config']  
+  args: ['run', 'deploydb']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [ 'app', 'deploy' ]
