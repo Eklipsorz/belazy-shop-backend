@@ -11,11 +11,11 @@ module.exports = {
     dialect: 'mysql',
     dialectOptions: {
       bigNumberStrings: true,
-      ssl: {
-        key: fs.readFileSync(__dirname + '/ssl/db/client-key.pem'),
-        cert: fs.readFileSync(__dirname + '/ssl/db/client-cert.pem'),
-        ca: fs.readFileSync(__dirname + '/ssl/db/server-ca.pem')
-      }
+      // ssl: {
+      //   key: fs.readFileSync(__dirname + '/ssl/db/client-key.pem'),
+      //   cert: fs.readFileSync(__dirname + '/ssl/db/client-cert.pem'),
+      //   ca: fs.readFileSync(__dirname + '/ssl/db/server-ca.pem')
+      // }
     }
   },
   test: {
