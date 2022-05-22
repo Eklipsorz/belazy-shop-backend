@@ -1,2 +1,2 @@
 #!/bin/bash
-printenv | grep PROD_ >> .env1
+printenv | grep PROD_ >> .env
