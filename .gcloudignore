@@ -12,6 +12,11 @@
 # below:
 .git
 .gitignore
+.env
+temp/
+config/ssl/db/client-*
+config/ssl/db/server-*
+
 
 # Node.js dependencies:
 node_modules/

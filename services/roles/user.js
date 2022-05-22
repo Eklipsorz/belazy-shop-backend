@@ -3,6 +3,7 @@ const { ProductResource } = require('../resources/product')
 const { CategoryResource } = require('../resources/category')
 const { LikeResource } = require('../resources/like')
 const { ReplyResource } = require('../resources/reply')
+const { CartResource } = require('../resources/cart')
 
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
@@ -158,7 +159,7 @@ class UserService extends AccountService {
     const { error, data, message } = await ReplyResource.getReplies(req)
     return cb(error, data, message)
   }
-  // 預計ㄎㄞ
+
   async getReply(req, cb) {
     const { error, data, message } = await ReplyResource.getReply(req)
     return cb(error, data, message)
@@ -177,6 +178,10 @@ class UserService extends AccountService {
   async putReply(req, cb) {
     const { error, data, message } = await ReplyResource.putReply(req)
     return cb(error, data, message)
+  }
+
+  async postCarts(req, cb) {
+    await CartResource.postCarts(req)
   }
 }
 
