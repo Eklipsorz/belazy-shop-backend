@@ -1,12 +1,18 @@
 
 const { projectSettings } = require('./config/project')
-require('dotenv').config({ path: projectSettings.ENVDIR })
+require('dotenv').config({ path: projectSettings.ENV })
+
+const redis = require('redis')
+const createRedisClient = require('./db/redis/connect-db')
+const redisConfig = require('./config/redis')[NODE_ENV]
 
 const cors = require('cors')
 const express = require('express')
 const routes = require('./routes')
 
 const PORT = parseInt(process.env.PORT) || 8080
+
+const redisClient = createRedisClient(redisConfig)
 
 const app = express()
 // app.use((req, res, next) => {

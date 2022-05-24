@@ -4,9 +4,7 @@ const { DEFAULT_AVATAR, MAXFILESIZE } = require('../config/app').utility.FileUpl
 const multer = require('multer')
 
 const { projectSettings } = require('../config/project')
-require('dotenv').config({ path: projectSettings.ENVDIR })
-
-console.log(process.env)
+require('dotenv').config({ path: projectSettings.ENV })
 
 const PROD_GCLOUD_STORAGE_BUCKET = process.env.PROD_GCLOUD_STORAGE_BUCKET
 const storage = new Storage()

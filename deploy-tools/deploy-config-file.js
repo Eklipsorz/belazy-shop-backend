@@ -1,7 +1,7 @@
 const fs = require('fs')
 
 const { projectSettings } = require('../config/project')
-require('dotenv').config({ path: projectSettings.ENVDIR })
+require('dotenv').config({ path: projectSettings.ENV })
 
 const { FileToolKit } = require('../utils/file-tool-kit')
 const SSLKEY = process.env.PROD_SSL_DBKEY_PATH

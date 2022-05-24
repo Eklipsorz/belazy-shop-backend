@@ -1,5 +1,5 @@
 const { projectSettings } = require('./project')
-require('dotenv').config({ path: projectSettings.ENVDIR })
+require('dotenv').config({ path: projectSettings.ENV })
 
 const { ENV } = require('./env')
 const { status, code } = require('./result-status-table').errorTable
