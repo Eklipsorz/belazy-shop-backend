@@ -12,6 +12,7 @@
 # below:
 .git
 .gitignore
+.env
 temp/
 config/credentials/*
 
