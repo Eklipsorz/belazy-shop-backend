@@ -6,8 +6,6 @@ const multer = require('multer')
 const { projectSettings } = require('../config/project')
 require('dotenv').config({ path: projectSettings.ENVDIR })
 
-console.log(process.env)
-
 const PROD_GCLOUD_STORAGE_BUCKET = process.env.PROD_GCLOUD_STORAGE_BUCKET
 const storage = new Storage()
 const bucket = storage.bucket(PROD_GCLOUD_STORAGE_BUCKET)

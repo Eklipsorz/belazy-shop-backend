@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 })
 app.use(routes)
-
+console.log('process env', process.env)
 app.listen(PORT, () => {
   console.log(`The express server is running at ${PORT}`)
 })
