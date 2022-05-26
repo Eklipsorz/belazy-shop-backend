@@ -23,21 +23,21 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-app.get('/', async (req, res, next) => {
-  await client.connect()
-  await client.set('key', 'value1')
-  const value = await client.get('key')
-  res.send(`hi ${value}`)
-})
-app.get('/get', async (req, res, next) => {
-  await client.connect()
-  const value = await client.get('key')
-  res.send(`in get route: ${value}`)
-})
-app.get('/close', async (req, res, next) => {
-  await client.disconnect()
-  res.send('disconnected')
-})
+// app.get('/', async (req, res, next) => {
+//   await client.connect()
+//   await client.set('key', 'value1')
+//   const value = await client.get('key')
+//   res.send(`hi ${value}`)
+// })
+// app.get('/get', async (req, res, next) => {
+//   await client.connect()
+//   const value = await client.get('key')
+//   res.send(`in get route: ${value}`)
+// })
+// app.get('/close', async (req, res, next) => {
+//   await client.disconnect()
+//   res.send('disconnected')
+// })
 // app.get('/', (req, res) => {
 //   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 // })
