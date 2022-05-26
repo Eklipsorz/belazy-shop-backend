@@ -21,4 +21,3 @@ module.exports = {
     port: process.env.PROD_REDIS_PORT
   }
 }
-
