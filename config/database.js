@@ -1,6 +1,6 @@
 const fs = require('fs')
-const { projectSettings } = require('./project')
-require('dotenv').config({ path: projectSettings.ENV })
+const { project } = require('./project')
+require('dotenv').config({ path: project.ENV })
 
 module.exports = {
   development: {

@@ -1,5 +1,5 @@
-const { projectSettings } = require('./project')
-require('dotenv').config({ path: projectSettings.ENV })
+const { project } = require('./project')
+require('dotenv').config({ path: project.ENV })
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
 
