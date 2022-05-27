@@ -2,10 +2,10 @@
 const { project } = require('./config/project')
 require('dotenv').config({ path: project.ENV })
 
-// const NODE_ENV = process.env.NODE_ENV || 'development'
-// const redisConfig = require('./config/redis')[NODE_ENV]
-// const createRedisClient = require('./db/redis/connect-db')
-// const client = createRedisClient(redisConfig)
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const redisConfig = require('./config/redis')[NODE_ENV]
+const createRedisClient = require('./db/redis/connect-db')
+const client = createRedisClient(redisConfig)
 
 const cors = require('cors')
 const express = require('express')
@@ -23,12 +23,30 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-// app.get('/', async (req, res, next) => {
-//   await client.connect()
-//   await client.set('key', 'value1')
-//   const value = await client.get('key')
-//   res.send(`hi ${value}`)
-// })
+app.get('/', async (req, res, next) => {
+  await client.connect()
+
+  await client.json.set('test', '$', {
+    name: 'Roberta McDonald',
+    pets: [
+      {
+        name: 'Rex',
+        species: 'dog',
+        age: 3,
+        isMammal: true
+      },
+      {
+        name: 'Goldie',
+        species: 'fish',
+        age: 2,
+        isMammal: false
+      }
+    ]
+  })
+  const results = await client.json.get('test')
+  console.log(results)
+  res.send(`hi ${results}`)
+})
 // app.get('/get', async (req, res, next) => {
 //   await client.connect()
 //   const value = await client.get('key')
@@ -38,10 +56,10 @@ app.use(express.json())
 //   await client.disconnect()
 //   res.send('disconnected')
 // })
-app.get('/', (req, res) => {
-  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
-})
-app.use(routes)
+// app.get('/', (req, res) => {
+//   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
+// })
+// app.use(routes)
 
 app.listen(PORT, () => {
   console.log(`The express server is running at ${PORT}`)
