@@ -21,7 +21,10 @@ steps:
     - 'PROD_SSL_DBKEY_PATH=${_SSL_DBKEY_PATH_}'
     - 'PROD_SSL_DBCERT_PATH=${_SSL_DBCERT_PATH_}'
     - 'PROD_SSL_DBCA_PATH=${_SSL_DBCA_PATH_}'
-
+    - 'PROD_REDIS_USERNAME=${_REDIS_USERNAME_}'
+    - 'PROD_REDIS_PASSWORD=${_REDIS_PASSWORD_}'
+    - 'PROD_REDIS_HOSTNAME=${_REDIS_HOSTNAME_}'
+    - 'PROD_REDIS_PORT=${_REDIS_PORT_}'
 - name: node:16
   entrypoint: npm
   args: ['run', 'deploy-config']  

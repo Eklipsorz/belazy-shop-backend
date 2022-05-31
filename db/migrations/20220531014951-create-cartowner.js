@@ -1,29 +1,26 @@
 'use strict'
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('stock', {
-      product_id: {
+    await queryInterface.createTable('cart_owners', {
+      user_id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      quantity: {
-        type: Sequelize.INTEGER
+      cart_id: {
+        type: Sequelize.UUID
       },
-      rest_quantity: {
-        type: Sequelize.INTEGER
-      },
-      created_at: {
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updated_at: {
+      updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
       }
     })
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('stock')
+    await queryInterface.dropTable('cart_owners')
   }
 }

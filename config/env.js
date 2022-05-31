@@ -1,4 +1,6 @@
-require('dotenv').config()
+const { project } = require('./project')
+require('dotenv').config({ path: project.ENV })
+
 const NODE_ENV = process.env.NODE_ENV || 'development'
 
 let ENV = {}

@@ -3,8 +3,11 @@ const { APIError } = require('../helpers/api-error')
 const { status, code } = require('../config/result-status-table').errorTable
 
 const { Storage } = require('@google-cloud/storage')
+const { project } = require('../config/project')
+require('dotenv').config({ path: project.ENV })
 
 const PROD_STORAGE_CONFIG_BUCKET = process.env.PROD_STORAGE_CONFIG_BUCKET
+
 const storage = new Storage()
 const bucket = storage.bucket(PROD_STORAGE_CONFIG_BUCKET)
 
