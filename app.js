@@ -42,8 +42,8 @@ app.use(
 // })
 
 app.get('/', async (req, res) => {
-  req.session.cartId = require('crypto').randomBytes(16).toString('hex')
-  console.log(req.session)
+  // req.session.cartId = require('crypto').randomBytes(16).toString('hex')
+  // console.log(req.session)
   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 })
 
