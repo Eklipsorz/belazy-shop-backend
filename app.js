@@ -47,6 +47,7 @@ app.get('/', async (req, res) => {
   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 })
 
+app.locals.redisClient = redisClient
 app.use(routes)
 
 app.listen(PORT, () => {

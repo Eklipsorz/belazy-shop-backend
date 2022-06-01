@@ -110,6 +110,10 @@ const productMiddleware = {
   getProduct: [
     ParameterValidator.ExistURIValidate
   ],
+  // add middleware to route (GET /products/:proudctId/stock)
+  getStock: [
+    ParameterValidator.ExistURIValidate
+  ],
   // add middleware to route (GET /products/:productId/replies)
   getReplies: [
     ParameterValidator.ExistURIValidate,

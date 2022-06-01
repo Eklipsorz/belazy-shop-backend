@@ -5,19 +5,9 @@ require('dotenv').config({ path: project.ENV })
 const { cache } = require('../config/deployment')
 const { sequelize } = require('../db/models')
 const createRedisClient = require('../db/redis')
+const { SyncDBKit } = require('../utils/sync-db-kit')
 
 const _ = require('lodash')
-
-function setExpiredAt(date) {
-  const currentDate = date.valueOf()
-  const baseDays = cache.BASEDAYS
-  const minMinute = cache.MINRANGE.MIN
-  const maxMinute = cache.MINRANGE.MAX
-  const randomMin = Math.floor(Math.random() * (maxMinute - minMinute + 1)) + minMinute
-
-  const expiredAt = (currentDate + baseDays * 86400000 + randomMin * 60000)
-  return new Date(expiredAt)
-}
 
 async function warmup(client) {
   const stockArray = await sequelize.query(
@@ -29,9 +19,10 @@ async function warmup(client) {
     const productId = product.product_id
     const stockKey = `stock:${productId}`
 
+    delete product.id
     delete product.product_id
-    product.dirtyBit = false
-    product.expiredAt = setExpiredAt(new Date())
+    product.dirtyBit = 0
+    product.expiredAt = SyncDBKit.setExpiredAt(new Date())
 
     Object.entries(product).forEach(async ([key, value]) => {
       key = _.camelCase(key)

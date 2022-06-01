@@ -13,6 +13,11 @@ const productController = {
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
+  getStock: (req, res, next) => {
+    userServices.getStock(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
 
   likeProduct: (req, res, next) => {
     userServices.likeProduct(req, (error, data, message) =>
