@@ -2,7 +2,6 @@
 const { project } = require('../config/project')
 require('dotenv').config({ path: project.ENV })
 
-const { cache } = require('../config/deployment')
 const { sequelize } = require('../db/models')
 const createRedisClient = require('../db/redis')
 const { SyncDBKit } = require('../utils/sync-db-kit')
@@ -21,7 +20,7 @@ async function warmup(client) {
 
     delete product.id
     delete product.product_id
-    product.dirtyBit = 0
+    product.dirtyBit = 1
     product.expiredAt = SyncDBKit.setExpiredAt(new Date())
 
     Object.entries(product).forEach(async ([key, value]) => {

@@ -1,21 +1,8 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
+const { SyncDBKit } = require('../../utils/sync-db-kit')
 const { Product, Ownership, Stock, ProductStatistic } = require('../../db/models')
-
-function syncDB(product) {
-  let { expiredAt, dirtyBit } = product
-  dirtyBit = Number(dirtyBit)
-  const currentTime = (new Date()).valueOf()
-  const expiredAtInms = (new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')).valueOf()
-  console.log(currentTime, expiredAtInms, expiredAt, typeof dirtyBit, dirtyBit)
-  if (currentTime > expiredAtInms && dirtyBit) {
-    product.quantity = 'hiii'
-    // sync to DB based on Disk/SSD
-
-    // initialize dirtyBit and expiredAt
-  }
-}
 
 class ProductResource {
   static async getProducts(req, type = 'get') {
@@ -116,7 +103,8 @@ class ProductResource {
         }
         resultProduct = product.toJSON()
       } else {
-        syncDB(product)
+        const findOption = { where: { productId } }
+        SyncDBKit.syncDBFromCache(product, findOption, redisClient)
         // normalize to a product data
         delete product.dirtyBit
         delete product.expiredAt
