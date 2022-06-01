@@ -18,8 +18,6 @@ function setExpiredAt(date) {
   const expiredAt = (currentDate + baseDays * 86400000 + randomMin * 60000)
   return new Date(expiredAt)
 }
-const testdate = new Date()
-console.log(testdate, setExpiredAt(testdate))
 
 async function warmup(client) {
   const stockArray = await sequelize.query(
@@ -46,7 +44,11 @@ async function warmup(client) {
   ])
 }
 
-// warmup()
+async function cooldown(client) {
+  const keys = await client.keys('stock:*')
+  if (!keys.length) return
+  await client.del(keys)
+}
 
 (async function main() {
   const args = process.argv.slice(2)
@@ -62,6 +64,7 @@ async function warmup(client) {
       break
     // remove hotspot data from redis
     case 'cooldown':
+      await cooldown(redisClient)
       break
   }
   redisClient.quit()
