@@ -20,7 +20,7 @@ async function warmup(client) {
 
     delete product.id
     delete product.product_id
-    product.dirtyBit = 1
+    product.dirtyBit = 0
     product.expiredAt = SyncDBKit.setExpiredAt(new Date())
 
     Object.entries(product).forEach(async ([key, value]) => {

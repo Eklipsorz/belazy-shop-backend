@@ -20,7 +20,9 @@ class SyncDBKit {
     let { dirtyBit, expiredAt } = object
     dirtyBit = Number(dirtyBit)
 
+    expiredAt = new Date(expiredAt)
     const currentTime = new Date()
+
     // test data
     // expiredAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
 

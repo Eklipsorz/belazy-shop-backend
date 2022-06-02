@@ -17,11 +17,6 @@ class ProductResource {
             as: 'productCategory'
           },
           {
-            model: Stock,
-            attributes: ['quantity', 'restQuantity'],
-            as: 'stock'
-          },
-          {
             model: ProductStatistic,
             attributes: ['likedTally', 'repliedTally'],
             as: 'statistics'
@@ -62,11 +57,6 @@ class ProductResource {
             model: Ownership,
             attributes: ['categoryId', 'categoryName'],
             as: 'productCategory'
-          },
-          {
-            model: Stock,
-            attributes: ['quantity', 'restQuantity'],
-            as: 'stock'
           },
           {
             model: ProductStatistic,
@@ -115,10 +105,6 @@ class ProductResource {
       }
 
       return { error: null, data: resultProduct, message: '獲取成功' }
-      // const product = await Stock.findByPk(productId)
-      // if (!product) {
-      //   return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-      // }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
