@@ -118,15 +118,47 @@ class ProductResource {
       const message = ParameterValidationKit.updateStockValidate(req)
 
       if (message.length) {
-        // return { error: new Error('hi') }
-
         return { error: new APIError({ code: code.BADREQUEST, status, message, data: req.body }) }
       }
+
       // check whether product exists
       // ready to update stock for the product:
       // - update stock to cache
       // - update stock to DB (if failed for updating cache)
       // check dirtyBit and expiredAt
+      const { productId } = req.params
+      const { redisClient } = req.app.locals
+      const { quantity, restQuantity } = req.body
+
+      let product = await redisClient.hgetall(`stock:${productId}`)
+      let resultProduct = {}
+
+      if (!Object.keys(product).length) {
+        product = await Stock.findOne({ where: { productId } })
+
+        if (!product) {
+          return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+        }
+        // update stock to DB
+        resultProduct = (await product.update({ quantity, restQuantity })).toJSON()
+      } else {
+        // update stock to cache
+        const createdAt = new Date(product.createdAt)
+        const updatedAt = new Date()
+        await redisClient.hset(`stock:${productId}`, 'quantity', quantity)
+        await redisClient.hset(`stock:${productId}`, 'restQuantity', restQuantity)
+        await redisClient.hset(`stock:${productId}`, 'updatedAt', updatedAt)
+        await redisClient.hset(`stock:${productId}`, 'dirtyBit', 1)
+
+        // Sync DB
+        const findOption = { where: { productId } }
+        SyncDBKit.syncDBFromCache(product, findOption, redisClient)
+
+        // normalize a product data
+        resultProduct = { productId, quantity, restQuantity, createdAt, updatedAt }
+      }
+
+      return { error: null, data: resultProduct, message: '修改成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

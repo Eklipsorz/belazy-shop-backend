@@ -31,7 +31,7 @@ class SyncDBKit {
     if (currentTime.valueOf() > expiredAt.valueOf() && dirtyBit) {
       // initialize dirtyBit and expiredAt
       const target = Object.values(findOption.where)[0]
-
+      console.log('sync')
       await cache.hset(`stock:${target}`, 'dirtyBit', 0)
       await cache.hset(`stock:${target}`, 'expiredAt', SyncDBKit.setExpiredAt(currentTime))
       // sync to DB based on Disk/SSD:
