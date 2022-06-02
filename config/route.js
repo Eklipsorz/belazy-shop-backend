@@ -71,6 +71,10 @@ const adminMiddleware = {
   getProduct: [
     ParameterValidator.ExistURIValidate
   ],
+  // add middleware to route (GET /admin/products/:productId/stock)
+  getStock: [
+    ParameterValidator.ExistURIValidate
+  ],
   // add middleware to route (GET /admin/products)
   getProducts: [
     ParameterPreprocessor.paging

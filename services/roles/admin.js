@@ -17,6 +17,11 @@ class AdminService extends AccountService {
     return cb(error, data, message)
   }
 
+  async getStock(req, cb) {
+    const { error, data, message } = await ProductResource.getStock(req)
+    return cb(error, data, message)
+  }
+
   async getCategory(req, cb) {
     const { error, data, message } = await CategoryResource.getCategory(req)
     return cb(error, data, message)
