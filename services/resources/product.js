@@ -3,6 +3,7 @@ const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { SyncDBKit } = require('../../utils/sync-db-kit')
 const { Product, Ownership, Stock, ProductStatistic } = require('../../db/models')
+const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 
 class ProductResource {
   static async getProducts(req, type = 'get') {
@@ -105,6 +106,27 @@ class ProductResource {
       }
 
       return { error: null, data: resultProduct, message: '獲取成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
+  static async putStock(req) {
+    try {
+      // check whether parameters are valid
+
+      const message = ParameterValidationKit.updateStockValidate(req)
+
+      if (message.length) {
+        // return { error: new Error('hi') }
+
+        return { error: new APIError({ code: code.BADREQUEST, status, message, data: req.body }) }
+      }
+      // check whether product exists
+      // ready to update stock for the product:
+      // - update stock to cache
+      // - update stock to DB (if failed for updating cache)
+      // check dirtyBit and expiredAt
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

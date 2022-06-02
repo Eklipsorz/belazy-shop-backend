@@ -60,7 +60,6 @@ class UserService extends AccountService {
   }
 
   async getStock(req, cb) {
-    //  await ProductResource.getStock(req)
     const { error, data, message } = await ProductResource.getStock(req)
     return cb(error, data, message)
   }

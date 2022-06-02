@@ -122,6 +122,33 @@ class ParameterValidationKit {
     }
     return messageQueue
   }
+
+  static updateStockValidate(req) {
+    const messageQueue = []
+    const { quantity, restQuantity } = req.body
+
+    if (!quantity || !restQuantity) {
+      messageQueue.push('所有欄位都要填寫')
+    }
+
+    if (isNaN(quantity) || isNaN(restQuantity)) {
+      messageQueue.push('所有欄位都必須是數字')
+      return messageQueue
+    }
+
+    if (quantity < 0) {
+      messageQueue.push('產品庫存量只能是正值')
+    }
+
+    if (restQuantity < 0) {
+      messageQueue.push('剩餘庫存數量只能是正值')
+    }
+
+    if (restQuantity > quantity) {
+      messageQueue.push('剩餘量必須小於數量')
+    }
+    return messageQueue
+  }
 }
 
 exports = module.exports = {
