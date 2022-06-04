@@ -8,6 +8,8 @@ const { FileUploader } = require('../middlewares/file-uploader')
 // enable/disable file upload via adding it
 const upload = FileUploader.getMulter()
 
+const { CartPreprocessor } = require('../middlewares/cart-preprocessor')
+
 const generalMiddleware = {
   all: [
     AuthValidator.authenticate
@@ -35,7 +37,10 @@ const generalMiddleware = {
   // add middleware to route (All methods to /replies)
   replies: [],
   // add middleware to route (All methods to /carts)
-  carts: []
+  carts: [
+    CartPreprocessor.getSession,
+    CartPreprocessor.syncCart
+  ]
 }
 
 const userMiddleware = {

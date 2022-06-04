@@ -16,22 +16,24 @@ async function warmup(client) {
 
   async function hashSetTask(product) {
     const productId = product.product_id
-    const stockKey = `stock:${productId}`
+    const key = `stock:${productId}`
 
     delete product.id
     delete product.product_id
     product.dirtyBit = 0
     product.expiredAt = SyncDBKit.setExpiredAt(new Date())
 
-    Object.entries(product).forEach(async ([key, value]) => {
-      key = _.camelCase(key)
-      await client.hset(stockKey, key, value)
-    })
+    await Promise.all(
+      Object.entries(product).map(([hashKey, hashValue]) => {
+        hashKey = _.camelCase(hashKey)
+        return client.hset(key, hashKey, hashValue)
+      })
+    )
   }
 
-  await Promise.all([
+  await Promise.all(
     stockArray.map(hashSetTask)
-  ])
+  )
 }
 
 async function cooldown(client) {
