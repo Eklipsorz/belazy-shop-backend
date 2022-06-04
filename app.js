@@ -29,7 +29,7 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     cookie: {
-      secure: true,
+      secure: NODE_ENV === 'production',
       httpOnly: true
     }
   })

@@ -4,7 +4,11 @@ module.exports = {
     await queryInterface.createTable('carts', {
       id: {
         allowNull: false,
+        autoIncrement: true,
         primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      cart_id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4
       },

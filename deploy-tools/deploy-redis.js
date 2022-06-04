@@ -29,9 +29,9 @@ async function warmup(client) {
     })
   }
 
-  await Promise.all([
+  await Promise.all(
     stockArray.map(hashSetTask)
-  ])
+  )
 }
 
 async function cooldown(client) {
