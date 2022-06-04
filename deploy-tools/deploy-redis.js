@@ -23,7 +23,7 @@ async function warmup(client) {
     product.dirtyBit = 0
     product.expiredAt = SyncDBKit.setExpiredAt(new Date())
 
-    await Promise.all(
+    return await Promise.all(
       Object.entries(product).map(([hashKey, hashValue]) => {
         hashKey = _.camelCase(hashKey)
         return client.hset(key, hashKey, hashValue)
@@ -31,7 +31,7 @@ async function warmup(client) {
     )
   }
 
-  await Promise.all(
+  return await Promise.all(
     stockArray.map(hashSetTask)
   )
 }
@@ -39,7 +39,7 @@ async function warmup(client) {
 async function cooldown(client) {
   const keys = await client.keys('stock:*')
   if (!keys.length) return
-  await client.del(keys)
+  return await client.del(keys)
 }
 
 (async function main() {

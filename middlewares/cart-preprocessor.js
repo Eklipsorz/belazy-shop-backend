@@ -3,6 +3,7 @@ const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 const { Cart } = require('../db/models')
 const { v4: uuidv4 } = require('uuid')
+const redis = require('../config/redis')
 
 class CartPreprocessor {
   static getSession(req, _, next) {
@@ -25,7 +26,8 @@ class CartPreprocessor {
       raw: true
     }
     const carts = await Cart.findAll(findOption)
-    async function hashSetTask(cart) {
+
+    async function CacheSyncTask(cart) {
       const { cartId, productId } = cart
       const key = `cart:${cartId}:${productId}`
 
@@ -40,9 +42,38 @@ class CartPreprocessor {
       )
     }
 
-    await Promise.all(
-      carts.map(hashSetTask)
+    return await Promise.all(
+      carts.map(CacheSyncTask)
     )
+  }
+
+  static async syncCartFromCachetoDB(req) {
+    const { cartId } = req.session
+    const redisClient = req.app.locals.redisClient
+
+    async function DBSyncTask(key) {
+      const [_, cartId, productId] = key.split(':')
+      const resultCart = await redisClient.hgetall(key)
+
+      resultCart.cartId = cartId
+      resultCart.productId = Number(productId)
+      resultCart.createdAt = new Date(resultCart.createdAt)
+      resultCart.updatedAt = new Date(resultCart.updatedAt)
+      delete resultCart.firstSyncBit
+
+      return await Cart.create(resultCart)
+    }
+
+    let cursor = '0'
+    let keys = []
+
+    while (true) {
+      [cursor, keys] = await redisClient.scan(cursor, 'MATCH', `cart:${cartId}:*`)
+      await Promise.all(
+        keys.map(DBSyncTask)
+      )
+      if (cursor === '0') break
+    }
   }
 
   static async syncCart(req, _, next) {
@@ -59,25 +90,29 @@ class CartPreprocessor {
     try {
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
-      console.log('hiiii')
+
       const [cartInCache, cartInDB] = await Promise.all([
-        redisClient.hgetall(`cart:${cartId}`),
+        redisClient.scan(0, 'MATCH', `cart:${cartId}:*`, 'COUNT', 1),
         Cart.findOne({ where: { cartId } })
       ])
 
       // cartInCache
-      console.log('cache: ', cartInCache)
+      console.log('cache: ', cartInCache, cartInCache[1].length)
       console.log('db: ', cartInDB)
 
       // case 1: There is nothing on cache and DB
       // dothing
 
       // case 2: Except for cache, there is a cart data on DB
-      if (!Object.keys(cartInCache).length && cartInDB) {
+      if (!cartInCache[1].length && cartInDB) {
         console.log('case 2')
         await CartPreprocessor.syncCartFromDBtoCache(req)
       }
       // case 3: Except for DB, there is a cart data on cache
+      if (cartInCache[1].length && !cartInDB) {
+        console.log('case 3')
+        await CartPreprocessor.syncCartFromCachetoDB(req)
+      }
 
       // case 4: There is a cart data on cache and DB
       console.log('end')
