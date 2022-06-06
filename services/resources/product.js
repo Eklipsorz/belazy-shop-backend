@@ -1,7 +1,7 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
-const { SyncDBKit } = require('../../utils/sync-db-kit')
+const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const { Product, Ownership, Stock, ProductStatistic } = require('../../db/models')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 
@@ -95,10 +95,10 @@ class ProductResource {
         resultProduct = product.toJSON()
       } else {
         const findOption = { where: { productId } }
-        SyncDBKit.syncDBFromCache(product, findOption, redisClient)
+        await RedisToolKit.syncDBFromCache(findOption, redisClient, product)
         // normalize to a product data
         delete product.dirtyBit
-        delete product.expiredAt
+        delete product.refreshAt
         product.productId = productId
         product.createdAt = new Date(product.createdAt)
         product.updatedAt = new Date(product.updatedAt)
@@ -145,6 +145,7 @@ class ProductResource {
         // update stock to cache
         const createdAt = new Date(product.createdAt)
         const updatedAt = new Date()
+
         await redisClient.hset(`stock:${productId}`, 'quantity', quantity)
         await redisClient.hset(`stock:${productId}`, 'restQuantity', restQuantity)
         await redisClient.hset(`stock:${productId}`, 'updatedAt', updatedAt)
@@ -152,7 +153,7 @@ class ProductResource {
 
         // Sync DB
         const findOption = { where: { productId } }
-        SyncDBKit.syncDBFromCache(product, findOption, redisClient)
+        await RedisToolKit.syncDBFromCache(findOption, redisClient)
 
         // normalize a product data
         resultProduct = { productId, quantity, restQuantity, createdAt, updatedAt }

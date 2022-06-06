@@ -3,7 +3,6 @@ const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 const { Cart } = require('../db/models')
 const { v4: uuidv4 } = require('uuid')
-const redis = require('../config/redis')
 
 class CartPreprocessor {
   static getSession(req, _, next) {
