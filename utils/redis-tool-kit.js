@@ -19,6 +19,42 @@ class RedisToolKit {
     return new Date(refreshAt)
   }
 
+  static getCartHashKey(key) {
+    return key.split(':')[2]
+  }
+
+  static async getCacheValues(type, keyPattern, cache) {
+    let cursor = 0
+    let keySet = []
+    const cacheResult = []
+
+    let getHashKey = null
+
+    switch (type) {
+      case 'cart':
+        getHashKey = RedisToolKit.getCartHashKey
+        break
+    }
+
+    async function hgetallTask(key) {
+      const result = await cache.hgetall(key)
+      result.productId = getHashKey(key)
+      return result
+    }
+
+    while (true) {
+      [cursor, keySet] = await cache.scan(cursor, 'MATCH', keyPattern)
+
+      const result = await Promise.all(
+        keySet.map(hgetallTask)
+      )
+      cacheResult.push(...result)
+      if (cursor === '0') break
+    }
+
+    return cacheResult
+  }
+
   static async syncDBFromCache(findOption, cache, object = null) {
     const target = Object.values(findOption.where)[0]
     const resultObject = !object ? await cache.hgetall(`stock:${target}`) : object
