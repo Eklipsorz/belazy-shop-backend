@@ -27,7 +27,7 @@ class CartPreprocessor {
       dirtyBit: 0,
       refreshAt: refreshAt
     }
-    delete template.id
+    if (template.id) delete template.id
 
     return await cache.hset(key, template)
   }
@@ -37,7 +37,9 @@ class CartPreprocessor {
     const { cartId, productId } = product
 
     const template = {
-      ...product,
+      cartId,
+      price: Number(product.price),
+      quantity: Number(product.quantity),
       productId: Number(productId),
       createdAt: new Date(product.createdAt),
       updatedAt: new Date(product.updatedAt)
@@ -45,20 +47,12 @@ class CartPreprocessor {
 
     const findOption = {
       where: { cartId, productId },
-      // defaults: template
+      defaults: template
     }
     // create a record if there is nothing about cartId and productId
     // update the record if there is a cart data with cartId and productId
     const [cart, created] = await Cart.findOrCreate(findOption)
-    if (!created) {
-      console.log('updated')
-      await cart.update(product)
-    }
-
-    delete template.dirtyBit
-    delete template.refreshAt
-
-    return await Cart.create(template)
+    if (!created) await cart.update(product)
   }
 
   // sync db and cache
@@ -96,46 +90,14 @@ class CartPreprocessor {
 
     // productHash -> { cartObject1, cartObject2, ....}
     const resultProduct = Object.values(productHash).map(value => ({ ...value }))
-    console.log('result', resultProduct)
-    // A task template for synchronizing db
-    async function syncDBTask(product) {
-      const cartId = product.cartId
-      const productId = Number(product.productId)
-      // normalize a cart data according to db schema
-      delete product.dirtyBit
-      delete product.refreshAt
-      product.createdAt = new Date(product.createdAt)
-      product.updatedAt = new Date()
 
-      const findOption = {
-        where: { cartId, productId },
-        defaults: { ...product }
-      }
-      // create a record if there is nothing about cartId and productId
-      // update the record if there is a cart data with cartId and productId
-      const [cart, created] = await Cart.findOrCreate(findOption)
-      if (!created) {
-        await cart.update(product)
-      }
-    }
+    const syncDBTask = CartPreprocessor.syncDBTask
     // generate a set of task to sync db
     await Promise.all(
       resultProduct.map(syncDBTask)
     )
 
-    // a task template for synchronizing cache
-    async function syncCacheTask(product, cache) {
-      const productId = product.productId
-      const key = `cart:${cartId}:${productId}`
-
-      // normalize a cart data according to schema
-      delete product.productId
-      product.dirtyBit = 0
-      product.refreshAt = RedisToolKit.setRefreshAt(new Date())
-      product.updatedAt = new Date()
-      // update or create
-      return await cache.hset(key, product)
-    }
+    const syncCacheTask = CartPreprocessor.syncCacheTask
 
     // generate a set of task to sync cache
     await Promise.all(
@@ -207,21 +169,25 @@ class CartPreprocessor {
       // case 1: There is nothing on cache and DB
       // do nothing
 
-      // case 2: Except for cache, there is a cart data on DB
-      if (!isExistInCache && isExistInDB) {
-        console.log('case 2')
-        await CartPreprocessor.syncCartFromDBtoCache(req)
-      }
-      // case 3: Except for DB, there is a cart data on cache
-      if (isExistInCache && !isExistInDB) {
-        console.log('case 3')
-        await CartPreprocessor.syncCartFromCachetoDB(req)
-      }
+      switch (true) {
+        case (!isExistInCache && !isExistInDB):
+          // case 1: There is nothing on cache and DB
+          // do nothing
+          break
 
-      // case 4: There is a cart data on cache and DB
-      if (isExistInCache && isExistInDB) {
-        console.log('case 4')
-        await CartPreprocessor.syncCartToDBAndCache(req)
+        case (!isExistInCache && isExistInDB):
+          // case 2: Except for cache, there is a cart data on DB
+          await CartPreprocessor.syncCartFromDBtoCache(req)
+          break
+
+        case (isExistInCache && !isExistInDB):
+          // case 3: Except for DB, there is a cart data on cache
+          await CartPreprocessor.syncCartFromCachetoDB(req)
+          break
+        case (isExistInCache && isExistInDB):
+          // case 4: There is a cart data on cache and DB
+          await CartPreprocessor.syncCartToDBAndCache(req)
+          break
       }
 
       // req.session.firstSyncBit = true
