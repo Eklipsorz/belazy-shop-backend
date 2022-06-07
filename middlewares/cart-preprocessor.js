@@ -98,7 +98,7 @@ class CartPreprocessor {
     }
     const carts = await Cart.findAll(findOption)
 
-    async function CacheSyncTask(cart) {
+    async function CacheSyncTask(cart, cache) {
       const { cartId, productId } = cart
       const key = `cart:${cartId}:${productId}`
 
@@ -106,18 +106,13 @@ class CartPreprocessor {
       delete cart.cartId
       delete cart.productId
 
-      await Promise.all(
-        Object.entries(cart).map(([hashKey, hashValue]) =>
-          redisClient.hset(key, hashKey, hashValue)
-        )
-      )
       const refreshAt = await RedisToolKit.setRefreshAt(new Date())
-      await redisClient.hset(key, 'dirtyBit', 0)
-      await redisClient.hset(key, 'refreshAt', refreshAt)
+      cart.dirtyBit = 0
+      cart.refreshAt = refreshAt
+      return await cache.hset(key, cart)
     }
-
     return await Promise.all(
-      carts.map(CacheSyncTask)
+      carts.map(cart => CacheSyncTask(cart, redisClient))
     )
   }
 
@@ -125,9 +120,9 @@ class CartPreprocessor {
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
 
-    async function DBSyncTask(key) {
+    async function DBSyncTask(key, cache) {
       const [_, cartId, productId] = key.split(':')
-      const resultCart = await redisClient.hgetall(key)
+      const resultCart = await cache.hgetall(key)
 
       resultCart.cartId = cartId
       resultCart.productId = Number(productId)
@@ -142,11 +137,11 @@ class CartPreprocessor {
 
     let cursor = '0'
     let keys = []
-
+    console.log('case 2')
     while (true) {
       [cursor, keys] = await redisClient.scan(cursor, 'MATCH', `cart:${cartId}:*`)
       await Promise.all(
-        keys.map(DBSyncTask)
+        keys.map((key, redisClient) => DBSyncTask(key, redisClient))
       )
       if (cursor === '0') break
     }
@@ -165,14 +160,17 @@ class CartPreprocessor {
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
 
+      // get cart data from cache and db
       const [cartInCache, cartInDB] = await Promise.all([
         redisClient.scan(0, 'MATCH', `cart:${cartId}:*`, 'COUNT', 1),
         Cart.findOne({ where: { cartId } })
       ])
 
-      // cartInCache
+      // true -> there exists cart data in cache or db
+      // false -> there is nothing data in cache or db
       const isExistInCache = Boolean(cartInCache[1].length)
       const isExistInDB = Boolean(cartInDB)
+
       // case 1: There is nothing on cache and DB
       // dothing
 
@@ -189,6 +187,7 @@ class CartPreprocessor {
       if (isExistInCache && isExistInDB) {
         await CartPreprocessor.syncCartToDBAndCache(req)
       }
+
       // req.session.firstSyncBit = true
       return next()
     } catch (error) {
