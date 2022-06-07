@@ -16,6 +16,52 @@ class CartPreprocessor {
     return next()
   }
 
+  // a task template for synchronizing cache
+  static async syncCacheTask(product, cache) {
+    const { cartId, productId } = product
+    const key = `cart:${cartId}:${productId}`
+    const refreshAt = await RedisToolKit.setRefreshAt(new Date())
+
+    const template = {
+      ...product,
+      dirtyBit: 0,
+      refreshAt: refreshAt
+    }
+    delete template.id
+
+    return await cache.hset(key, template)
+  }
+
+  // a task template for synchronizing db
+  static async syncDBTask(product) {
+    const { cartId, productId } = product
+
+    const template = {
+      ...product,
+      productId: Number(productId),
+      createdAt: new Date(product.createdAt),
+      updatedAt: new Date(product.updatedAt)
+    }
+
+    const findOption = {
+      where: { cartId, productId },
+      // defaults: template
+    }
+    // create a record if there is nothing about cartId and productId
+    // update the record if there is a cart data with cartId and productId
+    const [cart, created] = await Cart.findOrCreate(findOption)
+    if (!created) {
+      console.log('updated')
+      await cart.update(product)
+    }
+
+    delete template.dirtyBit
+    delete template.refreshAt
+
+    return await Cart.create(template)
+  }
+
+  // sync db and cache
   static async syncCartToDBAndCache(req) {
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
@@ -25,12 +71,13 @@ class CartPreprocessor {
       where: { cartId },
       raw: true
     }
-
+    // get all cart from cache and db
     const cacheResult = await RedisToolKit.getCacheValues('cart', keyPattern, redisClient)
     const dbResult = await Cart.findAll(findOption)
 
+    // merge cart data in cache and in db into a set of cart data
+    // productHash[cartId] = cartObject
     const productHash = {}
-
     function mergeTask(product) {
       const id = product.productId
       if (!productHash[id]) {
@@ -47,14 +94,16 @@ class CartPreprocessor {
     cacheResult.forEach(mergeTask)
     dbResult.forEach(mergeTask)
 
+    // productHash -> { cartObject1, cartObject2, ....}
     const resultProduct = Object.values(productHash).map(value => ({ ...value }))
-
+    console.log('result', resultProduct)
+    // A task template for synchronizing db
     async function syncDBTask(product) {
+      const cartId = product.cartId
       const productId = Number(product.productId)
-
+      // normalize a cart data according to db schema
       delete product.dirtyBit
       delete product.refreshAt
-      product.cartId = cartId
       product.createdAt = new Date(product.createdAt)
       product.updatedAt = new Date()
 
@@ -62,32 +111,39 @@ class CartPreprocessor {
         where: { cartId, productId },
         defaults: { ...product }
       }
+      // create a record if there is nothing about cartId and productId
+      // update the record if there is a cart data with cartId and productId
       const [cart, created] = await Cart.findOrCreate(findOption)
       if (!created) {
         await cart.update(product)
       }
     }
-
+    // generate a set of task to sync db
     await Promise.all(
       resultProduct.map(syncDBTask)
     )
 
-    async function syncCacheTask(product) {
+    // a task template for synchronizing cache
+    async function syncCacheTask(product, cache) {
       const productId = product.productId
       const key = `cart:${cartId}:${productId}`
 
+      // normalize a cart data according to schema
       delete product.productId
       product.dirtyBit = 0
       product.refreshAt = RedisToolKit.setRefreshAt(new Date())
       product.updatedAt = new Date()
-      return await redisClient.hset(key, product)
+      // update or create
+      return await cache.hset(key, product)
     }
 
+    // generate a set of task to sync cache
     await Promise.all(
-      resultProduct.map(syncCacheTask)
+      resultProduct.map(product => syncCacheTask(product, redisClient))
     )
   }
 
+  // sync cache with data in db
   static async syncCartFromDBtoCache(req) {
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
@@ -97,22 +153,9 @@ class CartPreprocessor {
       raw: true
     }
     const carts = await Cart.findAll(findOption)
-
-    async function CacheSyncTask(cart, cache) {
-      const { cartId, productId } = cart
-      const key = `cart:${cartId}:${productId}`
-
-      delete cart.id
-      delete cart.cartId
-      delete cart.productId
-
-      const refreshAt = await RedisToolKit.setRefreshAt(new Date())
-      cart.dirtyBit = 0
-      cart.refreshAt = refreshAt
-      return await cache.hset(key, cart)
-    }
+    const syncCacheTask = CartPreprocessor.syncCacheTask
     return await Promise.all(
-      carts.map(cart => CacheSyncTask(cart, redisClient))
+      carts.map(cart => syncCacheTask(cart, redisClient))
     )
   }
 
@@ -120,28 +163,18 @@ class CartPreprocessor {
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
 
-    async function DBSyncTask(key, cache) {
-      const [_, cartId, productId] = key.split(':')
-      const resultCart = await cache.hgetall(key)
-
-      resultCart.cartId = cartId
-      resultCart.productId = Number(productId)
-      resultCart.createdAt = new Date(resultCart.createdAt)
-      resultCart.updatedAt = new Date(resultCart.updatedAt)
-      delete resultCart.firstSyncBit
-      delete resultCart.dirtyBit
-      delete resultCart.refreshAt
-
-      return await Cart.create(resultCart)
-    }
-
     let cursor = '0'
     let keys = []
-    console.log('case 2')
+
+    async function syncDBTask(key, cache) {
+      const product = await cache.hgetall(key)
+      return await CartPreprocessor.syncDBTask(product)
+    }
+
     while (true) {
       [cursor, keys] = await redisClient.scan(cursor, 'MATCH', `cart:${cartId}:*`)
       await Promise.all(
-        keys.map((key, redisClient) => DBSyncTask(key, redisClient))
+        keys.map(key => syncDBTask(key, redisClient))
       )
       if (cursor === '0') break
     }
@@ -162,7 +195,7 @@ class CartPreprocessor {
 
       // get cart data from cache and db
       const [cartInCache, cartInDB] = await Promise.all([
-        redisClient.scan(0, 'MATCH', `cart:${cartId}:*`, 'COUNT', 1),
+        redisClient.scan(0, 'MATCH', `cart:${cartId}:*`),
         Cart.findOne({ where: { cartId } })
       ])
 
@@ -172,19 +205,22 @@ class CartPreprocessor {
       const isExistInDB = Boolean(cartInDB)
 
       // case 1: There is nothing on cache and DB
-      // dothing
+      // do nothing
 
       // case 2: Except for cache, there is a cart data on DB
       if (!isExistInCache && isExistInDB) {
+        console.log('case 2')
         await CartPreprocessor.syncCartFromDBtoCache(req)
       }
       // case 3: Except for DB, there is a cart data on cache
       if (isExistInCache && !isExistInDB) {
+        console.log('case 3')
         await CartPreprocessor.syncCartFromCachetoDB(req)
       }
 
       // case 4: There is a cart data on cache and DB
       if (isExistInCache && isExistInDB) {
+        console.log('case 4')
         await CartPreprocessor.syncCartToDBAndCache(req)
       }
 
