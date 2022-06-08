@@ -39,7 +39,8 @@ const generalMiddleware = {
   // add middleware to route (All methods to /carts)
   carts: [
     CartPreprocessor.getSession,
-    CartPreprocessor.syncCart
+    CartPreprocessor.loginSyncCart,
+    CartPreprocessor.syncExpireAt
   ]
 }
 

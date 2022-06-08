@@ -20,7 +20,6 @@ class RedisToolKit {
   }
 
   static async setExpireAt(key, expireAt, cache) {
-    console.log('inside:', expireAt)
     const resultExpireAt = Math.floor(new Date(expireAt).getTime() / 1000)
     return await cache.expireat(key, resultExpireAt)
   }

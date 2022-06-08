@@ -34,7 +34,7 @@ class CartPreprocessor {
     const { cartId, productId } = product
     const key = `cart:${cartId}:${productId}`
     const refreshAt = await RedisToolKit.getRefreshAt(new Date())
-    console.log('expireAt', expireAt)
+
     const template = {
       ...product,
       dirtyBit: 0,
@@ -140,7 +140,7 @@ class CartPreprocessor {
   static async syncCartFromCachetoDB(req) {
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
-
+    const keyPattern = `cart:${cartId}:*`
     let cursor = '0'
     let keys = []
 
@@ -150,7 +150,7 @@ class CartPreprocessor {
     }
 
     while (true) {
-      [cursor, keys] = await redisClient.scan(cursor, 'MATCH', `cart:${cartId}:*`)
+      [cursor, keys] = await redisClient.scan(cursor, 'MATCH', keyPattern)
       // generate a set of tasks to sync with data inside cache
       await Promise.all(
         keys.map(key => syncDBTask(key, redisClient))
@@ -159,7 +159,7 @@ class CartPreprocessor {
     }
   }
 
-  static async syncCart(req, _, next) {
+  static async loginSyncCart(req, _, next) {
     // check whether a user logins
     const user = req?.user
     const { firstSyncBit } = req.session
@@ -171,10 +171,10 @@ class CartPreprocessor {
     try {
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
-
+      const keyPattern = `cart:${cartId}:*`
       // get cart data from cache and db
       const [cartInCache, cartInDB] = await Promise.all([
-        redisClient.scan(0, 'MATCH', `cart:${cartId}:*`),
+        redisClient.scan(0, 'MATCH', keyPattern),
         Cart.findOne({ where: { cartId } })
       ])
 
@@ -182,7 +182,6 @@ class CartPreprocessor {
       // false -> there is nothing data in cache or db
       const isExistInCache = Boolean(cartInCache[1].length)
       const isExistInDB = Boolean(cartInDB)
-
       // case 1: There is nothing on cache and DB
       // do nothing
 
@@ -195,22 +194,47 @@ class CartPreprocessor {
         case (!isExistInCache && isExistInDB):
           // case 2: Except for cache, there is a cart data on DB
           await CartPreprocessor.syncCartFromDBtoCache(req)
-          console.log('case 2')
           break
 
         case (isExistInCache && !isExistInDB):
           // case 3: Except for DB, there is a cart data on cache
           await CartPreprocessor.syncCartFromCachetoDB(req)
-          console.log('case 3')
           break
         case (isExistInCache && isExistInDB):
           // case 4: There is a cart data on cache and DB
-          console.log('case 4')
           await CartPreprocessor.syncCartToDBAndCache(req)
           break
       }
 
-      // req.session.firstSyncBit = true
+      //  req.session.firstSyncBit = true
+      return next()
+    } catch (error) {
+      return next(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+    }
+  }
+
+  static async syncExpireAt(req, _, next) {
+    try {
+      const redisClient = req.app.locals.redisClient
+      const { cartId } = req.session
+      const { expireAt } = req.session.expireAtConfig
+      const keyPattern = `cart:${cartId}:*`
+
+      let cursor = '0'
+      let keys = []
+
+      async function syncExpireAtTask(key, expireAt, cache) {
+        await RedisToolKit.setExpireAt(key, expireAt, cache)
+      }
+
+      while (true) {
+        [cursor, keys] = await redisClient.scan(cursor, 'MATCH', keyPattern)
+        await Promise.all(
+          keys.map(key => syncExpireAtTask(key, expireAt, redisClient))
+        )
+
+        if (cursor === '0') break
+      }
       return next()
     } catch (error) {
       return next(new APIError({ code: code.SERVERERROR, status, message: error.message }))
