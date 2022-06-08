@@ -32,5 +32,8 @@ steps:
 - name: node:16
   entrypoint: npm
   args: ['run', 'deploy-db']
+- name: node:16
+  entrypoint: npm
+  args: ['run', 'undo-deploy-redis']  
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [ 'app', 'deploy' ]
