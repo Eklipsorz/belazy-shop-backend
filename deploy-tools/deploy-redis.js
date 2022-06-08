@@ -7,6 +7,10 @@ const createRedisClient = require('../db/redis')
 const { RedisToolKit } = require('../utils/redis-tool-kit')
 const _ = require('lodash')
 
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const redisConfig = require('../config/redis')[NODE_ENV]
+const redisClient = createRedisClient(redisConfig)
+
 async function warmup(client) {
   const stockArray = await sequelize.query(
     'SELECT * FROM stock',
@@ -47,10 +51,8 @@ async function cooldown(client) {
 (async function main() {
   const args = process.argv.slice(2)
   const mode = args[0] || 'warmup'
-  const NODE_ENV = process.env.NODE_ENV || 'development'
-  const redisConfig = require('../config/redis')[NODE_ENV]
+
   console.log('node_env', NODE_ENV, redisConfig)
-  const redisClient = createRedisClient(redisConfig)
   console.log('inside')
   switch (mode) {
     // add hotspot data into redis
@@ -62,5 +64,5 @@ async function cooldown(client) {
       await cooldown(redisClient)
       break
   }
-  // await redisClient.quit()
+  await redisClient.quit()
 })()
