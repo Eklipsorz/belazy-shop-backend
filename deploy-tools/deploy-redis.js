@@ -47,6 +47,7 @@ async function cooldown(client) {
   const mode = args[0] || 'warmup'
   const NODE_ENV = process.env.NODE_ENV || 'development'
   const redisConfig = require('../config/redis')[NODE_ENV]
+  console.log('node_env', NODE_ENV, redisConfig)
   const redisClient = createRedisClient(redisConfig)
 
   switch (mode) {
