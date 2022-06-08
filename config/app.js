@@ -85,6 +85,7 @@ const utility = {
     DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
   },
   RedisToolKit: {
+
     BASEDAYS: 1,
     // Minute range
     MINRANGE: {

@@ -18,13 +18,15 @@ const PORT = parseInt(process.env.PORT) || 8080
 
 const app = express()
 
+app.locals.redisClient = redisClient
+app.locals.redisStore = new RedisStore({ client: redisClient })
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use(
   session({
-    store: new RedisStore({ client: redisClient }),
+    store: app.locals.redisStore,
     saveUninitialized: false,
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -47,7 +49,6 @@ app.get('/', async (req, res) => {
   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 })
 
-app.locals.redisClient = redisClient
 app.use(routes)
 
 app.listen(PORT, () => {

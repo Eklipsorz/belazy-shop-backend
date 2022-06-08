@@ -21,7 +21,7 @@ async function warmup(client) {
     delete product.id
     delete product.product_id
     product.dirtyBit = 0
-    product.refreshAt = RedisToolKit.setRefreshAt(new Date())
+    product.refreshAt = RedisToolKit.getRefreshAt(new Date())
 
     return await Promise.all(
       Object.entries(product).map(([hashKey, hashValue]) => {

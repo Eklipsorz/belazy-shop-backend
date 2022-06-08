@@ -8,7 +8,7 @@ const { Stock } = require('../db/models')
 const config = require('../config/app').utility.RedisToolKit
 
 class RedisToolKit {
-  static setRefreshAt(date) {
+  static getRefreshAt(date) {
     const currentDate = date.valueOf()
     const baseDays = config.BASEDAYS
     const minMinute = config.MINRANGE.MIN
@@ -17,6 +17,12 @@ class RedisToolKit {
 
     const refreshAt = (currentDate + baseDays * 86400000 + randomMin * 60000)
     return new Date(refreshAt)
+  }
+
+  static async setExpireAt(key, expireAt, cache) {
+    console.log('inside:', expireAt)
+    const resultExpireAt = Math.floor(new Date(expireAt).getTime() / 1000)
+    return await cache.expireat(key, resultExpireAt)
   }
 
   static getCartHashKey(key) {
@@ -73,7 +79,7 @@ class RedisToolKit {
     if (currentTime.valueOf() > refreshAt.valueOf() && dirtyBit) {
       // initialize dirtyBit and expiredAt
       await cache.hset(`stock:${target}`, 'dirtyBit', 0)
-      await cache.hset(`stock:${target}`, 'refreshAt', RedisToolKit.setRefreshAt(currentTime))
+      await cache.hset(`stock:${target}`, 'refreshAt', RedisToolKit.getRefreshAt(currentTime))
       // sync to DB based on Disk/SSD:
       // - normalize data from cache
       // - update the data to DB based on Disk/SSD

@@ -6,10 +6,22 @@ const { RedisToolKit } = require('../utils/redis-tool-kit')
 const { v4: uuidv4 } = require('uuid')
 
 class CartPreprocessor {
-  static getSession(req, _, next) {
+  static async getSession(req, _, next) {
+    const createdAt = new Date()
+    const key = `sess:${req.session.id}`
+    const config = {
+      key,
+      expireAt: new Date(createdAt.getTime() + 7 * 86400 * 1000)
+    }
+    req.session.expireAtConfig = config
+    req.session.cookie.path = '/carts'
+    req.session.cookie.expires = config.expireAt
+
     if (req.session && req.session.cartId) {
       return next()
     }
+    // build a new session
+    // req.app.locals.redisStore.ttl = config.aliveDays * 86400
     req.session.cartId = uuidv4()
     req.session.firstSyncBit = false
 
@@ -17,19 +29,21 @@ class CartPreprocessor {
   }
 
   // a task template for synchronizing cache
-  static async syncCacheTask(product, cache) {
+  static async syncCacheTask(req, product, cache) {
+    const { expireAt } = req.session.expireAtConfig
     const { cartId, productId } = product
     const key = `cart:${cartId}:${productId}`
-    const refreshAt = await RedisToolKit.setRefreshAt(new Date())
-
+    const refreshAt = await RedisToolKit.getRefreshAt(new Date())
+    console.log('expireAt', expireAt)
     const template = {
       ...product,
       dirtyBit: 0,
       refreshAt: refreshAt
     }
-    if (template.id) delete template.id
 
-    return await cache.hset(key, template)
+    if (template.id) delete template.id
+    await cache.hset(key, template)
+    await RedisToolKit.setExpireAt(key, expireAt, cache)
   }
 
   // a task template for synchronizing db
@@ -92,16 +106,16 @@ class CartPreprocessor {
     const resultProduct = Object.values(productHash).map(value => ({ ...value }))
 
     const syncDBTask = CartPreprocessor.syncDBTask
-    // generate a set of task to sync db
+    // generate a set of tasks to sync db
     await Promise.all(
       resultProduct.map(syncDBTask)
     )
 
     const syncCacheTask = CartPreprocessor.syncCacheTask
 
-    // generate a set of task to sync cache
+    // generate a set of tasks to sync cache
     await Promise.all(
-      resultProduct.map(product => syncCacheTask(product, redisClient))
+      resultProduct.map(product => syncCacheTask(req, product, redisClient))
     )
   }
 
@@ -116,8 +130,10 @@ class CartPreprocessor {
     }
     const carts = await Cart.findAll(findOption)
     const syncCacheTask = CartPreprocessor.syncCacheTask
+
+    // generate a set of tasks to sync with data inside db
     return await Promise.all(
-      carts.map(cart => syncCacheTask(cart, redisClient))
+      carts.map(cart => syncCacheTask(req, cart, redisClient))
     )
   }
 
@@ -135,6 +151,7 @@ class CartPreprocessor {
 
     while (true) {
       [cursor, keys] = await redisClient.scan(cursor, 'MATCH', `cart:${cartId}:*`)
+      // generate a set of tasks to sync with data inside cache
       await Promise.all(
         keys.map(key => syncDBTask(key, redisClient))
       )
@@ -178,14 +195,17 @@ class CartPreprocessor {
         case (!isExistInCache && isExistInDB):
           // case 2: Except for cache, there is a cart data on DB
           await CartPreprocessor.syncCartFromDBtoCache(req)
+          console.log('case 2')
           break
 
         case (isExistInCache && !isExistInDB):
           // case 3: Except for DB, there is a cart data on cache
           await CartPreprocessor.syncCartFromCachetoDB(req)
+          console.log('case 3')
           break
         case (isExistInCache && isExistInDB):
           // case 4: There is a cart data on cache and DB
+          console.log('case 4')
           await CartPreprocessor.syncCartToDBAndCache(req)
           break
       }
