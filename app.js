@@ -48,26 +48,16 @@ app.use(
 app.get('/', async (req, res) => {
   // req.session.cartId = require('crypto').randomBytes(16).toString('hex')
   // console.log(req.session)
-  await redisClient.set('testkey1', 'testvalue1')
-  const result = await redisClient.get('testkey1')
-
-  const keys = await redisClient.keys('stock:*')
-  console.log('keys', keys)
-  if (!keys.length) {
-    console.log('over here')
-    return
-  }
-
-  await redisClient.del(keys)
-
-  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} ${result} mode</h1>`)
+  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
 })
 
-// app.use(routes)
+app.use(routes)
 
 app.listen(PORT, async () => {
-  const { RedisToolKit } = require('./utils/redis-tool-kit')
-  await RedisToolKit.cooldown(redisClient)
-  await RedisToolKit.warmup(redisClient)
+  if (NODE_ENV === 'production') {
+    const { RedisToolKit } = require('./utils/redis-tool-kit')
+    await RedisToolKit.cooldown(redisClient)
+    await RedisToolKit.warmup(redisClient)
+  }
   console.log(`The express server is running at ${PORT}`)
 })
