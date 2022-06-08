@@ -4,13 +4,13 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "NODE_ENV=production node app.js",
+    
     "dev": "NODE_ENV=development nodemon app.js",
     "create-env": "./deploy-tools/create-env.sh",
     "deploy-config": "NODE_ENV=production node ./deploy-tools/deploy-config-file.js",
     "deploy-db": "NODE_ENV=production ./deploy-tools/migrate-db.sh",
     "deploy-redis": "NODE_ENV=production node ./deploy-tools/deploy-redis.js",
-    "undo-deploy-redis": "NODE_ENV=production node ./deploy-tools/deploy-redis.js cooldown",
+    "start": "NODE_ENV=production node ./deploy-tools/deploy-redis.js cooldown",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
