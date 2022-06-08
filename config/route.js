@@ -8,6 +8,8 @@ const { FileUploader } = require('../middlewares/file-uploader')
 // enable/disable file upload via adding it
 const upload = FileUploader.getMulter()
 
+const { CartPreprocessor } = require('../middlewares/cart-preprocessor')
+
 const generalMiddleware = {
   all: [
     AuthValidator.authenticate
@@ -35,7 +37,11 @@ const generalMiddleware = {
   // add middleware to route (All methods to /replies)
   replies: [],
   // add middleware to route (All methods to /carts)
-  carts: []
+  carts: [
+    CartPreprocessor.getSession,
+    CartPreprocessor.loginSyncCart,
+    CartPreprocessor.syncExpireAt
+  ]
 }
 
 const userMiddleware = {
@@ -69,6 +75,13 @@ const adminMiddleware = {
   ],
   // add middleware to route (GET /admin/products/:productId)
   getProduct: [
+    ParameterValidator.ExistURIValidate
+  ],
+  // add middleware to route (GET /admin/products/:productId/stock)
+  getStock: [
+    ParameterValidator.ExistURIValidate
+  ],
+  putStack: [
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (GET /admin/products)
@@ -108,6 +121,10 @@ const productMiddleware = {
   ],
   // add middleware to route (GET /products/:productId)
   getProduct: [
+    ParameterValidator.ExistURIValidate
+  ],
+  // add middleware to route (GET /products/:proudctId/stock)
+  getStock: [
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (GET /products/:productId/replies)

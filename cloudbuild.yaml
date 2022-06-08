@@ -6,6 +6,7 @@ steps:
   entrypoint: npm
   args: ['run', 'create-env']
   env:
+    - 'PROD_SESSION_SECRET=${_SESSION_SECRET_}'
     - 'PROD_ACCESS_TOKEN_SECRET=${_ACCESS_TOKEN_SECRET_}'
     - 'PROD_REFRESH_TOKEN_SECRET=${_REFRESH_TOKEN_SECRET_}' 
     - 'PROD_SEEDER_EMAIL_PREFIX=${_SEEDER_EMAIL_PREFIX_}' 
@@ -30,6 +31,6 @@ steps:
   args: ['run', 'deploy-config']  
 - name: node:16
   entrypoint: npm
-  args: ['run', 'deploydb']
+  args: ['run', 'deploy-db']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [ 'app', 'deploy' ]

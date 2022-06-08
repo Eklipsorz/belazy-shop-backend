@@ -8,7 +8,9 @@
     "dev": "NODE_ENV=development nodemon app.js",
     "create-env": "./deploy-tools/create-env.sh",
     "deploy-config": "NODE_ENV=production node ./deploy-tools/deploy-config-file.js",
-    "deploydb": "NODE_ENV=production ./deploy-tools/migrate-db.sh",
+    "deploy-db": "NODE_ENV=production ./deploy-tools/migrate-db.sh",
+    "deploy-redis": "NODE_ENV=production node ./deploy-tools/deploy-redis.js",
+    "undo-deploy-redis": "NODE_ENV=production node ./deploy-tools/deploy-redis.js cooldown",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -36,6 +38,7 @@
     "sequelize-cli": "^6.4.1",
     "sqlite3": "^5.0.3",
     "tslib": "^2.4.0",
+    "uuid": "^8.3.2",
     "validator": "^13.7.0"
   },
   "devDependencies": {

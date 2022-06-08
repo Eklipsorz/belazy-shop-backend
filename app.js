@@ -16,20 +16,26 @@ const routes = require('./routes')
 
 const PORT = parseInt(process.env.PORT) || 8080
 
+const SESSION_SECRET = NODE_ENV === 'production'
+  ? process.env.PROD_SESSION_SECRET
+  : process.env.SESSION_SECRET
+
 const app = express()
 
+app.locals.redisClient = redisClient
+app.locals.redisStore = new RedisStore({ client: redisClient })
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use(
   session({
-    store: new RedisStore({ client: redisClient }),
+    store: app.locals.redisStore,
     saveUninitialized: false,
-    secret: process.env.SESSION_SECRET,
+    secret: SESSION_SECRET,
     resave: false,
     cookie: {
-      secure: true,
+      secure: NODE_ENV === 'production',
       httpOnly: true
     }
   })
@@ -49,6 +55,11 @@ app.get('/', async (req, res) => {
 
 app.use(routes)
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  if (NODE_ENV === 'production') {
+    const { RedisToolKit } = require('./utils/redis-tool-kit')
+    await RedisToolKit.cooldown(redisClient)
+    await RedisToolKit.warmup(redisClient)
+  }
   console.log(`The express server is running at ${PORT}`)
 })

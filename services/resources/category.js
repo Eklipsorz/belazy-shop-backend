@@ -68,7 +68,6 @@ class CategoryResource {
 
       // define how to find
       const includeProductOption = [
-        { model: Stock, attributes: ['quantity', 'restQuantity'], as: 'stock' },
         { model: ProductStatistic, attributes: ['likedTally', 'repliedTally'], as: 'statistics' }
       ]
       const findOption = {
@@ -127,7 +126,6 @@ class CategoryResource {
       const order = 'DESC'
       // define how to find
       const includeProductOption = [
-        { model: Stock, attributes: ['quantity', 'restQuantity'], as: 'stock' },
         { model: ProductStatistic, attributes: ['likedTally', 'repliedTally'], as: 'statistics' }
       ]
 

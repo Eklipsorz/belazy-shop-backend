@@ -59,6 +59,11 @@ class UserService extends AccountService {
     }
   }
 
+  async getStock(req, cb) {
+    const { error, data, message } = await ProductResource.getStock(req)
+    return cb(error, data, message)
+  }
+
   // get search hint when user input something in search bar
   async getSearchHints(req, cb) {
     const { error, data, message } = await SearchResource.getSearchHints(req)
@@ -181,7 +186,8 @@ class UserService extends AccountService {
   }
 
   async postCarts(req, cb) {
-    await CartResource.postCarts(req)
+    // await CartResource.postCarts(req)
+    return cb(null)
   }
 }
 

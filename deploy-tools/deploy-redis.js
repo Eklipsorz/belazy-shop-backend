@@ -2,24 +2,11 @@
 const { project } = require('../config/project')
 require('dotenv').config({ path: project.ENV })
 
-const { cache } = require('../config/deployment')
 const { sequelize } = require('../db/models')
 const createRedisClient = require('../db/redis')
+const { RedisToolKit } = require('../utils/redis-tool-kit')
 
 const _ = require('lodash')
-
-function setExpiredAt(date) {
-  const currentDate = date.valueOf()
-  const baseDays = cache.BASEDAYS
-  const minMinute = cache.MINRANGE.MIN
-  const maxMinute = cache.MINRANGE.MAX
-  const randomMin = Math.floor(Math.random() * (maxMinute - minMinute + 1)) + minMinute
-
-  const expiredAt = (currentDate + baseDays * 86400000 + randomMin * 60000)
-  return new Date(expiredAt)
-}
-const testdate = new Date()
-console.log(testdate, setExpiredAt(testdate))
 
 async function warmup(client) {
   const stockArray = await sequelize.query(
@@ -29,24 +16,31 @@ async function warmup(client) {
 
   async function hashSetTask(product) {
     const productId = product.product_id
-    const stockKey = `stock:${productId}`
+    const key = `stock:${productId}`
 
+    delete product.id
     delete product.product_id
-    product.dirtyBit = false
-    product.expiredAt = setExpiredAt(new Date())
+    product.dirtyBit = 0
+    product.refreshAt = RedisToolKit.getRefreshAt(new Date())
 
-    Object.entries(product).forEach(async ([key, value]) => {
-      key = _.camelCase(key)
-      await client.hset(stockKey, key, value)
-    })
+    return await Promise.all(
+      Object.entries(product).map(([hashKey, hashValue]) => {
+        hashKey = _.camelCase(hashKey)
+        return client.hset(key, hashKey, hashValue)
+      })
+    )
   }
 
-  await Promise.all([
+  return await Promise.all(
     stockArray.map(hashSetTask)
-  ])
+  )
 }
 
-// warmup()
+async function cooldown(client) {
+  const keys = await client.keys('stock:*')
+  if (!keys.length) return
+  return await client.del(keys)
+}
 
 (async function main() {
   const args = process.argv.slice(2)
@@ -62,6 +56,7 @@ async function warmup(client) {
       break
     // remove hotspot data from redis
     case 'cooldown':
+      await cooldown(redisClient)
       break
   }
   redisClient.quit()
