@@ -3,10 +3,19 @@ const { project } = require('../config/project')
 require('dotenv').config({ path: project.ENV })
 
 const { sequelize } = require('../db/models')
-const createRedisClient = require('../db/redis')
+// const createRedisClient = require('../db/redis')
 const { RedisToolKit } = require('../utils/redis-tool-kit')
 
 const _ = require('lodash')
+
+const Redis = require('ioredis')
+
+function createRedisClient({ username, password, host, port }) {
+  const url = `redis://${username}:${password}@${host}:${port}`
+  console.log('redis url', url)
+  const redis = new Redis(url)
+  return redis
+}
 
 async function warmup(client) {
   const stockArray = await sequelize.query(
