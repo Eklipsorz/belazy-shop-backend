@@ -65,6 +65,9 @@ app.get('/', async (req, res) => {
 
 // app.use(routes)
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  const { RedisToolKit } = require('./utils/redis-tool-kit')
+  await RedisToolKit.cooldown(redisClient)
+  await RedisToolKit.warmup(redisClient)
   console.log(`The express server is running at ${PORT}`)
 })
