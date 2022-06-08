@@ -46,10 +46,13 @@ app.use(
 app.get('/', async (req, res) => {
   // req.session.cartId = require('crypto').randomBytes(16).toString('hex')
   // console.log(req.session)
-  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
+  await redisClient.set('testkey1', 'testvalue1')
+  const result = await redisClient.get('testkey1')
+
+  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} ${result} mode</h1>`)
 })
 
-app.use(routes)
+// app.use(routes)
 
 app.listen(PORT, () => {
   console.log(`The express server is running at ${PORT}`)
