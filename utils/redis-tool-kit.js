@@ -24,6 +24,16 @@ class RedisToolKit {
     return await cache.expireat(key, resultExpireAt)
   }
 
+  static async hashSetTask(key, object, cache) {
+    const template = {
+      ...object,
+      dirtyBit: 0,
+      refreshAt: RedisToolKit.getRefreshAt(new Date())
+    }
+    delete template.id
+    await cache.hset(key, template)
+  }
+
   static getCartHashKey(key) {
     return key.split(':')[2]
   }
@@ -88,6 +98,25 @@ class RedisToolKit {
       resultObject.updatedAt = new Date(resultObject.updatedAt)
       await Stock.update({ ...resultObject }, findOption)
     }
+  }
+
+  static async warmup(cache) {
+    const stock = await Stock.findAll({ raw: true })
+
+    async function stockHashSetTask(product, cache) {
+      const productId = product.productId
+      const key = `stock:${productId}`
+      await RedisToolKit.hashSetTask(key, product, cache)
+    }
+    return await Promise.all(
+      stock.map(product => stockHashSetTask(product, cache))
+    )
+  }
+
+  static async cooldown(cache) {
+    const keys = await cache.keys('stock:*')
+    if (!keys.length) return
+    return await cache.del(keys)
   }
 }
 
