@@ -62,5 +62,5 @@ async function cooldown(client) {
       await cooldown(redisClient)
       break
   }
-  await redisClient.quit()
+  // await redisClient.quit()
 })()
