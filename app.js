@@ -51,6 +51,10 @@ app.get('/', async (req, res) => {
   await redisClient.set('testkey1', 'testvalue1')
   const result = await redisClient.get('testkey1')
 
+  const keys = await redisClient.keys('stock:*')
+  if (!keys.length) return
+  await redisClient.del(keys)
+
   res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} ${result} mode</h1>`)
 })
 
