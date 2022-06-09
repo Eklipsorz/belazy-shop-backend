@@ -4,15 +4,19 @@ require('dotenv').config({ path: project.ENV })
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 
-const { Stock } = require('../db/models')
+const { Stock, Product } = require('../db/models')
 const config = require('../config/app').utility.RedisToolKit
 
 class RedisToolKit {
-  static getRefreshAt(date) {
+  static getRefreshAt(key, date) {
     const currentDate = date.valueOf()
-    const baseDays = config.BASEDAYS
-    const minMinute = config.MINRANGE.MIN
-    const maxMinute = config.MINRANGE.MAX
+    const keyType = key.split(':')[0]
+    const refreshAtConfig = config.REFRESHAT[keyType]
+
+    const baseDays = refreshAtConfig ? refreshAtConfig.BASEDAYS : 1
+    const minMinute = refreshAtConfig ? refreshAtConfig.MINRANGE.MIN : 360
+    const maxMinute = refreshAtConfig ? refreshAtConfig.MINRANGE.MAX : 1440
+
     const randomMin = Math.floor(Math.random() * (maxMinute - minMinute + 1)) + minMinute
 
     const refreshAt = (currentDate + baseDays * 86400000 + randomMin * 60000)
@@ -25,12 +29,18 @@ class RedisToolKit {
   }
 
   static async hashSetTask(key, object, cache) {
+    const onlyReadKeyTypes = config.ONLYREAD_KEYTYPE
+    const keyType = key.split(':')[0]
     const template = {
-      ...object,
-      dirtyBit: 0,
-      refreshAt: RedisToolKit.getRefreshAt(new Date())
+      ...object
     }
-    delete template.id
+
+    if (!onlyReadKeyTypes.includes(keyType)) {
+      template.dirtyBit = 0
+      template.refreshAt = RedisToolKit.getRefreshAt(key, new Date())
+    }
+
+    if (template.id) delete template.id
     await cache.hset(key, template)
   }
 
@@ -75,7 +85,7 @@ class RedisToolKit {
     const resultObject = !object ? await cache.hgetall(`stock:${target}`) : object
 
     if (!resultObject) {
-      throw new APIError({ code: code.SERVERERROR, status, message: '在緩存上找不到對應鍵值' })
+      throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
     const dirtyBit = Number(resultObject.dirtyBit)
@@ -100,23 +110,45 @@ class RedisToolKit {
     }
   }
 
-  static async warmup(cache) {
+  static async stockWarmup(cache) {
     const stock = await Stock.findAll({ raw: true })
 
     async function stockHashSetTask(product, cache) {
       const productId = product.productId
       const key = `stock:${productId}`
-      await RedisToolKit.hashSetTask(key, product, cache)
+      return await RedisToolKit.hashSetTask(key, product, cache)
     }
+
     return await Promise.all(
       stock.map(product => stockHashSetTask(product, cache))
     )
   }
 
-  static async cooldown(cache) {
+  static async stockCooldown(cache) {
     const keys = await cache.keys('stock:*')
     if (!keys.length) return
     return await cache.del(keys)
+  }
+
+  static async productWarmup(cache) {
+    const findOption = {
+      attributes: {
+        exclude: ['introduction', 'createdAt', 'updatedAt']
+      },
+      raw: true
+    }
+
+    const products = await Product.findAll(findOption)
+
+    async function productHashSetTask(product, cache) {
+      const productId = product.id
+      const key = `product:${productId}`
+      return await RedisToolKit.hashSetTask(key, product, cache)
+    }
+
+    return await Promise.all(
+      products.map(product => productHashSetTask(product, cache))
+    )
   }
 }
 

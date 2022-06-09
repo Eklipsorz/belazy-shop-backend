@@ -22,8 +22,9 @@ class AccountService {
     try {
       const { account, password } = req.body
       const type = this.serviceType
+      const { isFilledField } = ParameterValidationKit
 
-      if (!account || !password) {
+      if (!isFilledField(account) || !isFilledField(password)) {
         return cb(new APIError({ code: code.FORBIDDEN, status, message: '未填寫完所有欄位' }))
       }
       const user = await User.findOne({ where: { account } })

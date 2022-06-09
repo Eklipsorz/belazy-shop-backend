@@ -85,13 +85,35 @@ const utility = {
     DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
   },
   RedisToolKit: {
-
-    BASEDAYS: 1,
-    // Minute range
-    MINRANGE: {
-      MIN: 360,
-      MAX: 1440
-    }
+    REFRESHAT: {
+      cart: {
+        BASEDAYS: 1,
+        // Minute range
+        MINRANGE: {
+          MIN: 360,
+          MAX: 1440
+        }
+      },
+      stock: {
+        BASEDAYS: 1,
+        // Minute range
+        MINRANGE: {
+          MIN: 360,
+          MAX: 1440
+        }
+      },
+      product: {
+        BASEDAYS: 2,
+        // Minute range
+        MINRANGE: {
+          MIN: 360,
+          MAX: 1440
+        }
+      }
+    },
+    ONLYREAD_KEYTYPE: [
+      'product'
+    ]
   }
 }
 
@@ -122,11 +144,7 @@ const seeder = {
 
   },
   productsSeeder: {
-    DEFAULT_PRODUCT_NUMBER: 100,
-    DEFEAULT_PRICE: {
-      MIN: 100,
-      MAX: 1000
-    }
+    DEFAULT_PRODUCT_NUMBER: 100
   },
   ownershipsSeeder: {
     // 每一個產品能選的種類數，預設為1~3個
@@ -156,6 +174,10 @@ const seeder = {
       SUM: 100,
       // 剩餘能賣的數量
       REST: 50
+    },
+    DEFEAULT_PRICE: {
+      MIN: 100,
+      MAX: 1000
     }
   },
   productStatisticsSeeder: {

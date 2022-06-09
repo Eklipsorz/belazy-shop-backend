@@ -14,6 +14,9 @@ module.exports = {
       quantity: {
         type: Sequelize.INTEGER
       },
+      price: {
+        type: Sequelize.INTEGER
+      },
       rest_quantity: {
         type: Sequelize.INTEGER
       },

@@ -14,9 +14,6 @@ module.exports = {
       introduction: {
         type: Sequelize.STRING(255)
       },
-      price: {
-        type: Sequelize.INTEGER
-      },
       image: {
         type: Sequelize.STRING(255),
         defaultValue: 'https://loremflickr.com/320/240/product?lock=3000'
