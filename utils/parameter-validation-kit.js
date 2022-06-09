@@ -4,6 +4,16 @@ const { AuthToolKit } = require('./auth-tool-kit')
 const { MAX_LENGTH_CONTENT, MIN_LENGTH_CONTENT } = require('../config/app').service.replyResource
 
 class ParameterValidationKit {
+  static isNaN(value) {
+    const number = Number(value)
+    return number !== value
+  }
+
+  static isFilledField(field) {
+    const string = field.toString()
+    return string !== ''
+  }
+
   static async registerFormValidate(req) {
     const messageQueue = []
     const {
@@ -125,28 +135,23 @@ class ParameterValidationKit {
 
   static updateStockValidate(req) {
     const messageQueue = []
-    const { quantity, restQuantity } = req.body
+    const { quantity, restQuantity, price } = req.body
+    const { isNaN, isFilledField } = ParameterValidationKit
 
-    if (!quantity || !restQuantity) {
+    if (!isFilledField(quantity) || !isFilledField(restQuantity) || !isFilledField(price)) {
       messageQueue.push('所有欄位都要填寫')
     }
 
-    if (isNaN(quantity) || isNaN(restQuantity)) {
+    if (isNaN(quantity) || isNaN(restQuantity) || isNaN(price)) {
       messageQueue.push('所有欄位都必須是數字')
       return messageQueue
     }
 
-    if (quantity < 0) {
-      messageQueue.push('產品庫存量只能是正值')
-    }
+    if (price <= 0) messageQueue.push('產品價格要大於0')
+    if (quantity < 0) messageQueue.push('產品庫存量只能是正值')
+    if (restQuantity < 0) messageQueue.push('剩餘庫存數量只能是正值')
+    if (restQuantity > quantity) messageQueue.push('剩餘量必須小於數量')
 
-    if (restQuantity < 0) {
-      messageQueue.push('剩餘庫存數量只能是正值')
-    }
-
-    if (restQuantity > quantity) {
-      messageQueue.push('剩餘量必須小於數量')
-    }
     return messageQueue
   }
 }

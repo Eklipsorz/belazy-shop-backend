@@ -88,7 +88,11 @@ class ProductResource {
       let resultProduct = {}
 
       if (!Object.keys(product).length) {
-        product = await Stock.findOne({ where: { productId } })
+        const findOption = {
+          where: { productId },
+          attributes: { exclude: ['id'] }
+        }
+        product = await Stock.findOne(findOption)
         if (!product) {
           return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
         }
@@ -97,12 +101,15 @@ class ProductResource {
         const findOption = { where: { productId } }
         await RedisToolKit.syncDBFromCache(findOption, redisClient, product)
         // normalize to a product data
-        delete product.dirtyBit
-        delete product.refreshAt
-        product.productId = productId
-        product.createdAt = new Date(product.createdAt)
-        product.updatedAt = new Date(product.updatedAt)
-        resultProduct = product
+
+        resultProduct = {
+          productId: Number(product.productId),
+          quantity: Number(product.quantity),
+          restQuantity: Number(product.restQuantity),
+          price: Number(product.price),
+          createdAt: new Date(product.createdAt),
+          updatedAt: new Date(product.updatedAt)
+        }
       }
 
       return { error: null, data: resultProduct, message: '獲取成功' }
@@ -124,39 +131,53 @@ class ProductResource {
       // check whether product exists
       // ready to update stock for the product:
       // - update stock to cache
-      // - update stock to DB (if failed for updating cache)
+      // - update stock to DB and build a stock data into cache (if failed for updating cache)
       // check dirtyBit and expiredAt
       const { productId } = req.params
       const { redisClient } = req.app.locals
-      const { quantity, restQuantity } = req.body
+      const { quantity, restQuantity, price } = req.body
+      const key = `stock:${productId}`
 
-      let product = await redisClient.hgetall(`stock:${productId}`)
+      const product = await redisClient.hgetall(key)
       let resultProduct = {}
+      const isExistProductInCache = Boolean(Object.keys(product).length)
 
-      if (!Object.keys(product).length) {
-        product = await Stock.findOne({ where: { productId } })
-
-        if (!product) {
+      if (!isExistProductInCache) {
+        const stockProduct = await Stock.findOne({ where: { productId } })
+        if (!stockProduct) {
           return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
         }
-        // update stock to DB
-        resultProduct = (await product.update({ quantity, restQuantity })).toJSON()
-      } else {
-        // update stock to cache
-        const createdAt = new Date(product.createdAt)
-        const updatedAt = new Date()
+        await stockProduct.update({ quantity, restQuantity, price })
+      }
 
-        await redisClient.hset(`stock:${productId}`, 'quantity', quantity)
-        await redisClient.hset(`stock:${productId}`, 'restQuantity', restQuantity)
-        await redisClient.hset(`stock:${productId}`, 'updatedAt', updatedAt)
-        await redisClient.hset(`stock:${productId}`, 'dirtyBit', 1)
+      // update stock to cache
+      const { getRefreshAt } = RedisToolKit
+      const template = {
+        productId,
+        quantity,
+        restQuantity,
+        price,
+        createdAt: isExistProductInCache ? new Date(product.createdAt) : new Date(),
+        updatedAt: new Date(),
+        dirtyBit: isExistProductInCache ? 1 : 0,
+        refreshAt: isExistProductInCache ? product.refreshAt : getRefreshAt(new Date())
+      }
 
-        // Sync DB
+      await redisClient.hset(key, template)
+
+      // sync db according to refreshAt and dirtyBit
+      if (isExistProductInCache) {
         const findOption = { where: { productId } }
         await RedisToolKit.syncDBFromCache(findOption, redisClient)
-
-        // normalize a product data
-        resultProduct = { productId, quantity, restQuantity, createdAt, updatedAt }
+      }
+      // normalize a product data
+      resultProduct = {
+        productId: Number(productId),
+        quantity,
+        restQuantity,
+        price,
+        createdAt: template.createdAt,
+        updatedAt: template.updatedAt
       }
 
       return { error: null, data: resultProduct, message: '修改成功' }
