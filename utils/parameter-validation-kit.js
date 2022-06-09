@@ -22,8 +22,13 @@ class ParameterValidationKit {
       confirmPassword
     } = req.body
 
+    const { isFilledField } = ParameterValidationKit
     // 未填寫完所有欄位
-    if (!account || !nickname || !email || !password || !confirmPassword) {
+    if (
+      !isFilledField(account) || !isFilledField(nickname) ||
+      !isFilledField(email) || !isFilledField(password) ||
+      !isFilledField(confirmPassword)
+    ) {
       messageQueue.push('未填寫完所有欄位')
     }
     // 使用者暱稱名稱超過30字
@@ -73,10 +78,16 @@ class ParameterValidationKit {
       confirmPassword
     } = req.body
 
+    const { isFilledField } = ParameterValidationKit
     // 未填寫完所有欄位
-    if (!account || !nickname || !email || !password || !confirmPassword) {
+    if (
+      !isFilledField(account) || !isFilledField(nickname) ||
+      !isFilledField(email) || !isFilledField(password) ||
+      !isFilledField(confirmPassword)
+    ) {
       messageQueue.push('未填寫完所有欄位')
     }
+
     // 使用者暱稱名稱超過30字
     if (nickname && !validator.isLength(nickname, { min: 0, max: 30 })) {
       messageQueue.push('使用者暱稱名稱超過30字')
