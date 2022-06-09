@@ -30,7 +30,7 @@ class RedisToolKit {
       dirtyBit: 0,
       refreshAt: RedisToolKit.getRefreshAt(new Date())
     }
-    delete template.id
+    if (template.id) delete template.id
     await cache.hset(key, template)
   }
 
@@ -75,7 +75,7 @@ class RedisToolKit {
     const resultObject = !object ? await cache.hgetall(`stock:${target}`) : object
 
     if (!resultObject) {
-      throw new APIError({ code: code.SERVERERROR, status, message: '在緩存上找不到對應鍵值' })
+      throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
     const dirtyBit = Number(resultObject.dirtyBit)

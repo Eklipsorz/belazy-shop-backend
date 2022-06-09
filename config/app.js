@@ -122,11 +122,7 @@ const seeder = {
 
   },
   productsSeeder: {
-    DEFAULT_PRODUCT_NUMBER: 100,
-    DEFEAULT_PRICE: {
-      MIN: 100,
-      MAX: 1000
-    }
+    DEFAULT_PRODUCT_NUMBER: 100
   },
   ownershipsSeeder: {
     // 每一個產品能選的種類數，預設為1~3個
@@ -156,6 +152,10 @@ const seeder = {
       SUM: 100,
       // 剩餘能賣的數量
       REST: 50
+    },
+    DEFEAULT_PRICE: {
+      MIN: 100,
+      MAX: 1000
     }
   },
   productStatisticsSeeder: {

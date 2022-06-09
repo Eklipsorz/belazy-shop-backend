@@ -58,7 +58,7 @@ app.use(routes)
 app.listen(PORT, async () => {
   if (NODE_ENV === 'production') {
     const { RedisToolKit } = require('./utils/redis-tool-kit')
-    await RedisToolKit.cooldown(redisClient)
+    await redisClient.flushall()
     await RedisToolKit.warmup(redisClient)
   }
   console.log(`The express server is running at ${PORT}`)

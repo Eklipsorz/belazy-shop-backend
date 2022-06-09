@@ -22,12 +22,15 @@ module.exports = {
       'SELECT id FROM products',
       { type: queryInterface.sequelize.QueryTypes.SELECT }
     )).map(item => item.id)
+
     // 設定每個產品的庫存和剩餘庫存
     const stockArray = []
-    const { DEFAULT_QUANTITY } = stockSeeder
+    const { DEFAULT_QUANTITY, DEFEAULT_PRICE } = stockSeeder
+    const { MAX, MIN } = DEFEAULT_PRICE
     seedProducts.forEach(productId => {
       stockArray.push({
         product_id: productId,
+        price: Math.floor(Math.random() * (MAX - MIN) + 1) + MIN,
         quantity: DEFAULT_QUANTITY.SUM,
         rest_quantity: DEFAULT_QUANTITY.REST,
         created_at: new Date(),
