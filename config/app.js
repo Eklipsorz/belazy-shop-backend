@@ -85,13 +85,35 @@ const utility = {
     DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
   },
   RedisToolKit: {
-
-    BASEDAYS: 1,
-    // Minute range
-    MINRANGE: {
-      MIN: 360,
-      MAX: 1440
-    }
+    REFRESHAT: {
+      cart: {
+        BASEDAYS: 1,
+        // Minute range
+        MINRANGE: {
+          MIN: 360,
+          MAX: 1440
+        }
+      },
+      stock: {
+        BASEDAYS: 1,
+        // Minute range
+        MINRANGE: {
+          MIN: 360,
+          MAX: 1440
+        }
+      },
+      product: {
+        BASEDAYS: 2,
+        // Minute range
+        MINRANGE: {
+          MIN: 360,
+          MAX: 1440
+        }
+      }
+    },
+    ONLYREAD_KEYTYPE: [
+      'product'
+    ]
   }
 }
 
