@@ -184,7 +184,11 @@ const replyMiddleware = {
 
 const cartMiddleware = {
   // add middleware to route (POST /carts)
-  postCarts: []
+  postCarts: [],
+  deleteProduct: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser
+  ]
 }
 
 exports = module.exports = {

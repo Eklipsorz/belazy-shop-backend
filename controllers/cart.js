@@ -6,6 +6,11 @@ const cartController = {
     userServices.postCarts(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  deleteProduct: (req, res, next) => {
+    userServices.deleteProduct(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

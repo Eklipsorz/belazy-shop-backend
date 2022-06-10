@@ -98,8 +98,11 @@ class ProductResource {
         }
         resultProduct = product.toJSON()
       } else {
-        const findOption = { where: { productId } }
-        await RedisToolKit.syncDBFromCache(stocktKey, redisClient, findOption)
+        const option = {
+          queryType: 'update',
+          findOption: { where: { productId } }
+        }
+        await RedisToolKit.syncDBFromCache(stocktKey, redisClient, option)
         // normalize to a product data
 
         resultProduct = {
@@ -167,8 +170,11 @@ class ProductResource {
 
       // sync db according to refreshAt and dirtyBit
       if (isExistProductInCache) {
-        const findOption = { where: { productId } }
-        await RedisToolKit.syncDBFromCache(stocktKey, redisClient, findOption)
+        const option = {
+          queryType: 'update',
+          findOption: { where: { productId } }
+        }
+        await RedisToolKit.syncDBFromCache(stocktKey, redisClient, option)
       }
       // normalize a product data
       resultProduct = {

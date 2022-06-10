@@ -105,8 +105,50 @@ class RedisToolKit {
     return cacheResult
   }
 
-  static async syncDBFromCache(key, cache, findOption) {
-    const syncType = key.split(':')[0]
+  static async updateDBTask(targetDB, template, findOption) {
+    switch (targetDB) {
+      case 'stock':
+        await Stock.update(template, findOption)
+        break
+      case 'cart':
+        await Cart.update(template, findOption)
+        break
+      case 'product':
+        await Product.update(template, findOption)
+        break
+    }
+  }
+
+  static async createDBTask(targetDB, template) {
+    switch (targetDB) {
+      case 'stock':
+        await Stock.create(template)
+        break
+      case 'cart':
+        await Cart.create(template)
+        break
+      case 'product':
+        await Product.create(template)
+        break
+    }
+  }
+
+  static async deleteDBTask(targetDB, findOption) {
+    switch (targetDB) {
+      case 'stock':
+        await Stock.destroy(findOption)
+        break
+      case 'cart':
+        await Cart.destroy(findOption)
+        break
+      case 'product':
+        await Product.destroy(findOption)
+        break
+    }
+  }
+
+  static async syncDBFromCache(key, cache, { queryType, findOption }) {
+    const targetDB = key.split(':')[0]
     const resultObject = await cache.hgetall(key)
 
     if (!resultObject) {
@@ -140,15 +182,15 @@ class RedisToolKit {
       if (templateKeys.includes('dirtyBit')) delete template.dirtyBit
       if (templateKeys.includes('refreshAt')) delete template.refreshAt
 
-      switch (syncType) {
-        case 'stock':
-          await Stock.update(template, findOption)
+      switch (queryType) {
+        case 'create':
+          await RedisToolKit.createDBTask(targetDB, template)
           break
-        case 'cart':
-          await Cart.update(template, findOption)
+        case 'update':
+          await RedisToolKit.updateDBTask(targetDB, template, findOption)
           break
-        case 'product':
-          await Product.update(template, findOption)
+        case 'delete':
+          await RedisToolKit.deleteDBTask(targetDB, findOption)
           break
       }
     }

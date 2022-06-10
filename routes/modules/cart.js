@@ -9,5 +9,5 @@ const middleware = cartMiddleware
 const controller = cartController
 
 router.post('/', ...middleware.postCarts, controller.postCarts)
-
+router.delete('/product', ...middleware.deleteProduct, controller.deleteProduct)
 exports = module.exports = router
