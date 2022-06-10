@@ -83,8 +83,8 @@ class ProductResource {
     try {
       const { productId } = req.params
       const { redisClient } = req.app.locals
-
-      let product = await redisClient.hgetall(`stock:${productId}`)
+      const stocktKey = `stock:${productId}`
+      let product = await redisClient.hgetall(stocktKey)
       let resultProduct = {}
 
       if (!Object.keys(product).length) {
@@ -99,7 +99,7 @@ class ProductResource {
         resultProduct = product.toJSON()
       } else {
         const findOption = { where: { productId } }
-        await RedisToolKit.syncDBFromCache(findOption, redisClient, product)
+        await RedisToolKit.syncDBFromCache(stocktKey, redisClient, findOption)
         // normalize to a product data
 
         resultProduct = {
@@ -136,9 +136,9 @@ class ProductResource {
       const { productId } = req.params
       const { redisClient } = req.app.locals
       const { quantity, restQuantity, price } = req.body
-      const key = `stock:${productId}`
+      const stocktKey = `stock:${productId}`
 
-      const product = await redisClient.hgetall(key)
+      const product = await redisClient.hgetall(stocktKey)
       let resultProduct = {}
       const isExistProductInCache = Boolean(Object.keys(product).length)
 
@@ -160,15 +160,15 @@ class ProductResource {
         createdAt: isExistProductInCache ? new Date(product.createdAt) : new Date(),
         updatedAt: new Date(),
         dirtyBit: isExistProductInCache ? 1 : 0,
-        refreshAt: isExistProductInCache ? product.refreshAt : getRefreshAt(new Date())
+        refreshAt: isExistProductInCache ? product.refreshAt : getRefreshAt(stocktKey, new Date())
       }
 
-      await redisClient.hset(key, template)
+      await redisClient.hset(stocktKey, template)
 
       // sync db according to refreshAt and dirtyBit
       if (isExistProductInCache) {
         const findOption = { where: { productId } }
-        await RedisToolKit.syncDBFromCache(findOption, redisClient)
+        await RedisToolKit.syncDBFromCache(stocktKey, redisClient, findOption)
       }
       // normalize a product data
       resultProduct = {

@@ -10,8 +10,18 @@ class ParameterValidationKit {
   }
 
   static isFilledField(field) {
-    const string = field.toString()
+    const string = String(field)
     return string !== ''
+  }
+
+  static isString(value) {
+    const string = String(value)
+    return string === value
+  }
+
+  static isNumberString(value) {
+    const number = Number(value)
+    return String(number) === value
   }
 
   static async registerFormValidate(req) {

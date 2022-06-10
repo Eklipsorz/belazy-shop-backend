@@ -33,7 +33,7 @@ class CartPreprocessor {
     const { expireAt } = req.session.expireAtConfig
     const { cartId, productId } = product
     const key = `cart:${cartId}:${productId}`
-    const refreshAt = await RedisToolKit.getRefreshAt(new Date())
+    const refreshAt = await RedisToolKit.getRefreshAt(key, new Date())
 
     const template = {
       ...product,

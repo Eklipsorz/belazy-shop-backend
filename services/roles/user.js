@@ -186,8 +186,8 @@ class UserService extends AccountService {
   }
 
   async postCarts(req, cb) {
-    // await CartResource.postCarts(req)
-    return cb(null)
+    await CartResource.postCarts(req)
+    // return cb(null)
   }
 }
 

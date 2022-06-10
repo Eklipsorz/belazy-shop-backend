@@ -4,12 +4,34 @@ require('dotenv').config({ path: project.ENV })
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 
-const { Stock, Product } = require('../db/models')
+const { Stock, Product, Cart } = require('../db/models')
+
+const { ParameterValidationKit } = require('./parameter-validation-kit')
 const config = require('../config/app').utility.RedisToolKit
 
 class RedisToolKit {
+  static correctDataType(object) {
+    const entries = Object.entries(object)
+    const result = {}
+    const { isNaN, isNumberString } = ParameterValidationKit
+
+    entries.forEach(([key, value]) => {
+      let resultValue = value
+      switch (true) {
+        case (isNumberString(value)):
+          resultValue = Number(value)
+          break
+        case (isNaN(Date.parse(value))):
+          resultValue = new Date(value)
+          break
+      }
+      result[key] = resultValue
+    })
+    return result
+  }
+
   static getRefreshAt(key, date) {
-    const currentDate = date.valueOf()
+    const currentDate = date.getTime()
     const keyType = key.split(':')[0]
     const refreshAtConfig = config.REFRESHAT[keyType]
 
@@ -80,33 +102,53 @@ class RedisToolKit {
     return cacheResult
   }
 
-  static async syncDBFromCache(findOption, cache, object = null) {
-    const target = Object.values(findOption.where)[0]
-    const resultObject = !object ? await cache.hgetall(`stock:${target}`) : object
+  static async syncDBFromCache(key, cache, findOption) {
+    const syncType = key.split(':')[0]
+
+    const resultObject = await cache.hgetall(key)
 
     if (!resultObject) {
       throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
-    const dirtyBit = Number(resultObject.dirtyBit)
+    let dirtyBit = Number(resultObject.dirtyBit)
     const currentTime = new Date()
-    const refreshAt = new Date(resultObject.refreshAt)
+    let refreshAt = new Date(resultObject.refreshAt)
     // test data
-    // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
-    // dirtyBit = 1
-
-    if (currentTime.valueOf() > refreshAt.valueOf() && dirtyBit) {
+    refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
+    // resultObject.quantity = '1312354'
+    dirtyBit = 1
+    console.log('refresh', currentTime, refreshAt, key)
+    if (currentTime.getTime() > refreshAt.getTime() && dirtyBit) {
       // initialize dirtyBit and expiredAt
-      await cache.hset(`stock:${target}`, 'dirtyBit', 0)
-      await cache.hset(`stock:${target}`, 'refreshAt', RedisToolKit.getRefreshAt(currentTime))
+      const getRefreshAt = RedisToolKit.getRefreshAt
+      await cache.hset(key, 'dirtyBit', 0)
+      await cache.hset(key, 'refreshAt', getRefreshAt(key, currentTime))
       // sync to DB based on Disk/SSD:
       // - normalize data from cache
       // - update the data to DB based on Disk/SSD
-      delete resultObject.dirtyBit
-      delete resultObject.refreshAt
-      resultObject.createdAt = new Date(resultObject.createdAt)
-      resultObject.updatedAt = new Date(resultObject.updatedAt)
-      await Stock.update({ ...resultObject }, findOption)
+      const { correctDataType } = RedisToolKit
+      const template = {
+        ...correctDataType(resultObject),
+        createAt: new Date(resultObject.createdAt),
+        updatedAt: new Date(resultObject.updatedAt)
+      }
+
+      const templateKeys = Object.keys(template)
+      if (templateKeys.includes('dirtyBit')) delete template.dirtyBit
+      if (templateKeys.includes('refreshAt')) delete template.refreshAt
+
+      switch (syncType) {
+        case 'stock':
+          await Stock.update(template, findOption)
+          break
+        case 'cart':
+          await Cart.update(template, findOption)
+          break
+        case 'product':
+          await Product.update(template, findOption)
+          break
+      }
     }
   }
 
