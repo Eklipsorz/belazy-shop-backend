@@ -24,6 +24,12 @@ class ParameterValidationKit {
     return String(number) === value
   }
 
+  static isDateString(value) {
+    const { isNumberString } = ParameterValidationKit
+    if (isNumberString(value)) return false
+    return Boolean(Date.parse(value))
+  }
+
   static async registerFormValidate(req) {
     const messageQueue = []
     const {

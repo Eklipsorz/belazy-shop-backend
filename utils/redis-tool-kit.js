@@ -13,15 +13,18 @@ class RedisToolKit {
   static correctDataType(object) {
     const entries = Object.entries(object)
     const result = {}
-    const { isNaN, isNumberString } = ParameterValidationKit
+    const { isNumberString, isDateString } = ParameterValidationKit
 
+    // transfer according to data representation inside string
     entries.forEach(([key, value]) => {
       let resultValue = value
       switch (true) {
         case (isNumberString(value)):
+          // Value is Number
           resultValue = Number(value)
           break
-        case (isNaN(Date.parse(value))):
+        case (isDateString(value)):
+          // Value is Date Object
           resultValue = new Date(value)
           break
       }
@@ -104,21 +107,20 @@ class RedisToolKit {
 
   static async syncDBFromCache(key, cache, findOption) {
     const syncType = key.split(':')[0]
-
     const resultObject = await cache.hgetall(key)
 
     if (!resultObject) {
       throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
-    let dirtyBit = Number(resultObject.dirtyBit)
+    const dirtyBit = Number(resultObject.dirtyBit)
     const currentTime = new Date()
-    let refreshAt = new Date(resultObject.refreshAt)
+    const refreshAt = new Date(resultObject.refreshAt)
     // test data
-    refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
-    // resultObject.quantity = '1312354'
-    dirtyBit = 1
-    console.log('refresh', currentTime, refreshAt, key)
+    // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
+    // // resultObject.quantity = '1312354'
+    // dirtyBit = 1
+
     if (currentTime.getTime() > refreshAt.getTime() && dirtyBit) {
       // initialize dirtyBit and expiredAt
       const getRefreshAt = RedisToolKit.getRefreshAt
@@ -130,7 +132,7 @@ class RedisToolKit {
       const { correctDataType } = RedisToolKit
       const template = {
         ...correctDataType(resultObject),
-        createAt: new Date(resultObject.createdAt),
+        createdAt: new Date(resultObject.createdAt),
         updatedAt: new Date(resultObject.updatedAt)
       }
 

@@ -45,19 +45,26 @@ class CartResource {
         productId,
         price: resultStock.price,
         quantity: isExistCart ? Number(cart.quantity) + 1 : 1,
-        createdAt: isExistCart ? cart.createdAt : new Date(),
+        createdAt: isExistCart ? new Date(cart.createdAt) : new Date(),
         updatedAt: new Date(),
         dirtyBit: isExistCart ? 1 : 0,
-        refreshAt: isExistCart ? cart.refreshAt : RedisToolKit.getRefreshAt(cartKey, new Date())
+        refreshAt: isExistCart ? new Date(cart.refreshAt) : RedisToolKit.getRefreshAt(cartKey, new Date())
       }
-
       await redisClient.hset(cartKey, template)
       // if user has successfully logined, then check refreshAt and dirty
+      const user = AuthToolKit.getUser(req)
 
-      // if (user) {
-      //   await RedisToolKit.syncDBFromCache(cartKey,)
-      // }
+      if (user) {
+        const findOption = {
+          where: { productId, cartId }
+        }
+        await RedisToolKit.syncDBFromCache(cartKey, redisClient, findOption)
+      }
       // return success message
+      const resultCart = { ...template }
+      delete resultCart.dirtyBit
+      delete resultCart.refreshAt
+      return { error: null, data: resultCart, message: '添加成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

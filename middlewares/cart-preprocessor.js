@@ -173,14 +173,27 @@ class CartPreprocessor {
       const redisClient = req.app.locals.redisClient
       const keyPattern = `cart:${cartId}:*`
       // get cart data from cache and db
+
+      async function scanTask(keyPattern, cache) {
+        let cursor = '0'
+        let keys = []
+        while (true) {
+          [cursor, keys] = await cache.scan(cursor, 'MATCH', keyPattern, 'COUNT', 20)
+          if (keys.length) return keys
+          if (cursor === '0') break
+        }
+        return []
+      }
+
       const [cartInCache, cartInDB] = await Promise.all([
-        redisClient.scan(0, 'MATCH', keyPattern),
+        // redisClient.scan(0, 'MATCH', keyPattern),
+        scanTask(keyPattern, redisClient),
         Cart.findOne({ where: { cartId } })
       ])
 
       // true -> there exists cart data in cache or db
       // false -> there is nothing data in cache or db
-      const isExistInCache = Boolean(cartInCache[1].length)
+      const isExistInCache = Boolean(cartInCache.length)
       const isExistInDB = Boolean(cartInDB)
       // case 1: There is nothing on cache and DB
       // do nothing
@@ -206,7 +219,7 @@ class CartPreprocessor {
           break
       }
 
-      //  req.session.firstSyncBit = true
+      req.session.firstSyncBit = true
       return next()
     } catch (error) {
       return next(new APIError({ code: code.SERVERERROR, status, message: error.message }))
