@@ -5,17 +5,29 @@ const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 
 class CartResource {
-  static async checkAndSyncDB(req, cache, { cartKey, productId, cartId, queryType }) {
+  static async checkAndSyncDB(req, cache, { cartKey, productId, cartId, taskType }) {
     const user = AuthToolKit.getUser(req)
     if (user) {
       const option = {
-        queryType,
+        taskType,
         findOption: {
           where: { productId, cartId }
         }
       }
       await RedisToolKit.syncDBFromCache(cartKey, cache, option)
     }
+  }
+
+  static existCartProduct(product) {
+    const keys = Object.keys(product)
+    console.log('result', !keys.length || product.quantity === '0')
+    if (!keys.length) return false
+    return true
+  }
+
+  static isEmptyCart(cart) {
+    if (!cart.length) return true
+    return cart.every(product => product.quantity === 0)
   }
 
   static async postCarts(req) {
@@ -51,7 +63,9 @@ class CartResource {
       const { cartId } = req.session
       const cartKey = `cart:${cartId}:${productId}`
       const cart = await redisClient.hgetall(cartKey)
-      const isExistCart = Boolean(Object.keys(cart).length)
+      const isExistCart = Boolean(Object.keys(cart).length) && Boolean(Number(cart.quantity))
+
+      console.log('isExistCart: ', Boolean(Object.keys(cart).length), Boolean(Number(cart.quantity)))
 
       const template = {
         cartId,
@@ -65,7 +79,7 @@ class CartResource {
       }
       await redisClient.hset(cartKey, template)
       // if user has successfully logined, then check refreshAt and dirty
-      const option = { cartKey, productId, cartId, queryType: 'create' }
+      const option = { cartKey, productId, cartId, taskType: 'create' }
       await CartResource.checkAndSyncDB(req, redisClient, option)
       // return success message
       const resultCart = { ...template }
@@ -85,28 +99,48 @@ class CartResource {
       const cartKey = `cart:${cartId}:${productId}`
       // check whether product exists in carts
       const cart = await redisClient.hgetall(cartKey)
+      console.log('cart ', cart, Boolean(Number(cart.quantity)))
       // nothing
-      if (!Object.keys(cart).length) {
+      if (!Object.keys(cart).length || true) {
+        console.log('hi')
         return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車內找不到對應項目' }) }
       }
 
-      const option = { cartKey, productId, cartId, queryType: 'delete' }
-      await CartResource.checkAndSyncDB(req, redisClient, option)
-
       // I've found that
-      // remove that product
-      await redisClient.del(cartKey)
+      // remove that product with quantity = 0
+      await redisClient.hset(cartKey, 'quantity', 0)
       // if user has successfully logined, then check refreshAt and dirty
       const resultCart = {
         cartId,
         productId,
-        quantity: Number(cart.quantity),
         price: Number(cart.price),
         createdAt: new Date(cart.createdAt),
         updatedAt: new Date(cart.updatedAt)
       }
       // return success message
       return { error: null, data: resultCart, message: '移除成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
+  static async deleteProducts(req) {
+    try {
+      // check whether there is something inside the cart
+
+      const { cartId } = req.session
+      const redisClient = req.app.locals.redisClient
+      console.log('inside products')
+      const cartKeyPattern = `cardt:${cartId}:*`
+      const scanTask = RedisToolKit.scanTask
+      const result = await scanTask('check', cartKeyPattern, redisClient)
+      if (CartResource.isEmptyCart(result)) {
+        console.log('empty')
+      }
+      // if none, then
+      // if yes, then
+      // remove all products with quantity = 0
+      // return success message
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

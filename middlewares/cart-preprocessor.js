@@ -174,20 +174,10 @@ class CartPreprocessor {
       const keyPattern = `cart:${cartId}:*`
       // get cart data from cache and db
 
-      async function scanTask(keyPattern, cache) {
-        let cursor = '0'
-        let keys = []
-        while (true) {
-          [cursor, keys] = await cache.scan(cursor, 'MATCH', keyPattern, 'COUNT', 20)
-          if (keys.length) return keys
-          if (cursor === '0') break
-        }
-        return []
-      }
-
+      const scanTask = RedisToolKit.scanTask
       const [cartInCache, cartInDB] = await Promise.all([
         // redisClient.scan(0, 'MATCH', keyPattern),
-        scanTask(keyPattern, redisClient),
+        scanTask('check', keyPattern, redisClient),
         Cart.findOne({ where: { cartId } })
       ])
 

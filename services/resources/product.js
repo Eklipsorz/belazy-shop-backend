@@ -99,7 +99,7 @@ class ProductResource {
         resultProduct = product.toJSON()
       } else {
         const option = {
-          queryType: 'update',
+          taskType: 'update',
           findOption: { where: { productId } }
         }
         await RedisToolKit.syncDBFromCache(stocktKey, redisClient, option)
@@ -171,7 +171,7 @@ class ProductResource {
       // sync db according to refreshAt and dirtyBit
       if (isExistProductInCache) {
         const option = {
-          queryType: 'update',
+          taskType: 'update',
           findOption: { where: { productId } }
         }
         await RedisToolKit.syncDBFromCache(stocktKey, redisClient, option)

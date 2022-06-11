@@ -105,6 +105,21 @@ class RedisToolKit {
     return cacheResult
   }
 
+  static async scanTask(scanType, keyPattern, cache) {
+    let cursor = '0'
+    let keys = []
+    const result = []
+    while (true) {
+      [cursor, keys] = await cache.scan(cursor, 'MATCH', keyPattern, 'COUNT', 20)
+
+      if (scanType === 'check' && keys.length) return keys
+      if (keys.length) result.push(...keys)
+      if (cursor === '0') break
+    }
+
+    return result
+  }
+
   static async updateDBTask(targetDB, template, findOption) {
     switch (targetDB) {
       case 'stock':
@@ -147,7 +162,7 @@ class RedisToolKit {
     }
   }
 
-  static async syncDBFromCache(key, cache, { queryType, findOption }) {
+  static async syncDBFromCache(key, cache, { taskType, findOption }) {
     const targetDB = key.split(':')[0]
     const resultObject = await cache.hgetall(key)
 
@@ -155,13 +170,13 @@ class RedisToolKit {
       throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
-    const dirtyBit = Number(resultObject.dirtyBit)
+    let dirtyBit = Number(resultObject.dirtyBit)
     const currentTime = new Date()
-    const refreshAt = new Date(resultObject.refreshAt)
+    let refreshAt = new Date(resultObject.refreshAt)
     // test data
-    // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
+    refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
     // // resultObject.quantity = '1312354'
-    // dirtyBit = 1
+    dirtyBit = 1
 
     if (currentTime.getTime() > refreshAt.getTime() && dirtyBit) {
       // initialize dirtyBit and expiredAt
@@ -172,6 +187,7 @@ class RedisToolKit {
       // - normalize data from cache
       // - update the data to DB based on Disk/SSD
       const { correctDataType } = RedisToolKit
+
       const template = {
         ...correctDataType(resultObject),
         createdAt: new Date(resultObject.createdAt),
@@ -182,7 +198,7 @@ class RedisToolKit {
       if (templateKeys.includes('dirtyBit')) delete template.dirtyBit
       if (templateKeys.includes('refreshAt')) delete template.refreshAt
 
-      switch (queryType) {
+      switch (taskType) {
         case 'create':
           await RedisToolKit.createDBTask(targetDB, template)
           break
