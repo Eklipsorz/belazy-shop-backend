@@ -20,14 +20,18 @@ class CartResource {
 
   static existCartProduct(product) {
     const keys = Object.keys(product)
-    console.log('result', !keys.length || product.quantity === '0')
-    if (!keys.length) return false
+    // the product is not in the cart
+    if (!keys.length || product.quantity === '0') return false
+    // the product is in the cart
     return true
   }
 
   static isEmptyCart(cart) {
     if (!cart.length) return true
-    return cart.every(product => product.quantity === 0)
+    cart.forEach(item => {
+      console.log('ans: ', item.productId, item.quantity)
+    })
+    return cart.every(product => product.quantity === '0')
   }
 
   static async postCarts(req) {
@@ -97,12 +101,12 @@ class CartResource {
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
       const cartKey = `cart:${cartId}:${productId}`
+
       // check whether product exists in carts
       const cart = await redisClient.hgetall(cartKey)
-      console.log('cart ', cart, Boolean(Number(cart.quantity)))
+      // console.log('cart ', cart, Boolean(Number(cart.quantity)))
       // nothing
-      if (!Object.keys(cart).length || true) {
-        console.log('hi')
+      if (!CartResource.existCartProduct(cart)) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車內找不到對應項目' }) }
       }
 
@@ -131,10 +135,12 @@ class CartResource {
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
       console.log('inside products')
-      const cartKeyPattern = `cardt:${cartId}:*`
-      const scanTask = RedisToolKit.scanTask
-      const result = await scanTask('check', cartKeyPattern, redisClient)
-      if (CartResource.isEmptyCart(result)) {
+
+      const getCacheValues = RedisToolKit.getCacheValues
+      const cartKeyPattern = `cart:${cartId}:*`
+      const cart = await getCacheValues(cartKeyPattern, redisClient)
+      console.log('delete products: ', cart)
+      if (CartResource.isEmptyCart(cart)) {
         console.log('empty')
       }
       // if none, then

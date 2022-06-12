@@ -3,7 +3,6 @@ const { cartController } = require('../../controllers/cart')
 const { cartMiddleware } = require('../../config/route')
 
 const express = require('express')
-const { Router } = require('express')
 const router = express.Router()
 
 const middleware = cartMiddleware

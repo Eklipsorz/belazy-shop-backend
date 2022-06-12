@@ -69,49 +69,25 @@ class RedisToolKit {
     await cache.hset(key, template)
   }
 
-  static getCartHashKey(key) {
-    return key.split(':')[2]
-  }
+  // get all value according to keyPattern
+  static async getCacheValues(keyPattern, cache) {
+    const scanTask = RedisToolKit.scanTask
+    const keys = await scanTask('get', keyPattern, cache)
 
-  static async getCacheValues(type, keyPattern, cache) {
-    let cursor = 0
-    let keySet = []
-    const cacheResult = []
-
-    let getHashKey = null
-
-    switch (type) {
-      case 'cart':
-        getHashKey = RedisToolKit.getCartHashKey
-        break
-    }
-
-    async function hgetallTask(key) {
-      const result = await cache.hgetall(key)
-      result.productId = getHashKey(key)
-      return result
-    }
-
-    while (true) {
-      [cursor, keySet] = await cache.scan(cursor, 'MATCH', keyPattern)
-
-      const result = await Promise.all(
-        keySet.map(hgetallTask)
-      )
-      cacheResult.push(...result)
-      if (cursor === '0') break
-    }
-
+    const cacheResult = await Promise.all(
+      keys.map(key => cache.hgetall(key))
+    )
     return cacheResult
   }
 
+  // scanType = 'check', check whether there is something in redis according to keyPattern
+  // scanType = 'get', get all keys according to keyPattern
   static async scanTask(scanType, keyPattern, cache) {
     let cursor = '0'
     let keys = []
     const result = []
     while (true) {
       [cursor, keys] = await cache.scan(cursor, 'MATCH', keyPattern, 'COUNT', 20)
-
       if (scanType === 'check' && keys.length) return keys
       if (keys.length) result.push(...keys)
       if (cursor === '0') break
@@ -170,13 +146,13 @@ class RedisToolKit {
       throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
-    let dirtyBit = Number(resultObject.dirtyBit)
+    const dirtyBit = Number(resultObject.dirtyBit)
     const currentTime = new Date()
-    let refreshAt = new Date(resultObject.refreshAt)
+    const refreshAt = new Date(resultObject.refreshAt)
     // test data
-    refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
+    // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
     // // resultObject.quantity = '1312354'
-    dirtyBit = 1
+    // dirtyBit = 1
 
     if (currentTime.getTime() > refreshAt.getTime() && dirtyBit) {
       // initialize dirtyBit and expiredAt

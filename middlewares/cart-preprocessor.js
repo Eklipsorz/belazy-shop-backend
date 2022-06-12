@@ -80,7 +80,7 @@ class CartPreprocessor {
       raw: true
     }
     // get all cart from cache and db
-    const cacheResult = await RedisToolKit.getCacheValues('cart', keyPattern, redisClient)
+    const cacheResult = await RedisToolKit.getCacheValues(keyPattern, redisClient)
     const dbResult = await Cart.findAll(findOption)
 
     // merge cart data in cache and in db into a set of cart data
@@ -141,22 +141,13 @@ class CartPreprocessor {
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
     const keyPattern = `cart:${cartId}:*`
-    let cursor = '0'
-    let keys = []
 
-    async function syncDBTask(key, cache) {
-      const product = await cache.hgetall(key)
-      return await CartPreprocessor.syncDBTask(product)
-    }
+    const syncDBTask = CartPreprocessor.syncDBTask
+    const cart = await RedisToolKit.getCacheValues(keyPattern, redisClient)
 
-    while (true) {
-      [cursor, keys] = await redisClient.scan(cursor, 'MATCH', keyPattern)
-      // generate a set of tasks to sync with data inside cache
-      await Promise.all(
-        keys.map(key => syncDBTask(key, redisClient))
-      )
-      if (cursor === '0') break
-    }
+    return await Promise.all(
+      cart.map(syncDBTask)
+    )
   }
 
   static async loginSyncCart(req, _, next) {
