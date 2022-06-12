@@ -18,6 +18,11 @@ class CartResource {
     }
   }
 
+  static getProducts(cart) {
+    const resultProducts = cart.filter(product => Number(product.quantity) > 0)
+    return resultProducts
+  }
+
   static existCartProduct(product) {
     const keys = Object.keys(product)
     // the product is not in the cart
@@ -28,10 +33,12 @@ class CartResource {
 
   static isEmptyCart(cart) {
     if (!cart.length) return true
-    cart.forEach(item => {
-      console.log('ans: ', item.productId, item.quantity)
-    })
     return cart.every(product => product.quantity === '0')
+  }
+
+  static async delProductTask({ cartId, productId }, cache) {
+    const key = `cart:${cartId}:${productId}`
+    return cache.hset(key, 'quantity', 0)
   }
 
   static async postCarts(req) {
@@ -104,7 +111,7 @@ class CartResource {
 
       // check whether product exists in carts
       const cart = await redisClient.hgetall(cartKey)
-      // console.log('cart ', cart, Boolean(Number(cart.quantity)))
+
       // nothing
       if (!CartResource.existCartProduct(cart)) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車內找不到對應項目' }) }
@@ -134,19 +141,28 @@ class CartResource {
 
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
-      console.log('inside products')
+      const { isEmptyCart, getProducts, delProductTask } = CartResource
 
       const getCacheValues = RedisToolKit.getCacheValues
       const cartKeyPattern = `cart:${cartId}:*`
       const cart = await getCacheValues(cartKeyPattern, redisClient)
-      console.log('delete products: ', cart)
-      if (CartResource.isEmptyCart(cart)) {
-        console.log('empty')
-      }
+
       // if none, then
+      if (isEmptyCart(cart)) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車是空的' }) }
+      }
+
       // if yes, then
       // remove all products with quantity = 0
+      const products = getProducts(cart)
+
+      await Promise.all(
+        products.map(product => delProductTask(product, redisClient))
+      )
+
       // return success message
+      const resultCart = null
+      return { error: null, data: resultCart, message: '移除成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

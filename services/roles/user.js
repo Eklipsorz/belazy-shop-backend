@@ -196,7 +196,8 @@ class UserService extends AccountService {
   }
 
   async deleteProducts(req, cb) {
-    await CartResource.deleteProducts(req)
+    const { error, data, message } = await CartResource.deleteProducts(req)
+    return cb(error, data, message)
   }
 }
 
