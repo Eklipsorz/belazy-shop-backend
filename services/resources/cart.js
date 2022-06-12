@@ -31,6 +31,18 @@ class CartResource {
     return true
   }
 
+  // Get name and image for the product
+  static async getProductSnapshot(product, cache) {
+    const productId = product.productId
+    const productKey = `product:${productId}`
+    const result = await cache.hgetall(productKey)
+
+    const template = { ...product, ...result }
+    if (template.dirtyBit) delete template.dirtyBit
+    if (template.refreshAt) delete template.refreshAt
+    return template
+  }
+
   static isEmptyCart(cart) {
     if (!cart.length) return true
     return cart.every(product => product.quantity === '0')
@@ -39,6 +51,38 @@ class CartResource {
   static async delProductTask({ cartId, productId }, cache) {
     const key = `cart:${cartId}:${productId}`
     return cache.hset(key, 'quantity', 0)
+  }
+
+  static async getCart(req) {
+    try {
+      // check whether there is something in the cart
+      const { cartId } = req.session
+      const redisClient = req.app.locals.redisClient
+      const { isEmptyCart, getProducts } = CartResource
+      const cartKeyPattern = `cart:${cartId}:*`
+
+      const getCacheValues = RedisToolKit.getCacheValues
+      const cart = await getCacheValues(cartKeyPattern, redisClient)
+
+      // if none
+      if (isEmptyCart(cart)) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車是空的' }) }
+      }
+
+      // if yes
+      // get all products from the cart
+      const products = getProducts(cart)
+      const getProductSnapshot = CartResource.getProductSnapshot
+      const resultCart = await Promise
+        .all(
+          products.map(product => getProductSnapshot(product, redisClient))
+        )
+
+      // return success message
+      return { error: null, data: resultCart, message: '獲取成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
   }
 
   static async postCarts(req) {
@@ -75,8 +119,6 @@ class CartResource {
       const cartKey = `cart:${cartId}:${productId}`
       const cart = await redisClient.hgetall(cartKey)
       const isExistCart = Boolean(Object.keys(cart).length) && Boolean(Number(cart.quantity))
-
-      console.log('isExistCart: ', Boolean(Object.keys(cart).length), Boolean(Number(cart.quantity)))
 
       const template = {
         cartId,
