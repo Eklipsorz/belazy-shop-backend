@@ -6,9 +6,12 @@ const express = require('express')
 const router = express.Router()
 
 const middleware = cartMiddleware
+const prefix = middleware.prefix
+const suffix = middleware.suffix
+
 const controller = cartController
 
-router.get('/', ...middleware.getCart, controller.getCart)
+router.get('/', ...prefix.getCart, controller.getCart, ...suffix.getCart)
 router.post('/', ...middleware.postCarts, controller.postCarts)
 router.delete('/product', ...middleware.deleteProduct, controller.deleteProduct)
 router.delete('/products', ...middleware.deleteProducts, controller.deleteProducts)

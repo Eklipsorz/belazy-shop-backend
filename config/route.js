@@ -9,6 +9,7 @@ const { FileUploader } = require('../middlewares/file-uploader')
 const upload = FileUploader.getMulter()
 
 const { CartPreprocessor } = require('../middlewares/cart-preprocessor')
+const { CartPostprocessor } = require('../middlewares/cart-postprocessor')
 
 const generalMiddleware = {
   all: [
@@ -184,14 +185,22 @@ const replyMiddleware = {
 
 const cartMiddleware = {
 
+  prefix: {
+    // add middleware to route (GET /carts)
+    getCart: [
+      AuthValidator.authenticateLoggedIn,
+      AuthValidator.authenticateUser
+    ]
+  },
+  suffix: {
+    // add middleware to route (GET /carts)
+    getCart: [
+      CartPostprocessor.syncCartFromCachetoDB
+    ]
+  },
+
   // add middleware to route (POST /carts)
   postCarts: [],
-
-  // add middleware to route (GET /carts)
-  getCart: [
-    AuthValidator.authenticateLoggedIn,
-    AuthValidator.authenticateUser
-  ],
 
   // add middleware to route (DELETE /carts/product)
   deleteProduct: [
@@ -203,6 +212,7 @@ const cartMiddleware = {
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser
   ]
+
 }
 
 exports = module.exports = {

@@ -78,6 +78,9 @@ class CartResource {
           products.map(product => getProductSnapshot(product, redisClient))
         )
 
+      // ready to check and sync
+      req.stageArea = cart
+
       // return success message
       return { error: null, data: resultCart, message: '獲取成功' }
     } catch (error) {
@@ -132,8 +135,8 @@ class CartResource {
       }
       await redisClient.hset(cartKey, template)
       // if user has successfully logined, then check refreshAt and dirty
-      const option = { cartKey, productId, cartId, taskType: 'create' }
-      await CartResource.checkAndSyncDB(req, redisClient, option)
+      // const option = { cartKey, productId, cartId, taskType: 'update' }
+      // await CartResource.checkAndSyncDB(req, redisClient, option)
       // return success message
       const resultCart = { ...template }
       delete resultCart.dirtyBit
