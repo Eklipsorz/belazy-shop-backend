@@ -135,8 +135,8 @@ class CartResource {
       }
       await redisClient.hset(cartKey, template)
       // if user has successfully logined, then check refreshAt and dirty
-      // const option = { cartKey, productId, cartId, taskType: 'update' }
-      // await CartResource.checkAndSyncDB(req, redisClient, option)
+      // ready to check and sync
+      req.stageArea = template
       // return success message
       const resultCart = { ...template }
       delete resultCart.dirtyBit

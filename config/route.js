@@ -185,22 +185,25 @@ const replyMiddleware = {
 
 const cartMiddleware = {
 
-  prefix: {
+  preprocessor: {
     // add middleware to route (GET /carts)
     getCart: [
       AuthValidator.authenticateLoggedIn,
       AuthValidator.authenticateUser
-    ]
+    ],
+    // add middleware to route (POST /carts)
+    postCarts: []
   },
-  suffix: {
+  postprocessor: {
     // add middleware to route (GET /carts)
     getCart: [
-      CartPostprocessor.syncCartFromCachetoDB
+      CartPostprocessor.checkAndSyncDB
+    ],
+    // add middleware to route (POST /carts)
+    postCarts: [
+      CartPostprocessor.checkAndSyncDB
     ]
   },
-
-  // add middleware to route (POST /carts)
-  postCarts: [],
 
   // add middleware to route (DELETE /carts/product)
   deleteProduct: [
