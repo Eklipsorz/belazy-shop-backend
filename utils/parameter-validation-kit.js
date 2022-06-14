@@ -1,5 +1,6 @@
 const validator = require('validator')
 const { User } = require('../db/models')
+const { status, code } = require('../config/result-status-table').errorTable
 const { AuthToolKit } = require('./auth-tool-kit')
 const { MAX_LENGTH_CONTENT, MIN_LENGTH_CONTENT } = require('../config/app').service.replyResource
 

@@ -1,23 +1,11 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
-const { AuthToolKit } = require('../../utils/auth-tool-kit')
+
+const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 
 class CartResource {
-  static async checkAndSyncDB(req, cache, { cartKey, productId, cartId, taskType }) {
-    const user = AuthToolKit.getUser(req)
-    if (user) {
-      const option = {
-        taskType,
-        findOption: {
-          where: { productId, cartId }
-        }
-      }
-      await RedisToolKit.syncDBFromCache(cartKey, cache, option)
-    }
-  }
-
   static getProducts(cart) {
     const resultProducts = cart.filter(product => Number(product.quantity) > 0)
     return resultProducts
@@ -143,6 +131,65 @@ class CartResource {
       delete resultCart.refreshAt
       return { error: null, data: resultCart, message: '添加成功' }
     } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
+  static async putCart(req) {
+    try {
+      const redisClient = req.app.locals.redisClient
+      const { cartId } = req.session
+      const cartHashMap = req.body
+      const { isNaN } = ParameterValidationKit
+      const keys = Object.keys(cartHashMap)
+
+      const cartKeys = keys.map(item => `cart:${cartId}:${item}`)
+
+      async function ExistenceTest(keys, cache) {
+        for (const key of keys) {
+          const result = await cache.hgetall(key)
+          if (!Object.keys(result).length) return false
+        }
+        return true
+      }
+
+      const areValidProducts = await ExistenceTest(cartKeys, redisClient)
+      if (!areValidProducts) {
+        return { error: new APIError({ code: code.NOTFOUND, message: '找不到對應項目', data: cartHashMap }) }
+      }
+
+      const values = Object.values(cartHashMap).map(value => Number(value))
+      const areValidNumbers = values.every(value => !isNaN(value))
+      if (!areValidNumbers) {
+        return { error: new APIError({ code: code.BADREQUEST, message: '購買數量必須是數字', data: cartHashMap }) }
+      }
+
+      const areGreaterThanZero = values.every(value => Number(value) > 0)
+      if (!areGreaterThanZero) {
+        return { error: new APIError({ code: code.BADREQUEST, message: '數量必須至少是1以上', data: cartHashMap }) }
+      }
+
+      const stock = {}
+      for (const key of keys) {
+        const stockKey = `stock:${key}`
+        stock[key] = (await redisClient.hgetall(stockKey))
+      }
+
+      const entries = Object.entries(cartHashMap)
+      const areEnoughStock = entries.every(([productId, quantity]) => {
+        const restQuantity = Number(stock[productId].restQuantity)
+        return restQuantity > Number(quantity)
+      })
+
+      if (!areEnoughStock) {
+        return { error: new APIError({ code: code.BADREQUEST, message: '購買量是高於庫存量', data: cartHashMap }) }
+      }
+
+      const resultCart = null
+
+      return { error: null, data: resultCart, message: '修改成功' }
+    } catch (error) {
+      console.log('hi error')
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
   }
