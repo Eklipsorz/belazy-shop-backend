@@ -11,9 +11,6 @@ module.exports = {
       user_id: {
         type: Sequelize.INTEGER
       },
-      detail: {
-        type: Sequelize.STRING(255)
-      },
       sum: {
         type: Sequelize.INTEGER
       },

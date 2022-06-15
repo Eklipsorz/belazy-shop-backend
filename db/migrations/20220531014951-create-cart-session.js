@@ -11,7 +11,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER
       },
-      total: {
+      sum: {
         allowNull: false,
         type: Sequelize.INTEGER
       },

@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   CartSession.init({
     id: DataTypes.UUID,
     userId: DataTypes.INTEGER,
-    total: DataTypes.INTEGER
+    sum: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'CartSession',
