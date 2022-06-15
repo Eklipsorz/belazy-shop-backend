@@ -186,41 +186,41 @@ const replyMiddleware = {
 const cartMiddleware = {
 
   preprocessor: {
-    // add middleware to route (GET /carts)
-    getCart: [
+    // add middleware to route (GET /carts/self/items)
+    getCartItems: [
       AuthValidator.authenticateLoggedIn,
       AuthValidator.authenticateUser
     ],
-    // add middleware to route (POST /carts)
-    postCarts: [],
-    // add middleware to route (PUT /carts)
+    // add middleware to route (POST /carts/self/items)
+    postCartItems: [],
+    // add middleware to route (PUT /carts/self)
     putCart: [
       AuthValidator.authenticateLoggedIn,
       AuthValidator.authenticateUser
     ]
   },
   postprocessor: {
-    // add middleware to route (GET /carts)
-    getCart: [
+    // add middleware to route (GET /carts/self/items)
+    getCartItems: [
       CartPostprocessor.checkAndSyncDB
     ],
-    // add middleware to route (POST /carts)
-    postCarts: [
+    // add middleware to route (POST /carts/self/items)
+    postCartItems: [
       CartPostprocessor.checkAndSyncDB
     ],
-    // add middleware to route (PUT /carts)
+    // add middleware to route (PUT /carts/self)
     putCart: [
       CartPostprocessor.checkAndSyncDB
     ]
   },
 
-  // add middleware to route (DELETE /carts/product)
-  deleteProduct: [
+  // add middleware to route (DELETE /carts/self/items)
+  deleteCartItem: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser
   ],
-  // add middleware to route (DELETE /carts/products)
-  deleteProducts: [
+  // add middleware to route (DELETE /carts/self)
+  deleteCart: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser
   ]

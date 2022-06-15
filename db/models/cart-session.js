@@ -16,7 +16,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   CartSession.init({
-    id: DataTypes.UUID,
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true
+    },
     userId: DataTypes.INTEGER,
     sum: DataTypes.INTEGER
   }, {

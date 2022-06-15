@@ -185,8 +185,8 @@ class UserService extends AccountService {
     return cb(error, data, message)
   }
 
-  async getCart(req, cb) {
-    const { error, data, message } = await CartResource.getCart(req)
+  async getCartItems(req, cb) {
+    const { error, data, message } = await CartResource.getCartItems(req)
     return cb(error, data, message)
   }
 
@@ -195,18 +195,18 @@ class UserService extends AccountService {
     return cb(error, data, message)
   }
 
-  async postCarts(req, cb) {
-    const { error, data, message } = await CartResource.postCarts(req)
+  async postCartItems(req, cb) {
+    const { error, data, message } = await CartResource.postCartItems(req)
     return cb(error, data, message)
   }
 
-  async deleteProduct(req, cb) {
-    const { error, data, message } = await CartResource.deleteProduct(req)
+  async deleteCartItem(req, cb) {
+    const { error, data, message } = await CartResource.deleteCartItem(req)
     return cb(error, data, message)
   }
 
-  async deleteProducts(req, cb) {
-    const { error, data, message } = await CartResource.deleteProducts(req)
+  async deleteCart(req, cb) {
+    const { error, data, message } = await CartResource.deleteCart(req)
     return cb(error, data, message)
   }
 }

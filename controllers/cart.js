@@ -2,13 +2,13 @@ const { userServices } = require('../services/roles/user')
 const { status, code } = require('../config/result-status-table').successTable
 
 const cartController = {
-  getCart: (req, res, next) => {
-    userServices.getCart(req, (error, data, message) =>
+  getCartItems: (req, res, next) => {
+    userServices.getCartItems(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   },
-  postCarts: (req, res, next) => {
-    userServices.postCarts(req, (error, data, message) =>
+  postCartItems: (req, res, next) => {
+    userServices.postCartItems(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   },
@@ -17,13 +17,13 @@ const cartController = {
       error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   },
-  deleteProduct: (req, res, next) => {
-    userServices.deleteProduct(req, (error, data, message) =>
+  deleteCartItem: (req, res, next) => {
+    userServices.deleteCartItem(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
-  deleteProducts: (req, res, next) => {
-    userServices.deleteProducts(req, (error, data, message) =>
+  deleteCart: (req, res, next) => {
+    userServices.deleteCart(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   }

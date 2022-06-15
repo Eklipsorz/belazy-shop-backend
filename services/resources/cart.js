@@ -51,7 +51,7 @@ class CartResource {
     return cache.hset(key, 'quantity', 0)
   }
 
-  static async getCart(req) {
+  static async getCartItems(req) {
     try {
       // check whether there is something in the cart
       const { cartId } = req.session
@@ -86,7 +86,7 @@ class CartResource {
     }
   }
 
-  static async postCarts(req) {
+  static async postCartItems(req) {
     try {
       const { productId } = req.body
       const redisClient = req.app.locals.redisClient
@@ -219,7 +219,7 @@ class CartResource {
     }
   }
 
-  static async deleteProduct(req) {
+  static async deleteCartItem(req) {
     try {
       const { productId } = req.body
       const { cartId } = req.session
@@ -252,10 +252,9 @@ class CartResource {
     }
   }
 
-  static async deleteProducts(req) {
+  static async deleteCart(req) {
     try {
       // check whether there is something inside the cart
-
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
       const { isEmptyCart, getProducts, delProductTask } = CartResource
