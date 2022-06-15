@@ -10,6 +10,7 @@ module.exports = {
       },
       cart_id: {
         type: Sequelize.UUID,
+        allowNull: false,
         defaultValue: Sequelize.UUIDV4
       },
       product_id: {

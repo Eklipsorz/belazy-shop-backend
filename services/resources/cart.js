@@ -121,11 +121,13 @@ class CartResource {
       const cart = await redisClient.hgetall(cartKey)
       const isExistCart = Boolean(Object.keys(cart).length) && Boolean(Number(cart.quantity))
 
+      const quantity = isExistCart ? Number(cart.quantity) + 1 : 1
+
       const template = {
         cartId,
         productId,
-        price: resultStock.price,
-        quantity: isExistCart ? Number(cart.quantity) + 1 : 1,
+        price: resultStock.price * quantity,
+        quantity,
         createdAt: isExistCart ? new Date(cart.createdAt) : new Date(),
         updatedAt: new Date(),
         dirtyBit: isExistCart ? 1 : 0,
