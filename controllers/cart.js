@@ -14,7 +14,7 @@ const cartController = {
   },
   putCart: (req, res, next) => {
     userServices.putCart(req, (error, data, message) =>
-      error ? next(error) : res.status(code.OK).json({ status, message, data })
+      error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   },
   deleteProduct: (req, res, next) => {
