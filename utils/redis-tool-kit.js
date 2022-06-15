@@ -4,7 +4,7 @@ require('dotenv').config({ path: project.ENV })
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 
-const { Stock, Product, Cart } = require('../db/models')
+const { Stock, Product, CartItem } = require('../db/models')
 
 const { ParameterValidationKit } = require('./parameter-validation-kit')
 const config = require('../config/app').utility.RedisToolKit
@@ -105,9 +105,9 @@ class RedisToolKit {
         if (!created) await stock.update(template)
         break
       }
-      case 'cart': {
-        const [cart, created] = await Cart.findOrCreate(findOption)
-        if (!created) await cart.update(template)
+      case 'cart_item': {
+        const [item, created] = await CartItem.findOrCreate(findOption)
+        if (!created) await item.update(template)
         break
       }
       case 'product': {
@@ -124,8 +124,8 @@ class RedisToolKit {
         await Stock.create(template)
         break
       }
-      case 'cart': {
-        await Cart.create(template)
+      case 'cart_item': {
+        await CartItem.create(template)
         break
       }
       case 'product': {
@@ -140,8 +140,8 @@ class RedisToolKit {
       case 'stock':
         await Stock.destroy(findOption)
         break
-      case 'cart':
-        await Cart.destroy(findOption)
+      case 'cart_item':
+        await CartItem.destroy(findOption)
         break
       case 'product':
         await Product.destroy(findOption)
@@ -157,13 +157,13 @@ class RedisToolKit {
       throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
-    const dirtyBit = Number(resultObject.dirtyBit)
+    let dirtyBit = Number(resultObject.dirtyBit)
     const currentTime = new Date()
-    const refreshAt = new Date(resultObject.refreshAt)
+    let refreshAt = new Date(resultObject.refreshAt)
     // test data
-    // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
-    // // resultObject.quantity = '1312354'
-    // dirtyBit = 1
+    refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
+    // resultObject.quantity = '1312354'
+    dirtyBit = 1
 
     if (currentTime.getTime() > refreshAt.getTime() && dirtyBit) {
       // initialize dirtyBit and expiredAt

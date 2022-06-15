@@ -1,10 +1,9 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
-
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
-
 const { status, code } = require('../../config/result-status-table').errorTable
+const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cache.CART
 
 class CartResource {
   static getProducts(cart) {
@@ -46,18 +45,13 @@ class CartResource {
     return cart.every(product => product.quantity === '0')
   }
 
-  static async delProductTask({ cartId, productId }, cache) {
-    const key = `cart:${cartId}:${productId}`
-    return cache.hset(key, 'quantity', 0)
-  }
-
   static async getCartItems(req) {
     try {
       // check whether there is something in the cart
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
       const { isEmptyCart, getProducts } = CartResource
-      const cartKeyPattern = `cart:${cartId}:*`
+      const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
 
       const getCacheValues = RedisToolKit.getCacheValues
       const cart = await getCacheValues(cartKeyPattern, redisClient)
@@ -117,31 +111,31 @@ class CartResource {
       // if enough, just create or update a cart data in cache
 
       const { cartId } = req.session
-      const cartKey = `cart:${cartId}:${productId}`
-      const cart = await redisClient.hgetall(cartKey)
-      const isExistCart = Boolean(Object.keys(cart).length) && Boolean(Number(cart.quantity))
+      const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+      const cartItem = await redisClient.hgetall(cartKey)
+      const isExistCart = Boolean(Object.keys(cartItem).length) && Boolean(Number(cartItem.quantity))
 
-      const quantity = isExistCart ? Number(cart.quantity) + 1 : 1
+      const quantity = isExistCart ? Number(cartItem.quantity) + 1 : 1
 
       const template = {
         cartId,
         productId,
         price: resultStock.price * quantity,
         quantity,
-        createdAt: isExistCart ? new Date(cart.createdAt) : new Date(),
+        createdAt: isExistCart ? new Date(cartItem.createdAt) : new Date(),
         updatedAt: new Date(),
         dirtyBit: isExistCart ? 1 : 0,
-        refreshAt: isExistCart ? new Date(cart.refreshAt) : RedisToolKit.getRefreshAt(cartKey, new Date())
+        refreshAt: isExistCart ? new Date(cartItem.refreshAt) : RedisToolKit.getRefreshAt(cartKey, new Date())
       }
       await redisClient.hset(cartKey, template)
       // if user has successfully logined, then check refreshAt and dirty
       // ready to check and sync
       req.stageArea = template
       // return success message
-      const resultCart = { ...template }
-      delete resultCart.dirtyBit
-      delete resultCart.refreshAt
-      return { error: null, data: resultCart, message: '添加成功' }
+      const resultCartItem = { ...template }
+      delete resultCartItem.dirtyBit
+      delete resultCartItem.refreshAt
+      return { error: null, data: resultCartItem, message: '添加成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
@@ -166,7 +160,7 @@ class CartResource {
       }
 
       // check whether one of products is not inside the cart
-      const cartKeys = keys.map(item => `cart:${cartId}:${item}`)
+      const cartKeys = keys.map(item => `${PREFIX_CARTITEM_KEY}:${cartId}:${item}`)
       const areValidProducts = await ExistenceTest(cartKeys, redisClient)
       if (!areValidProducts) {
         return { error: new APIError({ code: code.NOTFOUND, message: '購物車內找不到對應項目', data: cartHashMap }) }
@@ -200,7 +194,7 @@ class CartResource {
       // All is ok, then buy some goods
       const results = []
       for (const [key, value] of entries) {
-        const cartKey = `cart:${cartId}:${key}`
+        const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${key}`
         const total = Number(stock[key].price) * value
         await redisClient.hset(cartKey, 'quantity', value)
         await redisClient.hset(cartKey, 'price', total)
@@ -224,29 +218,32 @@ class CartResource {
       const { productId } = req.body
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
-      const cartKey = `cart:${cartId}:${productId}`
+      const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
 
       // check whether product exists in carts
-      const cart = await redisClient.hgetall(cartKey)
+      const cartItem = await redisClient.hgetall(cartItemKey)
 
       // nothing
-      if (!CartResource.existCartProduct(cart)) {
+      if (!CartResource.existCartProduct(cartItem)) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車內找不到對應項目' }) }
       }
 
       // I've found that
       // remove that product with quantity = 0
-      await redisClient.hset(cartKey, 'quantity', 0)
-      // if user has successfully logined, then check refreshAt and dirty
-      const resultCart = {
-        cartId,
-        productId,
-        price: Number(cart.price),
-        createdAt: new Date(cart.createdAt),
-        updatedAt: new Date(cart.updatedAt)
+      const template = {
+        ...cartItem,
+        quantity: 0,
+        price: 0,
+        dirtyBit: 1,
+        updatedAt: new Date()
       }
+
+      await redisClient.hset(cartItemKey, template)
+
+      // if user has successfully logined, then check refreshAt and dirty
+      const resultCartItem = null
       // return success message
-      return { error: null, data: resultCart, message: '移除成功' }
+      return { error: null, data: resultCartItem, message: '移除成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
@@ -257,10 +254,10 @@ class CartResource {
       // check whether there is something inside the cart
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
-      const { isEmptyCart, getProducts, delProductTask } = CartResource
+      const { isEmptyCart, getProducts } = CartResource
 
       const getCacheValues = RedisToolKit.getCacheValues
-      const cartKeyPattern = `cart:${cartId}:*`
+      const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
       const cart = await getCacheValues(cartKeyPattern, redisClient)
 
       // if none, then
@@ -271,10 +268,18 @@ class CartResource {
       // if yes, then
       // remove all products with quantity = 0
       const products = getProducts(cart)
-
-      await Promise.all(
-        products.map(product => delProductTask(product, redisClient))
-      )
+      for (const product of products) {
+        const { productId } = product
+        const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+        const template = {
+          ...product,
+          quantity: 0,
+          price: 0,
+          dirtyBit: 1,
+          updatedAt: new Date()
+        }
+        await redisClient.hset(cartItemKey, template)
+      }
 
       // return success message
       const resultCart = null

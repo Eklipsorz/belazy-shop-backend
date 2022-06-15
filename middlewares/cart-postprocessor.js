@@ -1,6 +1,7 @@
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 const { RedisToolKit } = require('../utils/redis-tool-kit')
+const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../config/app').cache.CART
 
 class CartPostprocessor {
   static async checkAndSyncDBTask(product, cache) {
@@ -11,7 +12,7 @@ class CartPostprocessor {
         where: { productId, cartId }
       }
     }
-    const cartKey = `cart:${cartId}:${productId}`
+    const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
 
     await RedisToolKit.syncDBFromCache(cartKey, cache, option)
   }
