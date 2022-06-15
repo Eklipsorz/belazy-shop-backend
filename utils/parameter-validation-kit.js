@@ -1,5 +1,6 @@
 const validator = require('validator')
 const { User } = require('../db/models')
+const { status, code } = require('../config/result-status-table').errorTable
 const { AuthToolKit } = require('./auth-tool-kit')
 const { MAX_LENGTH_CONTENT, MIN_LENGTH_CONTENT } = require('../config/app').service.replyResource
 
@@ -10,8 +11,24 @@ class ParameterValidationKit {
   }
 
   static isFilledField(field) {
-    const string = field.toString()
+    const string = String(field)
     return string !== ''
+  }
+
+  static isString(value) {
+    const string = String(value)
+    return string === value
+  }
+
+  static isNumberString(value) {
+    const number = Number(value)
+    return String(number) === value
+  }
+
+  static isDateString(value) {
+    const { isNumberString } = ParameterValidationKit
+    if (isNumberString(value)) return false
+    return Boolean(Date.parse(value))
   }
 
   static async registerFormValidate(req) {

@@ -22,7 +22,7 @@ function APIErrorHandler(error, _, res, next) {
       res.status(errorCode).json({ status, message, data })
       break
   }
-  next(error)
+  return next(error)
 }
 
 exports = module.exports = {

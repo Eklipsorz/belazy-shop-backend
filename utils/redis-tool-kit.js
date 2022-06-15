@@ -4,12 +4,37 @@ require('dotenv').config({ path: project.ENV })
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 
-const { Stock, Product } = require('../db/models')
+const { Stock, Product, CartItem } = require('../db/models')
+
+const { ParameterValidationKit } = require('./parameter-validation-kit')
 const config = require('../config/app').utility.RedisToolKit
 
 class RedisToolKit {
+  static correctDataType(object) {
+    const entries = Object.entries(object)
+    const result = {}
+    const { isNumberString, isDateString } = ParameterValidationKit
+
+    // transfer according to data representation inside string
+    entries.forEach(([key, value]) => {
+      let resultValue = value
+      switch (true) {
+        case (isNumberString(value)):
+          // Value is Number
+          resultValue = Number(value)
+          break
+        case (isDateString(value)):
+          // Value is Date Object
+          resultValue = new Date(value)
+          break
+      }
+      result[key] = resultValue
+    })
+    return result
+  }
+
   static getRefreshAt(key, date) {
-    const currentDate = date.valueOf()
+    const currentDate = date.getTime()
     const keyType = key.split(':')[0]
     const refreshAtConfig = config.REFRESHAT[keyType]
 
@@ -44,69 +69,133 @@ class RedisToolKit {
     await cache.hset(key, template)
   }
 
-  static getCartHashKey(key) {
-    return key.split(':')[2]
-  }
+  // get all value according to keyPattern
+  static async getCacheValues(keyPattern, cache) {
+    const scanTask = RedisToolKit.scanTask
+    const keys = await scanTask('get', keyPattern, cache)
 
-  static async getCacheValues(type, keyPattern, cache) {
-    let cursor = 0
-    let keySet = []
-    const cacheResult = []
-
-    let getHashKey = null
-
-    switch (type) {
-      case 'cart':
-        getHashKey = RedisToolKit.getCartHashKey
-        break
-    }
-
-    async function hgetallTask(key) {
-      const result = await cache.hgetall(key)
-      result.productId = getHashKey(key)
-      return result
-    }
-
-    while (true) {
-      [cursor, keySet] = await cache.scan(cursor, 'MATCH', keyPattern)
-
-      const result = await Promise.all(
-        keySet.map(hgetallTask)
-      )
-      cacheResult.push(...result)
-      if (cursor === '0') break
-    }
-
+    const cacheResult = await Promise.all(
+      keys.map(key => cache.hgetall(key))
+    )
     return cacheResult
   }
 
-  static async syncDBFromCache(findOption, cache, object = null) {
-    const target = Object.values(findOption.where)[0]
-    const resultObject = !object ? await cache.hgetall(`stock:${target}`) : object
+  // scanType = 'check', check whether there is something in redis according to keyPattern
+  // scanType = 'get', get all keys according to keyPattern
+  static async scanTask(scanType, keyPattern, cache) {
+    let cursor = '0'
+    let keys = []
+    const result = []
+    while (true) {
+      [cursor, keys] = await cache.scan(cursor, 'MATCH', keyPattern, 'COUNT', 20)
+      if (scanType === 'check' && keys.length) return keys
+      if (keys.length) result.push(...keys)
+      if (cursor === '0') break
+    }
+
+    return result
+  }
+
+  static async updateDBTask(targetDB, template, findOption) {
+    findOption.defaults = template
+
+    switch (targetDB) {
+      case 'stock': {
+        const [stock, created] = await Stock.findOrCreate(findOption)
+        if (!created) await stock.update(template)
+        break
+      }
+      case 'cart_item': {
+        const [item, created] = await CartItem.findOrCreate(findOption)
+        if (!created) await item.update(template)
+        break
+      }
+      case 'product': {
+        const [product, created] = await Product.findOrCreate(findOption)
+        if (!created) await product.update(template)
+        break
+      }
+    }
+  }
+
+  static async createDBTask(targetDB, template) {
+    switch (targetDB) {
+      case 'stock': {
+        await Stock.create(template)
+        break
+      }
+      case 'cart_item': {
+        await CartItem.create(template)
+        break
+      }
+      case 'product': {
+        await Product.create(template)
+        break
+      }
+    }
+  }
+
+  static async deleteDBTask(targetDB, findOption) {
+    switch (targetDB) {
+      case 'stock':
+        await Stock.destroy(findOption)
+        break
+      case 'cart_item':
+        await CartItem.destroy(findOption)
+        break
+      case 'product':
+        await Product.destroy(findOption)
+        break
+    }
+  }
+
+  static async syncDBFromCache(key, cache, { taskType, findOption }) {
+    const targetDB = key.split(':')[0]
+    const resultObject = await cache.hgetall(key)
 
     if (!resultObject) {
       throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
-    const dirtyBit = Number(resultObject.dirtyBit)
+    let dirtyBit = Number(resultObject.dirtyBit)
     const currentTime = new Date()
-    const refreshAt = new Date(resultObject.refreshAt)
+    let refreshAt = new Date(resultObject.refreshAt)
     // test data
-    // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
-    // dirtyBit = 1
+    refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
+    // resultObject.quantity = '1312354'
+    dirtyBit = 1
 
-    if (currentTime.valueOf() > refreshAt.valueOf() && dirtyBit) {
+    if (currentTime.getTime() > refreshAt.getTime() && dirtyBit) {
       // initialize dirtyBit and expiredAt
-      await cache.hset(`stock:${target}`, 'dirtyBit', 0)
-      await cache.hset(`stock:${target}`, 'refreshAt', RedisToolKit.getRefreshAt(currentTime))
+      const getRefreshAt = RedisToolKit.getRefreshAt
+      await cache.hset(key, 'dirtyBit', 0)
+      await cache.hset(key, 'refreshAt', getRefreshAt(key, currentTime))
       // sync to DB based on Disk/SSD:
       // - normalize data from cache
       // - update the data to DB based on Disk/SSD
-      delete resultObject.dirtyBit
-      delete resultObject.refreshAt
-      resultObject.createdAt = new Date(resultObject.createdAt)
-      resultObject.updatedAt = new Date(resultObject.updatedAt)
-      await Stock.update({ ...resultObject }, findOption)
+      const { correctDataType } = RedisToolKit
+
+      const template = {
+        ...correctDataType(resultObject),
+        createdAt: new Date(resultObject.createdAt),
+        updatedAt: new Date(resultObject.updatedAt)
+      }
+
+      const templateKeys = Object.keys(template)
+      if (templateKeys.includes('dirtyBit')) delete template.dirtyBit
+      if (templateKeys.includes('refreshAt')) delete template.refreshAt
+
+      switch (taskType) {
+        case 'create':
+          await RedisToolKit.createDBTask(targetDB, template)
+          break
+        case 'update':
+          await RedisToolKit.updateDBTask(targetDB, template, findOption)
+          break
+        case 'delete':
+          await RedisToolKit.deleteDBTask(targetDB, findOption)
+          break
+      }
     }
   }
 

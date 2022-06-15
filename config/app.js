@@ -19,6 +19,12 @@ const generalConfig = {
     REPLIED: 5
   }
 }
+const cache = {
+  CART: {
+    PREFIX_CART_KEY: 'cart',
+    PREFIX_CARTITEM_KEY: 'cart_item'
+  }
+}
 
 /* controller config */
 // const controller = {
@@ -191,6 +197,7 @@ const seeder = {
 exports = module.exports = {
   // controller,
   // helper,
+  cache,
   utility,
   service,
   generalConfig,

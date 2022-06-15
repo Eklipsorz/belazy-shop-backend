@@ -13,11 +13,11 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Order.belongsTo(models.User, { foreignKey: 'userId' })
       Order.hasMany(models.OrderRequest, { foreignKey: 'orderId' })
+      Order.hasMany(models.OrderDetail, { foreignKey: 'orderId' })
     }
   }
   Order.init({
     userId: DataTypes.INTEGER,
-    detail: DataTypes.STRING(255),
     sum: DataTypes.INTEGER,
     status: DataTypes.STRING(10),
     receiverName: DataTypes.STRING(255),
