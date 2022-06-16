@@ -2,6 +2,7 @@
 const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
+const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cache.CART
 
@@ -24,7 +25,7 @@ class CartResource {
   // const findOption = { cartKeys: keys, cart: cartHashMap, snapshots }
   // const message = await CartResource.checkStockStatus(findOption, redisClient)
   static async checkStockStatus({ cartKeys, cart }, cache) {
-    const stock = await this.getStock(cartKeys, cache)
+    const stock = await CartResource.getStock(cartKeys, cache)
     const snapshots = await CartResource.getProductSnapshots(cartKeys, cache)
     const messages = []
 
@@ -68,6 +69,51 @@ class CartResource {
     return cart.every(product => product.quantity === '0')
   }
 
+  static async cartRecordGen(req, sum, type = 'add') {
+    const redisClient = req.app.locals.redisClient
+    const { cartId } = req.session
+    const cartKey = `${PREFIX_CART_KEY}:${cartId}`
+
+    const cart = await redisClient.hgetall(cartKey)
+
+    let isExistCart = false
+    let newSum = 0
+    switch (type) {
+      case 'add':
+        isExistCart = Boolean(Object.keys(cart).length) && Boolean(cart.sum !== '0')
+        newSum = isExistCart ? Number(cart.sum) + sum : sum
+        break
+      case 'change':
+        isExistCart = true
+        newSum = sum
+        break
+    }
+
+    const template = {
+      id: cartId,
+      userId: AuthToolKit.getUserId(req),
+      sum: newSum,
+      createdAt: isExistCart ? new Date(cart.createdAt) : new Date(),
+      updatedAt: new Date(),
+      dirtyBit: 1,
+      refreshAt: isExistCart ? new Date(cart.refreshAt) : RedisToolKit.getRefreshAt(cartKey, new Date())
+    }
+    return template
+  }
+
+  // create a cart to put cartItem: cart.sum = sum
+  // put some things into the cart: cart.sum = cart.sum + sum
+  // put back some things from the cart: cart.sum = cart.sum - sum
+  static async postCart(req, sum) {
+    const redisClient = req.app.locals.redisClient
+    const { cartId } = req.session
+    const cartKey = `${PREFIX_CART_KEY}:${cartId}`
+
+    const template = await CartResource.cartRecordGen(req, sum, 'add')
+
+    return await redisClient.hset(cartKey, template)
+  }
+
   static async getCartItems(req) {
     try {
       // check whether there is something in the cart
@@ -91,6 +137,7 @@ class CartResource {
       const snapshots = await CartResource.getProductSnapshots(productKeys, redisClient)
 
       const template = []
+
       for (const product of products) {
         const { productId } = product
         template.push({
@@ -126,23 +173,6 @@ class CartResource {
       }
       // I've found that
       // check whether the stock is enough
-      const stock = await redisClient.hgetall(stockKey)
-      const resultStock = {
-        ...stock,
-        productId: Number(stock.productId),
-        quantity: Number(stock.quantity),
-        restQuantity: Number(stock.restQuantity),
-        price: Number(stock.price)
-      }
-
-      // const findOption = { cartKeys: keys, cart: cartHashMap }
-
-      // const message = await CartResource.checkStockStatus(findOption, redisClient)
-      // // check whether stock is enough?
-
-      // if (message.length) {
-      //   return { error: new APIError({ code: code.BADREQUEST, message, data: cartHashMap }) }
-      // }
 
       const { cartId } = req.session
       const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
@@ -162,18 +192,23 @@ class CartResource {
       }
 
       // if enough, just create or update a cart data in cache
+      const stock = await redisClient.hgetall(stockKey)
 
       const template = {
         cartId,
         productId,
-        price: resultStock.price * quantity,
+        price: Number(stock.price) * quantity,
         quantity,
         createdAt: isExistCart ? new Date(cartItem.createdAt) : new Date(),
         updatedAt: new Date(),
-        dirtyBit: isExistCart ? 1 : 0,
+        dirtyBit: 1,
         refreshAt: isExistCart ? new Date(cartItem.refreshAt) : RedisToolKit.getRefreshAt(cartKey, new Date())
       }
       await redisClient.hset(cartKey, template)
+
+      // sync to cart
+      await CartResource.postCart(req, Number(stock.price))
+
       // if user has successfully logined, then check refreshAt and dirty
       // ready to check and sync
       req.stageArea = template
@@ -286,7 +321,8 @@ class CartResource {
       }
 
       await redisClient.hset(cartItemKey, template)
-
+      // sync to cart
+      await CartResource.postCart(req, -1 * Number(cartItem.price))
       // if user has successfully logined, then check refreshAt and dirty
       const resultCartItem = null
       // return success message

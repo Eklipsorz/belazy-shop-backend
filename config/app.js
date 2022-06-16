@@ -100,6 +100,14 @@ const utility = {
           MAX: 1440
         }
       },
+      cart_item: {
+        BASEDAYS: 1,
+        // Minute range
+        MINRANGE: {
+          MIN: 360,
+          MAX: 1440
+        }
+      },
       stock: {
         BASEDAYS: 1,
         // Minute range

@@ -157,9 +157,9 @@ class RedisToolKit {
       throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
-    let dirtyBit = Number(resultObject.dirtyBit)
+    const dirtyBit = Number(resultObject.dirtyBit)
     const currentTime = new Date()
-    let refreshAt = new Date(resultObject.refreshAt)
+    const refreshAt = new Date(resultObject.refreshAt)
     // test data
     // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
     // // resultObject.quantity = '1312354'
