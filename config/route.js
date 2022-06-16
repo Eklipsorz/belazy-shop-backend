@@ -194,7 +194,7 @@ const cartMiddleware = {
     // add middleware to route (POST /carts/self/items)
     postCartItems: [],
     // add middleware to route (PUT /carts/self)
-    putCart: [
+    putCartItems: [
       AuthValidator.authenticateLoggedIn,
       AuthValidator.authenticateUser
     ]
@@ -209,7 +209,7 @@ const cartMiddleware = {
       CartPostprocessor.checkAndSyncDB
     ],
     // add middleware to route (PUT /carts/self)
-    putCart: [
+    putCartItems: [
       CartPostprocessor.checkAndSyncDB
     ]
   },

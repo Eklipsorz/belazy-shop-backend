@@ -12,8 +12,8 @@ const cartController = {
       error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   },
-  putCart: (req, res, next) => {
-    userServices.putCart(req, (error, data, message) =>
+  putCartItems: (req, res, next) => {
+    userServices.putCartItems(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   },

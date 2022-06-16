@@ -79,11 +79,11 @@ class CartResource {
     let isExistCart = false
     let newSum = 0
     switch (type) {
-      case 'add':
+      case 'post':
         isExistCart = Boolean(Object.keys(cart).length) && Boolean(cart.sum !== '0')
         newSum = isExistCart ? Number(cart.sum) + sum : sum
         break
-      case 'change':
+      case 'update':
         isExistCart = true
         newSum = sum
         break
@@ -109,7 +109,16 @@ class CartResource {
     const { cartId } = req.session
     const cartKey = `${PREFIX_CART_KEY}:${cartId}`
 
-    const template = await CartResource.cartRecordGen(req, sum, 'add')
+    const template = await CartResource.cartRecordGen(req, sum, 'post')
+
+    return await redisClient.hset(cartKey, template)
+  }
+
+  static async putCart(req, sum) {
+    const redisClient = req.app.locals.redisClient
+    const { cartId } = req.session
+    const cartKey = `${PREFIX_CART_KEY}:${cartId}`
+    const template = await CartResource.cartRecordGen(req, sum, 'update')
 
     return await redisClient.hset(cartKey, template)
   }
@@ -224,7 +233,7 @@ class CartResource {
     }
   }
 
-  static async putCart(req) {
+  static async putCartItems(req) {
     try {
       const redisClient = req.app.locals.redisClient
       const { cartId } = req.session
@@ -275,6 +284,7 @@ class CartResource {
       const stock = await CartResource.getStock(keys, redisClient)
       //  All is ok, then buy some goods
       const results = []
+      let sum = 0
       for (const [key, value] of entries) {
         const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${key}`
         const total = Number(stock[key].price) * value
@@ -282,9 +292,12 @@ class CartResource {
         await redisClient.hset(cartKey, 'price', total)
         await redisClient.hset(cartKey, 'dirtyBit', 1)
         await redisClient.hset(cartKey, 'updatedAt', new Date())
+        sum += total
         results.push(await redisClient.hgetall(cartKey))
       }
 
+      // sync to cart
+      await CartResource.putCart(req, sum)
       // ready to check and sync
       req.stageArea = results
 
@@ -363,7 +376,8 @@ class CartResource {
         }
         await redisClient.hset(cartItemKey, template)
       }
-
+      // sync to cart
+      await CartResource.putCart(req, 0)
       // return success message
       const resultCart = null
       return { error: null, data: resultCart, message: '移除成功' }
