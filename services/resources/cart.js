@@ -13,11 +13,35 @@ class CartResource {
 
   static async getStock(productKeys, cache) {
     const result = {}
+    if (!Array.isArray(productKeys)) productKeys = [productKeys]
     for (const key of productKeys) {
       const stockKey = `stock:${key}`
       result[key] = (await cache.hgetall(stockKey))
     }
     return result
+  }
+
+  // const findOption = { cartKeys: keys, cart: cartHashMap, snapshots }
+  // const message = await CartResource.checkStockStatus(findOption, redisClient)
+  static async checkStockStatus({ cartKeys, cart }, cache) {
+    const stock = await this.getStock(cartKeys, cache)
+    const snapshots = await CartResource.getProductSnapshots(cartKeys, cache)
+    const messages = []
+
+    for (const key of cartKeys) {
+      const restQuantity = Number(stock[key].restQuantity)
+      const productName = snapshots[key].name
+      switch (true) {
+        case (!restQuantity):
+          messages.push(`${productName} 已售罄`)
+          break
+        case (Number(cart[key]) > restQuantity):
+          messages.push(`${productName} 購買量大於庫存量`)
+          break
+      }
+    }
+
+    return messages
   }
 
   static existCartProduct(product) {
@@ -29,15 +53,14 @@ class CartResource {
   }
 
   // Get name and image for the product
-  static async getProductSnapshot(product, cache) {
-    const productId = product.productId
-    const productKey = `product:${productId}`
-    const result = await cache.hgetall(productKey)
+  static async getProductSnapshots(productKeys, cache) {
+    const snapshot = {}
 
-    const template = { ...product, ...result }
-    if (template.dirtyBit) delete template.dirtyBit
-    if (template.refreshAt) delete template.refreshAt
-    return template
+    for (const productKey of productKeys) {
+      const key = `product:${productKey}`
+      snapshot[productKey] = await cache.hgetall(key)
+    }
+    return snapshot
   }
 
   static isEmptyCart(cart) {
@@ -64,16 +87,24 @@ class CartResource {
       // if yes
       // get all products from the cart
       const products = getProducts(cart)
-      const getProductSnapshot = CartResource.getProductSnapshot
-      const resultCart = await Promise
-        .all(
-          products.map(product => getProductSnapshot(product, redisClient))
-        )
+      const productKeys = products.map(product => product.productId)
+      const snapshots = await CartResource.getProductSnapshots(productKeys, redisClient)
+
+      const template = []
+      for (const product of products) {
+        const { productId } = product
+        template.push({
+          ...product,
+          name: snapshots[productId].name,
+          image: snapshots[productId].image
+        })
+      }
 
       // ready to check and sync
-      req.stageArea = cart
+      req.stageArea = products
 
       // return success message
+      const resultCart = template
       return { error: null, data: resultCart, message: '獲取成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
@@ -104,11 +135,14 @@ class CartResource {
         price: Number(stock.price)
       }
 
-      // if not enough, just say sorry and return
-      if (resultStock.restQuantity <= 0) {
-        return { error: new APIError({ code: code.BADREQUEST, status, message: '產品已完售' }) }
-      }
-      // if enough, just create or update a cart data in cache
+      // const findOption = { cartKeys: keys, cart: cartHashMap }
+
+      // const message = await CartResource.checkStockStatus(findOption, redisClient)
+      // // check whether stock is enough?
+
+      // if (message.length) {
+      //   return { error: new APIError({ code: code.BADREQUEST, message, data: cartHashMap }) }
+      // }
 
       const { cartId } = req.session
       const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
@@ -116,6 +150,18 @@ class CartResource {
       const isExistCart = Boolean(Object.keys(cartItem).length) && Boolean(Number(cartItem.quantity))
 
       const quantity = isExistCart ? Number(cartItem.quantity) + 1 : 1
+
+      const cartHashMap = {}
+      cartHashMap[productId] = quantity
+      const findOption = { cartKeys: [productId], cart: cartHashMap }
+      const message = await CartResource.checkStockStatus(findOption, redisClient)
+
+      // if not enough, just say sorry and return
+      if (message.length) {
+        return { error: new APIError({ code: code.BADREQUEST, status, message }) }
+      }
+
+      // if enough, just create or update a cart data in cache
 
       const template = {
         cartId,
@@ -131,10 +177,12 @@ class CartResource {
       // if user has successfully logined, then check refreshAt and dirty
       // ready to check and sync
       req.stageArea = template
+
       // return success message
       const resultCartItem = { ...template }
       delete resultCartItem.dirtyBit
       delete resultCartItem.refreshAt
+
       return { error: null, data: resultCartItem, message: '添加成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
@@ -180,18 +228,17 @@ class CartResource {
         return { error: new APIError({ code: code.BADREQUEST, message: '數量必須至少是1以上', data: cartHashMap }) }
       }
 
-      const stock = await CartResource.getStock(keys, redisClient)
+      const findOption = { cartKeys: keys, cart: cartHashMap }
 
+      const message = await CartResource.checkStockStatus(findOption, redisClient)
       // check whether stock is enough?
-      const areEnoughStock = entries.every(([productId, quantity]) => {
-        const restQuantity = Number(stock[productId].restQuantity)
-        return restQuantity > Number(quantity)
-      })
-      if (!areEnoughStock) {
-        return { error: new APIError({ code: code.BADREQUEST, message: '購買量是高於庫存量', data: cartHashMap }) }
+
+      if (message.length) {
+        return { error: new APIError({ code: code.BADREQUEST, message, data: cartHashMap }) }
       }
 
-      // All is ok, then buy some goods
+      const stock = await CartResource.getStock(keys, redisClient)
+      //  All is ok, then buy some goods
       const results = []
       for (const [key, value] of entries) {
         const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${key}`
