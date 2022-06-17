@@ -186,6 +186,11 @@ const replyMiddleware = {
 const cartMiddleware = {
 
   preprocessor: {
+    // add middleware to route (GET /carts/self)
+    getCart: [
+      AuthValidator.authenticateLoggedIn,
+      AuthValidator.authenticateUser
+    ],
     // add middleware to route (GET /carts/self/items)
     getCartItems: [
       AuthValidator.authenticateLoggedIn,
@@ -200,6 +205,10 @@ const cartMiddleware = {
     ]
   },
   postprocessor: {
+    // add middleware to route (GET /carts/self)
+    getCart: [
+      CartPostprocessor.checkAndSyncDB
+    ],
     // add middleware to route (GET /carts/self/items)
     getCartItems: [
       CartPostprocessor.checkAndSyncDB

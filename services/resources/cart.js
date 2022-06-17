@@ -123,6 +123,38 @@ class CartResource {
     return await redisClient.hset(cartKey, template)
   }
 
+  static async getCart(req) {
+    try {
+      // check whether the cart is empty
+
+      const redisClient = req.app.locals.redisClient
+      const { cartId } = req.session
+      const cartKey = `${PREFIX_CART_KEY}:${cartId}`
+
+      const cart = await redisClient.hgetall(cartKey)
+
+      const existCart = Boolean(Object.keys(cart).length) && Boolean(cart.sum !== '0')
+      if (!existCart) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車是空的' }) }
+      }
+      // return success message
+      const template = {
+        id: cart.id,
+        userId: cart.userId,
+        sum: Number(cart.sum),
+        createdAt: new Date(cart.createdAt),
+        updatedAt: new Date(cart.updatedAt)
+      }
+      // ready to check and sync db
+      req.stageArea = template
+
+      const resultCart = template
+      return { error: null, data: resultCart, message: '獲取成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   static async getCartItems(req) {
     try {
       // check whether there is something in the cart

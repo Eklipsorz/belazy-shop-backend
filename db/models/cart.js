@@ -11,8 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Cart.belongsTo(models.User, { foreignKey: 'userId' })
       Cart.hasMany(models.CartItem, { foreignKey: 'cartId' })
+      Cart.belongsTo(models.User, { foreignKey: 'userId' })
     }
   }
   Cart.init({
@@ -21,9 +21,12 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true
     },
     userId: DataTypes.INTEGER,
-    sum: DataTypes.INTEGER
+    sum: DataTypes.INTEGER,
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE
   }, {
     sequelize,
+    underscored: true,
     modelName: 'Cart',
     tableName: 'carts'
   })

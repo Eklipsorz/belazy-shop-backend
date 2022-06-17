@@ -2,6 +2,11 @@ const { userServices } = require('../services/roles/user')
 const { status, code } = require('../config/result-status-table').successTable
 
 const cartController = {
+  getCart: (req, res, next) => {
+    userServices.getCart(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
+    )
+  },
   getCartItems: (req, res, next) => {
     userServices.getCartItems(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()

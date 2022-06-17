@@ -4,7 +4,7 @@ require('dotenv').config({ path: project.ENV })
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 
-const { Stock, Product, CartItem } = require('../db/models')
+const { Stock, Product, CartItem, Cart } = require('../db/models')
 
 const { ParameterValidationKit } = require('./parameter-validation-kit')
 const config = require('../config/app').utility.RedisToolKit
@@ -110,6 +110,15 @@ class RedisToolKit {
         if (!created) await item.update(template)
         break
       }
+      case 'cart': {
+        // await Cart.create(template)
+
+        // console.log(await Cart.findOne({ where: { id: template.id } }))
+        // console.log(findOption, template)
+        const [cart, created] = await Cart.findOrCreate(findOption)
+        if (!created) await cart.update(template)
+        break
+      }
       case 'product': {
         const [product, created] = await Product.findOrCreate(findOption)
         if (!created) await product.update(template)
@@ -157,13 +166,13 @@ class RedisToolKit {
       throw new APIError({ code: code.SERVERERROR, status, message: '找不到對應鍵值' })
     }
 
-    const dirtyBit = Number(resultObject.dirtyBit)
+    let dirtyBit = Number(resultObject.dirtyBit)
     const currentTime = new Date()
-    const refreshAt = new Date(resultObject.refreshAt)
+    let refreshAt = new Date(resultObject.refreshAt)
     // test data
-    // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
-    // // resultObject.quantity = '1312354'
-    // dirtyBit = 1
+    refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
+    // resultObject.quantity = '1312354'
+    dirtyBit = 1
 
     if (currentTime.getTime() > refreshAt.getTime() && dirtyBit) {
       // initialize dirtyBit and expiredAt
@@ -184,7 +193,7 @@ class RedisToolKit {
       const templateKeys = Object.keys(template)
       if (templateKeys.includes('dirtyBit')) delete template.dirtyBit
       if (templateKeys.includes('refreshAt')) delete template.refreshAt
-
+      console.log('task ', taskType, template, targetDB)
       switch (taskType) {
         case 'create':
           await RedisToolKit.createDBTask(targetDB, template)
