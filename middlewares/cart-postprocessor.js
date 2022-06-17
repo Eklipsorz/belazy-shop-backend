@@ -9,7 +9,6 @@ class CartPostprocessor {
     let itemKey = ''
 
     const type = item.productId ? 'cart_item' : 'cart'
-    console.log('current type', type)
     switch (type) {
       case 'cart_item': {
         const { cartId, productId } = item
@@ -19,8 +18,8 @@ class CartPostprocessor {
             where: { productId, cartId }
           }
         }
+        console.log('cart_item', item)
         itemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
-        console.log('cart_item', itemKey, option)
         break
       }
       case 'cart': {
@@ -31,8 +30,8 @@ class CartPostprocessor {
             where: { id }
           }
         }
+        console.log('cart', item)
         itemKey = `${PREFIX_CART_KEY}:${id}`
-        console.log('cart', itemKey, option)
         break
       }
       default:
@@ -44,7 +43,6 @@ class CartPostprocessor {
   static async checkAndSyncDB(req, _, next) {
     try {
       const stageArea = Array.isArray(req.stageArea) ? req.stageArea : [req.stageArea]
-      console.log('hi', stageArea)
       // console.log('stageArea', stageArea)
       const redisClient = req.app.locals.redisClient
       const checkAndSyncDBTask = CartPostprocessor.checkAndSyncDBTask

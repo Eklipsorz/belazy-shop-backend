@@ -24,7 +24,7 @@ const cartController = {
   },
   deleteCartItem: (req, res, next) => {
     userServices.deleteCartItem(req, (error, data, message) =>
-      error ? next(error) : res.status(code.OK).json({ status, message, data })
+      error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   },
   deleteCart: (req, res, next) => {

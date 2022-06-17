@@ -111,10 +111,6 @@ class RedisToolKit {
         break
       }
       case 'cart': {
-        // await Cart.create(template)
-
-        // console.log(await Cart.findOne({ where: { id: template.id } }))
-        // console.log(findOption, template)
         const [cart, created] = await Cart.findOrCreate(findOption)
         if (!created) await cart.update(template)
         break

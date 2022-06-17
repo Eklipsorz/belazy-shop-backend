@@ -110,8 +110,8 @@ class CartResource {
     const cartKey = `${PREFIX_CART_KEY}:${cartId}`
 
     const template = await CartResource.cartRecordGen(req, sum, 'post')
-
-    return await redisClient.hset(cartKey, template)
+    await redisClient.hset(cartKey, template)
+    return template
   }
 
   static async putCart(req, sum) {
@@ -120,7 +120,8 @@ class CartResource {
     const cartKey = `${PREFIX_CART_KEY}:${cartId}`
     const template = await CartResource.cartRecordGen(req, sum, 'update')
 
-    return await redisClient.hset(cartKey, template)
+    await redisClient.hset(cartKey, template)
+    return template
   }
 
   static async getCart(req) {
@@ -248,11 +249,11 @@ class CartResource {
       await redisClient.hset(cartKey, template)
 
       // sync to cart
-      await CartResource.postCart(req, Number(stock.price))
+      const cartTemplate = await CartResource.postCart(req, Number(stock.price))
 
       // if user has successfully logined, then check refreshAt and dirty
       // ready to check and sync
-      req.stageArea = template
+      req.stageArea = [template, cartTemplate]
 
       // return success message
       const resultCartItem = { ...template }
@@ -367,8 +368,11 @@ class CartResource {
 
       await redisClient.hset(cartItemKey, template)
       // sync to cart
-      await CartResource.postCart(req, -1 * Number(cartItem.price))
-      // if user has successfully logined, then check refreshAt and dirty
+      const cartTemplate = await CartResource.postCart(req, -1 * Number(cartItem.price))
+
+      // ready to check and sync
+      req.stageArea = [template, cartTemplate]
+
       const resultCartItem = null
       // return success message
       return { error: null, data: resultCartItem, message: '移除成功' }
