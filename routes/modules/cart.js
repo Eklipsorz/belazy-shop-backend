@@ -16,5 +16,5 @@ router.get('/self/items', ...preprocessor.getCartItems, controller.getCartItems,
 router.post('/self/items', ...preprocessor.postCartItems, controller.postCartItems, ...postprocessor.postCartItems)
 router.put('/self/items', ...preprocessor.putCartItems, controller.putCartItems, ...postprocessor.putCartItems)
 router.delete('/self/items', ...preprocessor.deleteCartItem, controller.deleteCartItem, ...postprocessor.deleteCartItem)
-router.delete('/self', ...middleware.deleteCart, controller.deleteCart)
+router.delete('/self', ...preprocessor.deleteCart, controller.deleteCart, ...postprocessor.deleteCart)
 exports = module.exports = router

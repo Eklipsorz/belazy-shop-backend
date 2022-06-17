@@ -29,7 +29,7 @@ const cartController = {
   },
   deleteCart: (req, res, next) => {
     userServices.deleteCart(req, (error, data, message) =>
-      error ? next(error) : res.status(code.OK).json({ status, message, data })
+      error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   }
 }

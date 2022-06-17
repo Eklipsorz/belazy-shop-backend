@@ -316,23 +316,33 @@ class CartResource {
 
       const stock = await CartResource.getStock(keys, redisClient)
       //  All is ok, then buy some goods
-      const results = []
+      const templates = []
       let sum = 0
       for (const [key, value] of entries) {
-        const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${key}`
+        const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${key}`
         const total = Number(stock[key].price) * value
-        await redisClient.hset(cartKey, 'quantity', value)
-        await redisClient.hset(cartKey, 'price', total)
-        await redisClient.hset(cartKey, 'dirtyBit', 1)
-        await redisClient.hset(cartKey, 'updatedAt', new Date())
+        const createdAt = await redisClient.hget(cartItemKey, 'createdAt')
+        const refreshAt = await redisClient.hget(cartItemKey, 'refreshAt')
+        const template = {
+          cartId,
+          productId: Number(key),
+          quantity: value,
+          price: total,
+          createdAt: new Date(createdAt),
+          updatedAt: new Date(),
+          dirtyBit: 1,
+          refreshAt: new Date(refreshAt)
+        }
+        await redisClient.hset(cartItemKey, template)
+        templates.push(template)
         sum += total
-        results.push(await redisClient.hgetall(cartKey))
       }
 
       // sync to cart
-      await CartResource.putCart(req, sum)
+      const cartTemplate = await CartResource.putCart(req, sum)
       // ready to check and sync
-      req.stageArea = results
+      templates.push(cartTemplate)
+      req.stageArea = templates
 
       const resultCart = null
       return { error: null, data: resultCart, message: '修改成功' }
@@ -400,6 +410,7 @@ class CartResource {
       // if yes, then
       // remove all products with quantity = 0
       const products = getProducts(cart)
+      const templates = []
       for (const product of products) {
         const { productId } = product
         const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
@@ -410,10 +421,16 @@ class CartResource {
           dirtyBit: 1,
           updatedAt: new Date()
         }
+        templates.push(template)
         await redisClient.hset(cartItemKey, template)
       }
       // sync to cart
-      await CartResource.putCart(req, 0)
+      const cartTemplate = await CartResource.putCart(req, 0)
+
+      // ready to check and sync db
+      templates.push(cartTemplate)
+      req.stageArea = templates
+
       // return success message
       const resultCart = null
       return { error: null, data: resultCart, message: '移除成功' }

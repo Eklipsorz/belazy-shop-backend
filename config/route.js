@@ -207,6 +207,11 @@ const cartMiddleware = {
     deleteCartItem: [
       AuthValidator.authenticateLoggedIn,
       AuthValidator.authenticateUser
+    ],
+    // add middleware to route (DELETE /carts/self)
+    deleteCart: [
+      AuthValidator.authenticateLoggedIn,
+      AuthValidator.authenticateUser
     ]
   },
   postprocessor: {
@@ -229,14 +234,12 @@ const cartMiddleware = {
     // add middleware to route (DELETE /carts/self/items)
     deleteCartItem: [
       CartPostprocessor.checkAndSyncDB
+    ],
+    // add middleware to route (DELETE /carts/self)
+    deleteCart: [
+      CartPostprocessor.checkAndSyncDB
     ]
-  },
-
-  // add middleware to route (DELETE /carts/self)
-  deleteCart: [
-    AuthValidator.authenticateLoggedIn,
-    AuthValidator.authenticateUser
-  ]
+  }
 
 }
 
