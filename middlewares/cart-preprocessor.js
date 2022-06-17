@@ -1,8 +1,10 @@
 
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
-const { CartItem } = require('../db/models')
+const { CartItem, Cart } = require('../db/models')
 const { RedisToolKit } = require('../utils/redis-tool-kit')
+const { CartToolKit } = require('../utils/cart-tool-kit')
+const { AuthToolKit } = require('../utils/auth-tool-kit')
 const { v4: uuidv4 } = require('uuid')
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../config/app').cache.CART
 
@@ -27,47 +29,6 @@ class CartPreprocessor {
     req.session.firstSyncBit = false
 
     return next()
-  }
-
-  // a task template for synchronizing cache
-  static async syncCacheTask(req, product, cache) {
-    const { expireAt } = req.session.expireAtConfig
-    const { cartId, productId } = product
-    const key = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
-    const refreshAt = await RedisToolKit.getRefreshAt(key, new Date())
-
-    const template = {
-      ...product,
-      dirtyBit: 0,
-      refreshAt: refreshAt
-    }
-
-    if (template.id) delete template.id
-    await cache.hset(key, template)
-    await RedisToolKit.setExpireAt(key, expireAt, cache)
-  }
-
-  // a task template for synchronizing db
-  static async syncDBTask(product) {
-    const { cartId, productId } = product
-
-    const template = {
-      cartId,
-      price: Number(product.price),
-      quantity: Number(product.quantity),
-      productId: Number(productId),
-      createdAt: new Date(product.createdAt),
-      updatedAt: new Date(product.updatedAt)
-    }
-
-    const findOption = {
-      where: { cartId, productId },
-      defaults: template
-    }
-    // create a record if there is nothing about cartId and productId
-    // update the record if there is a cart data with cartId and productId
-    const [item, created] = await CartItem.findOrCreate(findOption)
-    if (!created) await item.update(product)
   }
 
   // sync db and cache
@@ -106,13 +67,13 @@ class CartPreprocessor {
     // productHash -> { cartObject1, cartObject2, ....}
     const resultProduct = Object.values(productHash).map(value => ({ ...value }))
 
-    const syncDBTask = CartPreprocessor.syncDBTask
+    const syncDBTask = CartToolKit.syncDBTask
     // generate a set of tasks to sync db
     await Promise.all(
       resultProduct.map(syncDBTask)
     )
 
-    const syncCacheTask = CartPreprocessor.syncCacheTask
+    const syncCacheTask = CartToolKit.syncCacheTask
 
     // generate a set of tasks to sync cache
     await Promise.all(
@@ -130,7 +91,7 @@ class CartPreprocessor {
       raw: true
     }
     const carts = await CartItem.findAll(findOption)
-    const syncCacheTask = CartPreprocessor.syncCacheTask
+    const syncCacheTask = CartToolKit.syncCacheTask
 
     // generate a set of tasks to sync with data inside db
     return await Promise.all(
@@ -139,15 +100,21 @@ class CartPreprocessor {
   }
 
   static async syncCartFromCachetoDB(req) {
+    const userId = AuthToolKit.getUserId(req)
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
+    const cartKey = `${PREFIX_CART_KEY}:${cartId}`
     const keyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
 
-    const syncDBTask = CartPreprocessor.syncDBTask
-    const cart = await RedisToolKit.getCacheValues(keyPattern, redisClient)
+    const syncDBTask = CartToolKit.syncDBTask
+    await redisClient.hset(cartKey, 'userId', userId)
+    const cart = await redisClient.hgetall(cartKey)
+    await syncDBTask(cart, 'cart')
+
+    const cartItems = await RedisToolKit.getCacheValues(keyPattern, redisClient)
 
     return await Promise.all(
-      cart.map(syncDBTask)
+      cartItems.map(product => syncDBTask(product, 'cart_item'))
     )
   }
 
@@ -158,25 +125,30 @@ class CartPreprocessor {
 
     // Vistor (a user without login)
     // do nothing for sync
-    if (!user || firstSyncBit) return next()
+
+    if (!user) return next()
+
+    // if (!user || firstSyncBit) return next()
     // Logged-In User
     try {
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
-      const keyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
+      const key = `${PREFIX_CART_KEY}:${cartId}`
       // get cart data from cache and db
 
-      const scanTask = RedisToolKit.scanTask
       const [cartInCache, cartInDB] = await Promise.all([
         // redisClient.scan(0, 'MATCH', keyPattern),
-        scanTask('check', keyPattern, redisClient),
-        CartItem.findOne({ where: { cartId } })
+        redisClient.hgetall(key),
+        Cart.findByPk(cartId)
       ])
 
       // true -> there exists cart data in cache or db
       // false -> there is nothing data in cache or db
-      const isExistInCache = Boolean(cartInCache.length)
-      const isExistInDB = Boolean(cartInDB)
+      const isExistInCache = await CartToolKit.isExistCartCache(cartInCache)
+      const isExistInDB = await CartToolKit.isExistCartDB(cartInDB)
+      console.log('isExistInCache ', isExistInCache)
+      console.log('isExistInDB ', isExistInDB)
+
       // case 1: There is nothing on cache and DB
       // do nothing
 
@@ -188,16 +160,19 @@ class CartPreprocessor {
 
         case (!isExistInCache && isExistInDB):
           // case 2: Except for cache, there is a cart data on DB
-          await CartPreprocessor.syncCartFromDBtoCache(req)
+          console.log('case 2 syncCartFromDBtoCache')
+          // await CartPreprocessor.syncCartFromDBtoCache(req)
           break
 
         case (isExistInCache && !isExistInDB):
           // case 3: Except for DB, there is a cart data on cache
+          console.log('case 3 syncCartFromCachetoDB')
           await CartPreprocessor.syncCartFromCachetoDB(req)
           break
         case (isExistInCache && isExistInDB):
           // case 4: There is a cart data on cache and DB
-          await CartPreprocessor.syncCartToDBAndCache(req)
+          console.log('case 4 syncCartToDBAndCache')
+          // await CartPreprocessor.syncCartToDBAndCache(req)
           break
       }
 

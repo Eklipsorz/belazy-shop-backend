@@ -18,7 +18,7 @@ class CartPostprocessor {
             where: { productId, cartId }
           }
         }
-        console.log('cart_item', item)
+
         itemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
         break
       }
@@ -30,7 +30,7 @@ class CartPostprocessor {
             where: { id }
           }
         }
-        console.log('cart', item)
+
         itemKey = `${PREFIX_CART_KEY}:${id}`
         break
       }
