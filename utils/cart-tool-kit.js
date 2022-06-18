@@ -6,6 +6,7 @@ const { APIError } = require('../helpers/api-error')
 const { Cart, CartItem } = require('../db/models')
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../config/app').cache.CART
 const { RedisToolKit } = require('../utils/redis-tool-kit')
+const { AuthToolKit } = require('../utils/auth-tool-kit')
 
 class CartToolKit {
   static async isExistCartCache(cart, key = null, cache = null) {
@@ -18,6 +19,24 @@ class CartToolKit {
     let resultCart = cart
     if (findOption) resultCart = await Cart.findOne(findOption)
     return Boolean(resultCart) && resultCart.sum !== 0
+  }
+
+  static async getRecentCartDB(req) {
+    const userId = AuthToolKit.getUserId(req)
+
+    const findCartOption = {
+      where: { userId },
+      order: [['createdAt', 'DESC']]
+    }
+    const cartDB = await Cart.findOne(findCartOption)
+
+    const findItemsOption = {
+      where: { cartId: cartDB.id }
+    }
+    const cartItemDB = await CartItem.findAll(findItemsOption)
+
+    const result = { cartDB, cartItemDB }
+    return result
   }
 
   // a task template for synchronizing cache:
@@ -51,14 +70,13 @@ class CartToolKit {
         }
         // update data in db with new CartId
         await productObject.update({ cartId })
-
         break
       }
       case 'cart': {
         key = `${PREFIX_CART_KEY}:${cartId}`
-        // old
-        productData = product.toJSON()
+        productData = product instanceof Cart ? product.toJSON() : product
         productObject = product
+
         template = {
           ...productData,
           id: cartId,
@@ -73,8 +91,8 @@ class CartToolKit {
     }
 
     // sync cartItem in db to cache with new CartId
-    if (template.oldId) delete template.oldId
-    if (template.oldCartId) delete template.oldCartId
+    // if (template.oldId) delete template.oldId
+    // if (template.oldCartId) delete template.oldCartId
     if (template.sequelize) delete template.sequelize
     if (template.id) delete template.id
 

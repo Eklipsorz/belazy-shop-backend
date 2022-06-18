@@ -48,51 +48,60 @@ class CartPreprocessor {
   // sync db and cache
   static async syncCartToDBAndCache(req) {
     const { cartId } = req.session
+    const userId = AuthToolKit.getUserId(req)
     const redisClient = req.app.locals.redisClient
 
-    const keyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
-    const findOption = {
-      where: { cartId },
-      raw: true
-    }
+    const itemKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
+    const cartKey = `${PREFIX_CART_KEY}:${cartId}`
+    const { cartDB, cartItemDB } = await CartToolKit.getRecentCartDB(req)
+
+    // sync new sum to DB and cache
+    const cartSumCache = await redisClient.hget(cartKey, 'sum')
+    cartDB.sum = cartDB.sum + Number(cartSumCache)
+    cartDB.updatedAt = new Date()
+    await CartToolKit.syncCacheTask(req, cartDB, 'cart')
+
     // get all cart from cache and db
-    const cacheResult = await RedisToolKit.getCacheValues(keyPattern, redisClient)
-    const dbResult = await CartItem.findAll(findOption)
+    const cartItemCache = await RedisToolKit.getCacheValues(itemKeyPattern, redisClient)
 
     // merge cart data in cache and in db into a set of cart data
     // productHash[cartId] = cartObject
     const productHash = {}
     function mergeTask(product) {
       const id = product.productId
+      const productData = product instanceof CartItem ? product.toJSON() : product
       if (!productHash[id]) {
         productHash[id] = {
-          ...product,
+          ...productData,
+          cartId,
+          oldCartId: product instanceof CartItem ? product.cartId : null,
           quantity: 0,
           price: 0
         }
       }
+
+      if (product instanceof CartItem) productHash[id].sequelize = product
       productHash[id].quantity += Number(product.quantity)
       productHash[id].price += Number(product.price)
     }
+    cartItemDB.forEach(mergeTask)
+    cartItemCache.forEach(mergeTask)
 
-    cacheResult.forEach(mergeTask)
-    dbResult.forEach(mergeTask)
-
-    // productHash -> { cartObject1, cartObject2, ....}
+    // // productHash -> { cartObject1, cartObject2, ....}
     const resultProduct = Object.values(productHash).map(value => ({ ...value }))
+    console.log('result', resultProduct)
+    // const syncDBTask = CartToolKit.syncDBTask
+    // // generate a set of tasks to sync db
+    // await Promise.all(
+    //   resultProduct.map(syncDBTask)
+    // )
 
-    const syncDBTask = CartToolKit.syncDBTask
-    // generate a set of tasks to sync db
-    await Promise.all(
-      resultProduct.map(syncDBTask)
-    )
+    // const syncCacheTask = CartToolKit.syncCacheTask
 
-    const syncCacheTask = CartToolKit.syncCacheTask
-
-    // generate a set of tasks to sync cache
-    await Promise.all(
-      resultProduct.map(product => syncCacheTask(req, product, redisClient))
-    )
+    // // generate a set of tasks to sync cache
+    // await Promise.all(
+    //   resultProduct.map(product => syncCacheTask(req, product, redisClient))
+    // )
   }
 
   // sync cache with data in db
@@ -199,7 +208,7 @@ class CartPreprocessor {
         case (isExistInCache && isExistInDB):
           // case 4: There is a cart data on cache and DB
           console.log('case 4 syncCartToDBAndCache')
-          // await CartPreprocessor.syncCartToDBAndCache(req)
+          await CartPreprocessor.syncCartToDBAndCache(req)
           break
       }
 
