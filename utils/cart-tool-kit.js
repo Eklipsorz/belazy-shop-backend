@@ -14,21 +14,25 @@ class CartToolKit {
     return Boolean(Object.keys(resultCart).length) && resultCart.sum !== '0'
   }
 
-  static async isExistCartDB(cart, pk = null) {
+  static async isExistCartDB(cart, findOption = null) {
     let resultCart = cart
-    if (pk) resultCart = await Cart.findByPk(pk)
+    if (findOption) resultCart = await Cart.findOne(findOption)
     return Boolean(resultCart) && resultCart.sum !== 0
   }
 
   // a task template for synchronizing cache
   static async syncCacheTask(req, product, cache) {
     const { expireAt } = req.session.expireAtConfig
-    const { cartId, productId } = product
+    // current session
+    const { cartId } = req.session
+    const { productId } = product
     const key = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
     const refreshAt = await RedisToolKit.getRefreshAt(key, new Date())
 
+    // sync cartItem in db to cache with new CartId
     const template = {
-      ...product,
+      ...(product.toJSON()),
+      cartId,
       dirtyBit: 0,
       refreshAt: refreshAt
     }
@@ -36,6 +40,9 @@ class CartToolKit {
     if (template.id) delete template.id
     await cache.hset(key, template)
     await RedisToolKit.setExpireAt(key, expireAt, cache)
+
+    // update data in db with new CartId
+    await product.update({ cartId })
   }
 
   // a task template for synchronizing db
