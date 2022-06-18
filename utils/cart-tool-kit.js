@@ -20,29 +20,66 @@ class CartToolKit {
     return Boolean(resultCart) && resultCart.sum !== 0
   }
 
-  // a task template for synchronizing cache
-  static async syncCacheTask(req, product, cache) {
+  // a task template for synchronizing cache:
+  // - generate a template for sync cache
+  // - sync cache with the template
+  // - sync cartId in DB with product object
+  static async syncCacheTask(req, product, type) {
+    const redisClient = req.app.locals.redisClient
     const { expireAt } = req.session.expireAtConfig
     // current session
     const { cartId } = req.session
     const { productId } = product
-    const key = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+
+    let key = ''
+    let productData = {}
+    let productObject = {}
+    let template = {}
+
     const refreshAt = await RedisToolKit.getRefreshAt(key, new Date())
 
-    // sync cartItem in db to cache with new CartId
-    const template = {
-      ...(product.toJSON()),
-      cartId,
-      dirtyBit: 0,
-      refreshAt: refreshAt
+    switch (type) {
+      case 'cart_item': {
+        key = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+        productData = product instanceof CartItem ? product.toJSON() : product
+        productObject = product instanceof CartItem ? product : product.sequelize
+        template = {
+          ...productData,
+          cartId,
+          dirtyBit: 0,
+          refreshAt: refreshAt
+        }
+        // update data in db with new CartId
+        await productObject.update({ cartId })
+
+        break
+      }
+      case 'cart': {
+        key = `${PREFIX_CART_KEY}:${cartId}`
+        // old
+        productData = product.toJSON()
+        productObject = product
+        template = {
+          ...productData,
+          id: cartId,
+          dirtyBit: 0,
+          refreshAt: refreshAt
+        }
+        // update data in db with new CartId
+        console.log('old ', productData.id)
+        await Cart.update({ id: cartId }, { where: { id: productData.id } })
+        break
+      }
     }
 
+    // sync cartItem in db to cache with new CartId
+    if (template.oldId) delete template.oldId
+    if (template.oldCartId) delete template.oldCartId
+    if (template.sequelize) delete template.sequelize
     if (template.id) delete template.id
-    await cache.hset(key, template)
-    await RedisToolKit.setExpireAt(key, expireAt, cache)
 
-    // update data in db with new CartId
-    await product.update({ cartId })
+    await redisClient.hset(key, template)
+    await RedisToolKit.setExpireAt(key, expireAt, redisClient)
   }
 
   // a task template for synchronizing db
@@ -54,22 +91,30 @@ class CartToolKit {
     if (template.refreshAt) delete template.refreshAt
 
     let findOption = {}
+
     switch (targetDB) {
       case 'cart_item': {
-        const { cartId, productId } = product
+        const { cartId, oldCartId, productId } = product
+
         findOption = {
-          where: { cartId, productId },
+          where: {
+            cartId: oldCartId || cartId,
+            productId
+          },
           defaults: template
         }
+        console.log('cartItem syncDBTask', cartId, oldCartId, findOption)
         break
       }
       case 'cart': {
-        const { id } = product
-        console.log(product, id)
+        const { id, oldId } = product
         findOption = {
-          where: { id },
+          where: {
+            id: oldId || id
+          },
           defaults: template
         }
+        console.log('cart syncDBTask', id, oldId, findOption)
         break
       }
     }

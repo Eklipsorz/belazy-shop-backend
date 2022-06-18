@@ -98,29 +98,15 @@ class CartPreprocessor {
   // sync cache with data in db
   static async syncCartFromDBtoCache(req) {
     const userId = AuthToolKit.getUserId(req)
-    const { cartId } = req.session
-    const redisClient = req.app.locals.redisClient
 
     const findCartOption = {
       where: { userId },
-      order: [['createdAt', 'DESC']],
-      raw: true
+      order: [['createdAt', 'DESC']]
     }
 
     const cart = await Cart.findOne(findCartOption)
-    const cartKey = `${PREFIX_CART_KEY}:${cartId}`
     const oldCartId = cart.id
 
-    // sync data in db to cache with new CartId
-    const template = {
-      ...cart,
-      id: cartId,
-      dirtyBit: 0,
-      refreshAt: RedisToolKit.getRefreshAt(cartKey, new Date())
-    }
-    await redisClient.hset(cartKey, template)
-
-    // find data in db with oldCartId
     const findItemOption = {
       where: { cartId: oldCartId }
     }
@@ -129,11 +115,11 @@ class CartPreprocessor {
 
     // generate a set of tasks to sync with data inside db
     await Promise.all(
-      cartItems.map(item => syncCacheTask(req, item, redisClient))
+      cartItems.map(item => syncCacheTask(req, item, 'cart_item'))
     )
 
     // update cartId
-    await Cart.update({ id: cartId }, { where: { id: oldCartId } })
+    await syncCacheTask(req, cart, 'cart')
   }
 
   static async syncCartFromCachetoDB(req) {
@@ -143,13 +129,18 @@ class CartPreprocessor {
     const cartKey = `${PREFIX_CART_KEY}:${cartId}`
     const keyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
 
+    // update userId in cache
     const syncDBTask = CartToolKit.syncDBTask
     await redisClient.hset(cartKey, 'userId', userId)
+
+    // sync from cache to DB
     const cart = await redisClient.hgetall(cartKey)
     await syncDBTask(cart, 'cart')
 
+    // get all items with current cartId
     const cartItems = await RedisToolKit.getCacheValues(keyPattern, redisClient)
 
+    // sync from cache to DB
     return await Promise.all(
       cartItems.map(product => syncDBTask(product, 'cart_item'))
     )
