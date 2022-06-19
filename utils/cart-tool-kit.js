@@ -91,7 +91,7 @@ class CartToolKit {
           updatedAt: new Date(),
           dirtyBit: 0,
           oldCartId: item instanceof CartItem ? item.cartId : null,
-          sequelize: item
+          sequelize: item instanceof CartItem ? item : null
         }
       }
       cartItemMap[productId].price += Number(item.price)
@@ -124,7 +124,7 @@ class CartToolKit {
     switch (type) {
       case 'cart':
         key = `${PREFIX_CART_KEY}:${cartId}`
-        template = genCartTemplate(object)
+        template = getCartTemplate(object)
         break
       case 'cart_item':
         key = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
@@ -135,7 +135,7 @@ class CartToolKit {
     await redisClient.hset(key, template)
     await RedisToolKit.setExpireAt(key, expireAt, redisClient)
 
-    function genCartTemplate(object) {
+    function getCartTemplate(object) {
       const template = { ...object }
       delete template.oldId
       return template
@@ -150,45 +150,60 @@ class CartToolKit {
   }
 
   // a task template for synchronizing db
-  static async syncDBTask(product, targetDB) {
-    const template = {
-      ...await RedisToolKit.correctDataType(product)
-    }
-    if (template.dirtyBit) delete template.dirtyBit
-    if (template.refreshAt) delete template.refreshAt
-
+  static async syncDBTask(object, targetDB) {
+    let template = {}
     let findOption = {}
 
     switch (targetDB) {
-      case 'cart_item': {
-        const { cartId, oldCartId, productId } = product
+      case 'cart':
+        template = getCartTemplate(object)
+        findOption = {
+          where: {
+            id: object.oldId || object.id
+          },
+          defaults: template
+        }
 
+        break
+      case 'cart_item':
+        template = getCartItemTemplate(object)
         findOption = {
           where: {
-            cartId: oldCartId || cartId,
-            productId
+            cartId: object.oldCartId || object.cartId
           },
           defaults: template
         }
-        console.log('cartItem syncDBTask', cartId, oldCartId, findOption)
+
         break
-      }
-      case 'cart': {
-        const { id, oldId } = product
-        findOption = {
-          where: {
-            id: oldId || id
-          },
-          defaults: template
-        }
-        console.log('cart syncDBTask', id, oldId, findOption)
-        break
-      }
     }
 
-    // create a record if there is nothing about cartId and productId
-    // update the record if there is a cart data with cartId and productId
-    await RedisToolKit.updateDBTask(targetDB, template, findOption)
+    const record = object.sequelize
+    if (targetDB === 'cart') {
+      // 資料庫還沒有購物車呢
+      const [cart, created] = await Cart.findOrCreate(findOption)
+      if (!created) await Cart.update(template, findOption)
+    } else if (record) {
+      record.update(template)
+    } else {
+      await RedisToolKit.updateDBTask(targetDB, template, findOption)
+    }
+
+    function getCartTemplate(object) {
+      const template = { ...object }
+      delete template.oldId
+      delete template.dirtyBit
+      delete template.refreshAt
+      return template
+    }
+
+    function getCartItemTemplate(object) {
+      const template = { ...object }
+      delete template.oldCartId
+      delete template.sequelize
+      delete template.dirtyBit
+      delete template.refreshAt
+      return template
+    }
   }
 }
 
