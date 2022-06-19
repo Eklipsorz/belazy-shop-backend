@@ -11,10 +11,10 @@ const postprocessor = middleware.postprocessor
 
 const controller = cartController
 
-router.get('/self/items', ...preprocessor.getCartItems, controller.getCartItems)
-// router.get('/self/items', ...preprocessor.getCartItems, controller.getCartItems, ...postprocessor.getCartItems)
+router.get('/self', ...preprocessor.getCart, controller.getCart, ...postprocessor.getCart)
+router.get('/self/items', ...preprocessor.getCartItems, controller.getCartItems, ...postprocessor.getCartItems)
 router.post('/self/items', ...preprocessor.postCartItems, controller.postCartItems, ...postprocessor.postCartItems)
-router.put('/self', ...preprocessor.putCart, controller.putCart, ...postprocessor.putCart)
-router.delete('/self/items', ...middleware.deleteCartItem, controller.deleteCartItem)
-router.delete('/self', ...middleware.deleteCart, controller.deleteCart)
+router.put('/self/items', ...preprocessor.putCartItems, controller.putCartItems, ...postprocessor.putCartItems)
+router.delete('/self/items', ...preprocessor.deleteCartItem, controller.deleteCartItem, ...postprocessor.deleteCartItem)
+router.delete('/self', ...preprocessor.deleteCart, controller.deleteCart, ...postprocessor.deleteCart)
 exports = module.exports = router

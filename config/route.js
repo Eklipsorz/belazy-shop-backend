@@ -186,6 +186,11 @@ const replyMiddleware = {
 const cartMiddleware = {
 
   preprocessor: {
+    // add middleware to route (GET /carts/self)
+    getCart: [
+      AuthValidator.authenticateLoggedIn,
+      AuthValidator.authenticateUser
+    ],
     // add middleware to route (GET /carts/self/items)
     getCartItems: [
       AuthValidator.authenticateLoggedIn,
@@ -194,12 +199,26 @@ const cartMiddleware = {
     // add middleware to route (POST /carts/self/items)
     postCartItems: [],
     // add middleware to route (PUT /carts/self)
-    putCart: [
+    putCartItems: [
+      AuthValidator.authenticateLoggedIn,
+      AuthValidator.authenticateUser
+    ],
+    // add middleware to route (DELETE /carts/self/items)
+    deleteCartItem: [
+      AuthValidator.authenticateLoggedIn,
+      AuthValidator.authenticateUser
+    ],
+    // add middleware to route (DELETE /carts/self)
+    deleteCart: [
       AuthValidator.authenticateLoggedIn,
       AuthValidator.authenticateUser
     ]
   },
   postprocessor: {
+    // add middleware to route (GET /carts/self)
+    getCart: [
+      CartPostprocessor.checkAndSyncDB
+    ],
     // add middleware to route (GET /carts/self/items)
     getCartItems: [
       CartPostprocessor.checkAndSyncDB
@@ -209,21 +228,18 @@ const cartMiddleware = {
       CartPostprocessor.checkAndSyncDB
     ],
     // add middleware to route (PUT /carts/self)
-    putCart: [
+    putCartItems: [
+      CartPostprocessor.checkAndSyncDB
+    ],
+    // add middleware to route (DELETE /carts/self/items)
+    deleteCartItem: [
+      CartPostprocessor.checkAndSyncDB
+    ],
+    // add middleware to route (DELETE /carts/self)
+    deleteCart: [
       CartPostprocessor.checkAndSyncDB
     ]
-  },
-
-  // add middleware to route (DELETE /carts/self/items)
-  deleteCartItem: [
-    AuthValidator.authenticateLoggedIn,
-    AuthValidator.authenticateUser
-  ],
-  // add middleware to route (DELETE /carts/self)
-  deleteCart: [
-    AuthValidator.authenticateLoggedIn,
-    AuthValidator.authenticateUser
-  ]
+  }
 
 }
 
