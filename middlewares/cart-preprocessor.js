@@ -116,7 +116,16 @@ class CartPreprocessor {
     await CartToolKit.SyncHashMap(req, cartOptions)
     await CartToolKit.SyncHashMap(req, cartItemOptions)
 
+    const cart = Object.values(cartMap).map(value => ({ ...value }))
+    const cartItems = Object.values(cartItemMap).map(value => ({ ...value }))
+
     // generate a set of tasks to sync with data inside db
+
+    const { syncCacheTask, syncDBTask } = CartToolKit
+
+    // await Promise.all(
+    //   cart.map(item => syncCacheTask(req, item, 'cart'))
+    // )
     // await Promise.all(
     //   cartItems.map(item => syncCacheTask(req, item, 'cart_item'))
     // )

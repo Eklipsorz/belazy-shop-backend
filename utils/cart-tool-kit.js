@@ -113,61 +113,40 @@ class CartToolKit {
   // - generate a template for sync cache
   // - sync cache with the template
   // - sync cartId in DB with product object
-  static async syncCacheTask(req, product, type) {
+  static async syncCacheTask(req, object, type) {
     const redisClient = req.app.locals.redisClient
     const { expireAt } = req.session.expireAtConfig
     // current session
     const { cartId } = req.session
-    const { productId } = product
-
+    const { productId } = object
     let key = ''
-    let productData = {}
-    let productObject = {}
     let template = {}
-
-    const refreshAt = await RedisToolKit.getRefreshAt(key, new Date())
-
     switch (type) {
-      case 'cart_item': {
-        key = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
-        productData = product instanceof CartItem ? product.toJSON() : product
-        productObject = product instanceof CartItem ? product : product.sequelize
-        template = {
-          ...productData,
-          cartId,
-          dirtyBit: 0,
-          refreshAt: refreshAt
-        }
-        // update data in db with new CartId
-        await productObject.update({ cartId })
-        break
-      }
-      case 'cart': {
+      case 'cart':
         key = `${PREFIX_CART_KEY}:${cartId}`
-        productData = product instanceof Cart ? product.toJSON() : product
-        productObject = product
-
-        template = {
-          ...productData,
-          id: cartId,
-          dirtyBit: 0,
-          refreshAt: refreshAt
-        }
-        // update data in db with new CartId
-        console.log('old ', productData.id)
-        await Cart.update({ id: cartId }, { where: { id: productData.id } })
+        template = genCartTemplate(object)
         break
-      }
+      case 'cart_item':
+        key = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+        template = getCartItemTemplate(object)
+        break
     }
-
-    // sync cartItem in db to cache with new CartId
-    // if (template.oldId) delete template.oldId
-    // if (template.oldCartId) delete template.oldCartId
-    if (template.sequelize) delete template.sequelize
-    if (template.id) delete template.id
 
     await redisClient.hset(key, template)
     await RedisToolKit.setExpireAt(key, expireAt, redisClient)
+
+    function genCartTemplate(object) {
+      const template = { ...object }
+      delete template.oldId
+      return template
+    }
+
+    function getCartItemTemplate(object) {
+      const template = { ...object }
+      delete template.oldCartId
+      delete template.sequelize
+      return template
+    }
   }
 
   // a task template for synchronizing db
