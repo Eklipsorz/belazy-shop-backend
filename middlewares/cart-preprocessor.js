@@ -175,9 +175,7 @@ class CartPreprocessor {
     // Vistor (a user without login)
     // do nothing for sync
 
-    if (!user) return next()
-
-    // if (!user || firstSyncBit) return next()
+    if (!user || firstSyncBit) return next()
     // Logged-In User
     try {
       const { cartId } = req.session
