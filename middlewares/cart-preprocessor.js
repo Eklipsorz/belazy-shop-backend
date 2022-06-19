@@ -67,25 +67,26 @@ class CartPreprocessor {
     // merge cart data in cache and in db into a set of cart data
     // productHash[cartId] = cartObject
     const productHash = {}
-    function mergeTask(product) {
-      const id = product.productId
-      const productData = product instanceof CartItem ? product.toJSON() : product
-      if (!productHash[id]) {
-        productHash[id] = {
-          ...productData,
-          cartId,
-          oldCartId: product instanceof CartItem ? product.cartId : null,
-          quantity: 0,
-          price: 0
-        }
-      }
 
-      if (product instanceof CartItem) productHash[id].sequelize = product
-      productHash[id].quantity += Number(product.quantity)
-      productHash[id].price += Number(product.price)
-    }
-    cartItemDB.forEach(mergeTask)
-    cartItemCache.forEach(mergeTask)
+    // function mergeTask(product) {
+    //   const id = product.productId
+    //   const productData = product instanceof CartItem ? product.toJSON() : product
+    //   if (!productHash[id]) {
+    //     productHash[id] = {
+    //       ...productData,
+    //       cartId,
+    //       oldCartId: product instanceof CartItem ? product.cartId : null,
+    //       quantity: 0,
+    //       price: 0
+    //     }
+    //   }
+
+    //   if (product instanceof CartItem) productHash[id].sequelize = product
+    //   productHash[id].quantity += Number(product.quantity)
+    //   productHash[id].price += Number(product.price)
+    // }
+    // cartItemDB.forEach(mergeTask)
+    // cartItemCache.forEach(mergeTask)
 
     // // productHash -> { cartObject1, cartObject2, ....}
     const resultProduct = Object.values(productHash).map(value => ({ ...value }))
@@ -106,29 +107,22 @@ class CartPreprocessor {
 
   // sync cache with data in db
   static async syncCartFromDBtoCache(req) {
-    const userId = AuthToolKit.getUserId(req)
+    const { cartDB, cartItemDB } = await CartToolKit.getRecentCartDB(req)
 
-    const findCartOption = {
-      where: { userId },
-      order: [['createdAt', 'DESC']]
-    }
-
-    const cart = await Cart.findOne(findCartOption)
-    const oldCartId = cart.id
-
-    const findItemOption = {
-      where: { cartId: oldCartId }
-    }
-    const cartItems = await CartItem.findAll(findItemOption)
-    const syncCacheTask = CartToolKit.syncCacheTask
+    const cartMap = {}
+    const cartItemMap = {}
+    const cartOptions = { hashMap: cartMap, objects: cartDB, type: 'cart' }
+    const cartItemOptions = { hashMap: cartItemMap, objects: cartItemDB, type: 'cart_item' }
+    await CartToolKit.SyncHashMap(req, cartOptions)
+    await CartToolKit.SyncHashMap(req, cartItemOptions)
 
     // generate a set of tasks to sync with data inside db
-    await Promise.all(
-      cartItems.map(item => syncCacheTask(req, item, 'cart_item'))
-    )
+    // await Promise.all(
+    //   cartItems.map(item => syncCacheTask(req, item, 'cart_item'))
+    // )
 
-    // update cartId
-    await syncCacheTask(req, cart, 'cart')
+    // // update cartId
+    // await syncCacheTask(req, cart, 'cart')
   }
 
   static async syncCartFromCachetoDB(req) {
@@ -203,12 +197,12 @@ class CartPreprocessor {
         case (isExistInCache && !isExistInDB):
           // case 3: Except for DB, there is a cart data on cache
           console.log('case 3 syncCartFromCachetoDB')
-          await CartPreprocessor.syncCartFromCachetoDB(req)
+          // await CartPreprocessor.syncCartFromCachetoDB(req)
           break
         case (isExistInCache && isExistInDB):
           // case 4: There is a cart data on cache and DB
           console.log('case 4 syncCartToDBAndCache')
-          await CartPreprocessor.syncCartToDBAndCache(req)
+          // await CartPreprocessor.syncCartToDBAndCache(req)
           break
       }
 

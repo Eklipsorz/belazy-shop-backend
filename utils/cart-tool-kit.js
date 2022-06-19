@@ -39,6 +39,76 @@ class CartToolKit {
     return result
   }
 
+  // static mergeTask(product, hashMap) {
+  //   const id = product.productId
+  //   const productData = product instanceof CartItem ? product.toJSON() : product
+  //   if (!hashMap[id]) {
+  //     hashMap[id] = {
+  //       ...productData,
+  //       cartId,
+  //       oldCartId: product instanceof CartItem ? product.cartId : null,
+  //       quantity: 0,
+  //       price: 0
+  //     }
+  //   }
+
+  //   if (product instanceof CartItem) hashMap[id].sequelize = product
+  //   hashMap[id].quantity += Number(product.quantity)
+  //   hashMap[id].price += Number(product.price)
+  // }
+
+  static async SyncCartHashMap(req, cartMap, cart) {
+    const currentId = req.session.cartId
+    const { id } = cart
+    const key = `${PREFIX_CART_KEY}:${currentId}`
+    if (!cartMap[id]) {
+      cartMap[id] = {
+        id: currentId,
+        userId: AuthToolKit.getUserId(req),
+        sum: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        dirtyBit: 0,
+        refreshAt: await RedisToolKit.getRefreshAt(key, new Date()),
+        oldId: cart instanceof Cart ? id : null
+      }
+    }
+    cartMap[id].sum += Number(cart.sum)
+  }
+
+  static async SyncCartItemHashMap(req, cartItemMap, items) {
+    for (const item of items) {
+      const currentCartId = req.session.cartId
+      const { productId } = item
+
+      if (!cartItemMap[productId]) {
+        cartItemMap[productId] = {
+          cartId: currentCartId,
+          productId,
+          price: 0,
+          quantity: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          dirtyBit: 0,
+          oldCartId: item instanceof CartItem ? item.cartId : null,
+          sequelize: item
+        }
+      }
+      cartItemMap[productId].price += Number(item.price)
+      cartItemMap[productId].quantity += Number(item.quantity)
+    }
+  }
+
+  static async SyncHashMap(req, { hashMap, objects, type }) {
+    const { SyncCartHashMap, SyncCartItemHashMap } = CartToolKit
+    switch (type) {
+      case 'cart':
+        return await SyncCartHashMap(req, hashMap, objects)
+      case 'cart_item':
+        return await SyncCartItemHashMap(req, hashMap, objects)
+    }
+  }
+
   // a task template for synchronizing cache:
   // - generate a template for sync cache
   // - sync cache with the template
