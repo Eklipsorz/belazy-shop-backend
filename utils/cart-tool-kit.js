@@ -59,12 +59,13 @@ class CartToolKit {
 
   static async SyncCartHashMap(req, cartMap, cart) {
     const currentId = req.session.cartId
+    const userId = AuthToolKit.getUserId(req)
     const { id } = cart
     const key = `${PREFIX_CART_KEY}:${currentId}`
-    if (!cartMap[id]) {
-      cartMap[id] = {
+    if (!cartMap[userId]) {
+      cartMap[userId] = {
         id: currentId,
-        userId: AuthToolKit.getUserId(req),
+        userId,
         sum: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -73,7 +74,7 @@ class CartToolKit {
         oldId: cart instanceof Cart ? id : null
       }
     }
-    cartMap[id].sum += Number(cart.sum)
+    cartMap[userId].sum += Number(cart.sum)
   }
 
   static async SyncCartItemHashMap(req, cartItemMap, items) {
@@ -155,7 +156,7 @@ class CartToolKit {
     let findOption = {}
 
     switch (targetDB) {
-      case 'cart':
+      case 'cart': {
         template = getCartTemplate(object)
         findOption = {
           where: {
@@ -163,24 +164,25 @@ class CartToolKit {
           },
           defaults: template
         }
-
         break
-      case 'cart_item':
+      }
+      case 'cart_item': {
         template = getCartItemTemplate(object)
         findOption = {
           where: {
-            cartId: object.oldCartId || object.cartId
+            cartId: object.oldCartId || object.cartId,
+            productId: template.productId
           },
           defaults: template
         }
 
         break
+      }
     }
 
     const record = object.sequelize
     if (targetDB === 'cart') {
-      // 資料庫還沒有購物車呢
-      const [cart, created] = await Cart.findOrCreate(findOption)
+      const [_, created] = await Cart.findOrCreate(findOption)
       if (!created) await Cart.update(template, findOption)
     } else if (record) {
       record.update(template)
@@ -189,19 +191,25 @@ class CartToolKit {
     }
 
     function getCartTemplate(object) {
-      const template = { ...object }
-      delete template.oldId
-      delete template.dirtyBit
-      delete template.refreshAt
+      const template = {
+        id: object.id,
+        userId: object.userId,
+        sum: object.sum,
+        createdAt: object.createdAt,
+        updatedAt: object.updatedAt
+      }
       return template
     }
 
     function getCartItemTemplate(object) {
-      const template = { ...object }
-      delete template.oldCartId
-      delete template.sequelize
-      delete template.dirtyBit
-      delete template.refreshAt
+      const template = {
+        cartId: object.cartId,
+        productId: object.productId,
+        price: object.price,
+        quantity: object.quantity,
+        createdAt: object.createdAt,
+        updatedAt: object.updatedAt
+      }
       return template
     }
   }

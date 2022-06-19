@@ -48,61 +48,49 @@ class CartPreprocessor {
   // sync db and cache
   static async syncCartToDBAndCache(req) {
     const { cartId } = req.session
-    const userId = AuthToolKit.getUserId(req)
     const redisClient = req.app.locals.redisClient
 
     const itemKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
     const cartKey = `${PREFIX_CART_KEY}:${cartId}`
     const { cartDB, cartItemDB } = await CartToolKit.getRecentCartDB(req)
 
-    // sync new sum to DB and cache
-    const cartSumCache = await redisClient.hget(cartKey, 'sum')
-    cartDB.sum = cartDB.sum + Number(cartSumCache)
-    cartDB.updatedAt = new Date()
-    await CartToolKit.syncCacheTask(req, cartDB, 'cart')
-
     // get all cart from cache and db
+    const cartCache = await redisClient.hgetall(cartKey)
     const cartItemCache = await RedisToolKit.getCacheValues(itemKeyPattern, redisClient)
 
+    const cartMap = {}
+    const cartItemMap = {}
+    const cartDBOptions = { hashMap: cartMap, objects: cartDB, type: 'cart' }
+    const cartItemDBOptions = { hashMap: cartItemMap, objects: cartItemDB, type: 'cart_item' }
+    await CartToolKit.SyncHashMap(req, cartDBOptions)
+    await CartToolKit.SyncHashMap(req, cartItemDBOptions)
+
+    const cartCacheOptions = { hashMap: cartMap, objects: cartCache, type: 'cart' }
+    const cartItemCacheOptions = { hashMap: cartItemMap, objects: cartItemCache, type: 'cart_item' }
+    await CartToolKit.SyncHashMap(req, cartCacheOptions)
+    await CartToolKit.SyncHashMap(req, cartItemCacheOptions)
+
+    const cart = Object.values(cartMap).map(value => ({ ...value }))
+    const cartItems = Object.values(cartItemMap).map(value => ({ ...value }))
+
+    const { syncCacheTask, syncDBTask } = CartToolKit
+
+    await Promise.all(
+      cart.map(item => syncCacheTask(req, item, 'cart'))
+    )
+    await Promise.all(
+      cartItems.map(item => syncCacheTask(req, item, 'cart_item'))
+    )
+
+    await Promise.all(
+      cart.map(item => syncDBTask(item, 'cart'))
+    )
+
+    await Promise.all(
+      cartItems.map(item => syncDBTask(item, 'cart_item'))
+    )
     // merge cart data in cache and in db into a set of cart data
     // productHash[cartId] = cartObject
-    const productHash = {}
-
-    // function mergeTask(product) {
-    //   const id = product.productId
-    //   const productData = product instanceof CartItem ? product.toJSON() : product
-    //   if (!productHash[id]) {
-    //     productHash[id] = {
-    //       ...productData,
-    //       cartId,
-    //       oldCartId: product instanceof CartItem ? product.cartId : null,
-    //       quantity: 0,
-    //       price: 0
-    //     }
-    //   }
-
-    //   if (product instanceof CartItem) productHash[id].sequelize = product
-    //   productHash[id].quantity += Number(product.quantity)
-    //   productHash[id].price += Number(product.price)
-    // }
-    // cartItemDB.forEach(mergeTask)
-    // cartItemCache.forEach(mergeTask)
-
-    // // productHash -> { cartObject1, cartObject2, ....}
-    const resultProduct = Object.values(productHash).map(value => ({ ...value }))
-    console.log('result', resultProduct)
-    // const syncDBTask = CartToolKit.syncDBTask
-    // // generate a set of tasks to sync db
-    // await Promise.all(
-    //   resultProduct.map(syncDBTask)
-    // )
-
-    // const syncCacheTask = CartToolKit.syncCacheTask
-
-    // // generate a set of tasks to sync cache
-    // await Promise.all(
-    //   resultProduct.map(product => syncCacheTask(req, product, redisClient))
-    // )
   }
 
   // sync cache with data in db
@@ -121,7 +109,7 @@ class CartPreprocessor {
 
     // generate a set of tasks to sync with data inside db
     const { syncCacheTask, syncDBTask } = CartToolKit
-    console.log('current cartId', req.session.cartId)
+
     await Promise.all(
       cart.map(item => syncCacheTask(req, item, 'cart'))
     )
@@ -160,7 +148,7 @@ class CartPreprocessor {
     const cartItems = Object.values(cartItemMap).map(value => ({ ...value }))
 
     const { syncCacheTask, syncDBTask } = CartToolKit
-    console.log('current cartId', req.session.cartId)
+
     // update userId in cache
     await Promise.all(
       cart.map(item => syncCacheTask(req, item, 'cart'))
@@ -206,8 +194,6 @@ class CartPreprocessor {
       // false -> there is nothing data in cache or db
       const isExistInCache = await CartToolKit.isExistCartCache(cartInCache)
       const isExistInDB = await CartToolKit.isExistCartDB(cartInDB)
-      console.log('isExistInCache ', isExistInCache)
-      console.log('isExistInDB ', isExistInDB)
 
       // case 1: There is nothing on cache and DB
       // do nothing
@@ -220,19 +206,16 @@ class CartPreprocessor {
 
         case (!isExistInCache && isExistInDB):
           // case 2: Except for cache, there is a cart data on DB
-          console.log('case 2 syncCartFromDBtoCache')
           await CartPreprocessor.syncCartFromDBtoCache(req)
           break
 
         case (isExistInCache && !isExistInDB):
           // case 3: Except for DB, there is a cart data on cache
-          console.log('case 3 syncCartFromCachetoDB')
           await CartPreprocessor.syncCartFromCachetoDB(req)
           break
         case (isExistInCache && isExistInDB):
           // case 4: There is a cart data on cache and DB
-          console.log('case 4 syncCartToDBAndCache')
-          // await CartPreprocessor.syncCartToDBAndCache(req)
+          await CartPreprocessor.syncCartToDBAndCache(req)
           break
       }
 
