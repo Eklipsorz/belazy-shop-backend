@@ -10,6 +10,7 @@ router.get('/search/hints', ...middleware.searchHints, controller.getSearchHints
 router.get('/categories/search', ...middleware.searchCategory, controller.searchProductsFromCategory)
 router.get('/search', ...middleware.searchProduct, controller.searchProducts)
 
+router.get('/:productId/snapshot', ...middleware.getProductSnapshot, controller.getProductSnapshot)
 router.get('/:productId/stock', ...middleware.getStock, controller.getStock)
 
 router.get('/:productId/replies', ...middleware.getReplies, controller.getReplies)

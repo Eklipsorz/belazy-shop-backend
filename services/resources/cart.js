@@ -8,6 +8,7 @@ const { status, code } = require('../../config/result-status-table').errorTable
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cache.CART
 
 class CartResource {
+  // get stock hashmap
   static async getStock(productKeys, cache) {
     const result = {}
     if (!Array.isArray(productKeys)) productKeys = [productKeys]
@@ -18,6 +19,7 @@ class CartResource {
     return result
   }
 
+  // check stock according to cart requirement
   static async checkStockStatus(cart, stock) {
     const cartKeys = Object.keys(cart)
     const soldOut = []
@@ -72,6 +74,7 @@ class CartResource {
     return template
   }
 
+  // add/remove price of product to/from current cart
   // create a cart to put cartItem: cart.sum = sum
   // put some things into the cart: cart.sum = cart.sum + sum
   // put back some things from the cart: cart.sum = cart.sum - sum
@@ -85,7 +88,7 @@ class CartResource {
     return template
   }
 
-  // update cart data
+  // update sum to cart
   static async putCart(req, sum) {
     const redisClient = req.app.locals.redisClient
     const { cartId } = req.session
@@ -96,7 +99,7 @@ class CartResource {
     return template
   }
 
-  // get cart data
+  // get cart info from current cart
   static async getCart(req) {
     try {
       // check whether the cart is empty
@@ -128,6 +131,7 @@ class CartResource {
     }
   }
 
+  // get all cartItems from current cart
   static async getCartItems(req) {
     try {
       // check whether there is something in the cart
@@ -167,12 +171,12 @@ class CartResource {
     }
   }
 
+  // add a product into current cart
   static async postCartItems(req) {
     try {
       const { productId } = req.body
       const redisClient = req.app.locals.redisClient
       const productKey = `product:${productId}`
-      const stockKey = `stock:${productId}`
 
       // check whether product exists in product
       const product = await redisClient.hgetall(productKey)
@@ -235,6 +239,7 @@ class CartResource {
     }
   }
 
+  // update a cartItem inside current cart
   static async putCartItems(req) {
     try {
       const redisClient = req.app.locals.redisClient
@@ -319,6 +324,7 @@ class CartResource {
     }
   }
 
+  // remove a product from current cart
   static async deleteCartItem(req) {
     try {
       const { productId } = req.body
@@ -359,6 +365,7 @@ class CartResource {
     }
   }
 
+  // remove all products from current cart
   static async deleteCart(req) {
     try {
       // check whether there is something inside the cart
