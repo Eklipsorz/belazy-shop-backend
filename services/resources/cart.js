@@ -18,36 +18,26 @@ class CartResource {
     return result
   }
 
-  static async checkStockStatus({ cartKeys, cart }, cache) {
-    const stock = await CartResource.getStock(cartKeys, cache)
-    const snapshots = await CartResource.getProductSnapshots(cartKeys, cache)
-    const messages = []
+  static async checkStockStatus(cart, stock) {
+    const cartKeys = Object.keys(cart)
+    const soldOut = []
+    const notEnough = []
 
     for (const key of cartKeys) {
       const restQuantity = Number(stock[key].restQuantity)
-      const productName = snapshots[key].name
+      const productId = Number(key)
+      // const productName = snapshots[key].name
       switch (true) {
         case (!restQuantity):
-          messages.push(`${productName} 已售罄`)
+          soldOut.push(productId)
           break
         case (Number(cart[key]) > restQuantity):
-          messages.push(`${productName} 購買量大於庫存量`)
+          notEnough.push(productId)
           break
       }
     }
-
-    return messages
-  }
-
-  // Get name and image for the product
-  static async getProductSnapshots(productKeys, cache) {
-    const snapshot = {}
-
-    for (const productKey of productKeys) {
-      const key = `product:${productKey}`
-      snapshot[productKey] = await cache.hgetall(key)
-    }
-    return snapshot
+    const result = { soldOut, notEnough }
+    return result
   }
 
   static async getCartRecord(req, sum, type = 'add') {
@@ -157,17 +147,12 @@ class CartResource {
       // if yes
       // get all products from the cart
       const products = getValidProducts(cart)
-      const productKeys = products.map(product => product.productId)
-      const snapshots = await CartResource.getProductSnapshots(productKeys, redisClient)
 
       const template = []
 
       for (const product of products) {
-        const { productId } = product
         template.push({
-          ...product,
-          name: snapshots[productId].name,
-          image: snapshots[productId].image
+          ...product
         })
       }
 
@@ -207,21 +192,23 @@ class CartResource {
 
       const cartHashMap = {}
       cartHashMap[productId] = quantity
-      const findOption = { cartKeys: [productId], cart: cartHashMap }
-      const message = await CartResource.checkStockStatus(findOption, redisClient)
+
+      const stock = await CartResource.getStock(productId, redisClient)
+      const { soldOut, notEnough } = await CartResource.checkStockStatus(cartHashMap, stock)
+      const stockError = Boolean(soldOut.length) || Boolean(notEnough.length)
 
       // if not enough, just say sorry and return
-      if (message.length) {
-        return { error: new APIError({ code: code.BADREQUEST, status, message }) }
+      if (stockError) {
+        return { error: new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' }) }
       }
 
       // if enough, just create or update a cart data in cache
-      const stock = await redisClient.hgetall(stockKey)
+      const unitPrice = Number(stock[productId].price)
 
       const template = {
         cartId,
         productId,
-        price: Number(stock.price) * quantity,
+        price: unitPrice * quantity,
         quantity,
         createdAt: isExistCart ? new Date(cartItem.createdAt) : new Date(),
         updatedAt: new Date(),
@@ -231,7 +218,7 @@ class CartResource {
       await redisClient.hset(cartKey, template)
 
       // sync to cart
-      const cartTemplate = await CartResource.postCart(req, Number(stock.price))
+      const cartTemplate = await CartResource.postCart(req, unitPrice)
 
       // if user has successfully logined, then check refreshAt and dirty
       // ready to check and sync
@@ -287,16 +274,15 @@ class CartResource {
         return { error: new APIError({ code: code.BADREQUEST, message: '數量必須至少是1以上', data: cartHashMap }) }
       }
 
-      const findOption = { cartKeys: keys, cart: cartHashMap }
-
-      const message = await CartResource.checkStockStatus(findOption, redisClient)
       // check whether stock is enough?
+      const stock = await CartResource.getStock(keys, redisClient)
+      const { soldOut, notEnough } = await CartResource.checkStockStatus(cartHashMap, stock)
+      const stockError = Boolean(soldOut.length) || Boolean(notEnough.length)
 
-      if (message.length) {
-        return { error: new APIError({ code: code.BADREQUEST, message, data: cartHashMap }) }
+      if (stockError) {
+        return { error: new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' }) }
       }
 
-      const stock = await CartResource.getStock(keys, redisClient)
       //  All is ok, then buy some goods
       const templates = []
       let sum = 0
