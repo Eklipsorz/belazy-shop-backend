@@ -200,8 +200,8 @@ class CartPreprocessor {
 
       // true -> there exists cart data in cache or db
       // false -> there is nothing data in cache or db
-      const isExistInCache = await CartToolKit.isExistCartCache(cartInCache)
-      const isExistInDB = await CartToolKit.isExistCartDB(cartInDB)
+      const isExistInCache = await CartToolKit.existCartCache(cartInCache)
+      const isExistInDB = await CartToolKit.existCartDB(cartInDB)
 
       // case 1: There is nothing on cache and DB
       // do nothing

@@ -1,24 +1,40 @@
 const { project } = require('../config/project')
 require('dotenv').config({ path: project.ENV })
 
-const { status, code } = require('../config/result-status-table').errorTable
-const { APIError } = require('../helpers/api-error')
 const { Cart, CartItem } = require('../db/models')
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../config/app').cache.CART
 const { RedisToolKit } = require('../utils/redis-tool-kit')
 const { AuthToolKit } = require('../utils/auth-tool-kit')
 
 class CartToolKit {
-  static async isExistCartCache(cart, key = null, cache = null) {
+  static async existCartCache(cart, key = null, cache = null) {
     let resultCart = cart
     if (cache) resultCart = await cache.hgetall(key)
     return Boolean(Object.keys(resultCart).length) && resultCart.sum !== '0'
   }
 
-  static async isExistCartDB(cart, findOption = null) {
+  static async existCartDB(cart, findOption = null) {
     let resultCart = cart
     if (findOption) resultCart = await Cart.findOne(findOption)
     return Boolean(resultCart) && resultCart.sum !== 0
+  }
+
+  static existCartProduct(product) {
+    const keys = Object.keys(product)
+    // the product is not in the cart
+    if (!keys.length || product.quantity === '0') return false
+    // the product is in the cart
+    return true
+  }
+
+  static isEmptyCart(cart) {
+    if (!cart.length) return true
+    return cart.every(product => product.quantity === '0')
+  }
+
+  static getValidProducts(cart) {
+    const resultProducts = cart.filter(product => Number(product.quantity) > 0)
+    return resultProducts
   }
 
   static async getRecentCartDB(req) {
@@ -38,24 +54,6 @@ class CartToolKit {
     const result = { cartDB, cartItemDB }
     return result
   }
-
-  // static mergeTask(product, hashMap) {
-  //   const id = product.productId
-  //   const productData = product instanceof CartItem ? product.toJSON() : product
-  //   if (!hashMap[id]) {
-  //     hashMap[id] = {
-  //       ...productData,
-  //       cartId,
-  //       oldCartId: product instanceof CartItem ? product.cartId : null,
-  //       quantity: 0,
-  //       price: 0
-  //     }
-  //   }
-
-  //   if (product instanceof CartItem) hashMap[id].sequelize = product
-  //   hashMap[id].quantity += Number(product.quantity)
-  //   hashMap[id].price += Number(product.price)
-  // }
 
   static async SyncCartHashMap(req, cartMap, cart) {
     const currentId = req.session.cartId

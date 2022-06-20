@@ -3,15 +3,11 @@ const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
+const { CartToolKit } = require('../../utils/cart-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cache.CART
 
 class CartResource {
-  static getProducts(cart) {
-    const resultProducts = cart.filter(product => Number(product.quantity) > 0)
-    return resultProducts
-  }
-
   static async getStock(productKeys, cache) {
     const result = {}
     if (!Array.isArray(productKeys)) productKeys = [productKeys]
@@ -22,8 +18,6 @@ class CartResource {
     return result
   }
 
-  // const findOption = { cartKeys: keys, cart: cartHashMap, snapshots }
-  // const message = await CartResource.checkStockStatus(findOption, redisClient)
   static async checkStockStatus({ cartKeys, cart }, cache) {
     const stock = await CartResource.getStock(cartKeys, cache)
     const snapshots = await CartResource.getProductSnapshots(cartKeys, cache)
@@ -45,14 +39,6 @@ class CartResource {
     return messages
   }
 
-  static existCartProduct(product) {
-    const keys = Object.keys(product)
-    // the product is not in the cart
-    if (!keys.length || product.quantity === '0') return false
-    // the product is in the cart
-    return true
-  }
-
   // Get name and image for the product
   static async getProductSnapshots(productKeys, cache) {
     const snapshot = {}
@@ -64,12 +50,7 @@ class CartResource {
     return snapshot
   }
 
-  static isEmptyCart(cart) {
-    if (!cart.length) return true
-    return cart.every(product => product.quantity === '0')
-  }
-
-  static async cartRecordGen(req, sum, type = 'add') {
+  static async getCartRecord(req, sum, type = 'add') {
     const redisClient = req.app.locals.redisClient
     const { cartId } = req.session
     const cartKey = `${PREFIX_CART_KEY}:${cartId}`
@@ -109,25 +90,26 @@ class CartResource {
     const { cartId } = req.session
     const cartKey = `${PREFIX_CART_KEY}:${cartId}`
 
-    const template = await CartResource.cartRecordGen(req, sum, 'post')
+    const template = await CartResource.getCartRecord(req, sum, 'post')
     await redisClient.hset(cartKey, template)
     return template
   }
 
+  // update cart data
   static async putCart(req, sum) {
     const redisClient = req.app.locals.redisClient
     const { cartId } = req.session
     const cartKey = `${PREFIX_CART_KEY}:${cartId}`
-    const template = await CartResource.cartRecordGen(req, sum, 'update')
+    const template = await CartResource.getCartRecord(req, sum, 'update')
 
     await redisClient.hset(cartKey, template)
     return template
   }
 
+  // get cart data
   static async getCart(req) {
     try {
       // check whether the cart is empty
-
       const redisClient = req.app.locals.redisClient
       const { cartId } = req.session
       const cartKey = `${PREFIX_CART_KEY}:${cartId}`
@@ -161,7 +143,7 @@ class CartResource {
       // check whether there is something in the cart
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
-      const { isEmptyCart, getProducts } = CartResource
+      const { isEmptyCart, getValidProducts } = CartToolKit
       const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
 
       const getCacheValues = RedisToolKit.getCacheValues
@@ -174,7 +156,7 @@ class CartResource {
 
       // if yes
       // get all products from the cart
-      const products = getProducts(cart)
+      const products = getValidProducts(cart)
       const productKeys = products.map(product => product.productId)
       const snapshots = await CartResource.getProductSnapshots(productKeys, redisClient)
 
@@ -362,7 +344,7 @@ class CartResource {
       const cartItem = await redisClient.hgetall(cartItemKey)
 
       // nothing
-      if (!CartResource.existCartProduct(cartItem)) {
+      if (!CartToolKit.existCartProduct(cartItem)) {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車內找不到對應項目' }) }
       }
 
@@ -396,7 +378,7 @@ class CartResource {
       // check whether there is something inside the cart
       const { cartId } = req.session
       const redisClient = req.app.locals.redisClient
-      const { isEmptyCart, getProducts } = CartResource
+      const { isEmptyCart, getValidProducts } = CartToolKit
 
       const getCacheValues = RedisToolKit.getCacheValues
       const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
@@ -409,7 +391,7 @@ class CartResource {
 
       // if yes, then
       // remove all products with quantity = 0
-      const products = getProducts(cart)
+      const products = getValidProducts(cart)
       const templates = []
       for (const product of products) {
         const { productId } = product
