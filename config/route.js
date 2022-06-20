@@ -124,6 +124,12 @@ const productMiddleware = {
   getProduct: [
     ParameterValidator.ExistURIValidate
   ],
+  // add middleware to route (GET /products/:productId/snapshot)
+  getProductSnapshot: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser,
+    ParameterValidator.ExistURIValidate
+  ],
   // add middleware to route (GET /products/:proudctId/stock)
   getStock: [
     ParameterValidator.ExistURIValidate

@@ -49,6 +49,33 @@ class ProductResource {
     }
   }
 
+  static async getProductSnapshot(req) {
+    try {
+      // check whether the product exist
+      const redisClient = req.app.locals.redisClient
+      const { productId } = req.params
+      const snapshotKey = `product:${productId}`
+
+      let snapshot = await redisClient.hgetall(snapshotKey)
+      const existStockCache = Boolean(Object.keys(snapshot).length)
+      // if none
+
+      if (!existStockCache) {
+        const findOption = { raw: true, attributes: ['name', 'image'] }
+        snapshot = await Product.findByPk(productId, findOption)
+        if (!snapshot) {
+          return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+        }
+      }
+      // if yes
+      // return success message
+      const resultSnapshot = snapshot
+      return { error: null, data: resultSnapshot, message: '獲取成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   static async getProduct(req) {
     try {
       const { productId } = req.params
