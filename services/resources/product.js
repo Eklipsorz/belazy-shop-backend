@@ -106,6 +106,16 @@ class ProductResource {
     }
   }
 
+  static async postProduct(req) {
+    try {
+      console.log('postProduct')
+      const resultProduct = null
+      return { error: null, data: resultProduct, message: '添加成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   static async getStock(req) {
     try {
       const { productId } = req.params
