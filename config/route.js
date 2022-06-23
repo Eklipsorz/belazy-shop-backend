@@ -63,7 +63,9 @@ const adminMiddleware = {
   getProductsFromCategories: [],
 
   // add middleware to route (POST /admin/products)
-  postProduct: [],
+  postProducts: [
+    upload.single('image')
+  ],
   // add middleware to route (GET /admin/categories/:categoryId/products)
   getProductsFromCategory: [
     ParameterValidator.ExistURIValidate,

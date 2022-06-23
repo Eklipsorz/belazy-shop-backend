@@ -106,9 +106,25 @@ class ProductResource {
     }
   }
 
-  static async postProduct(req) {
+  static async postProducts(req) {
     try {
-      console.log('postProduct')
+      // check whether the parameters are valid
+      // - one of all fields (name, categoryId) is empty ?
+      // - length of product name is longer than 30 characters ?
+      // - categoryId can be mapped to valid category ?
+      // - product name is repeated ?
+      const { error, result } = await ProductToolKit.postProductsValidate(req)
+      if (error) {
+        return { error: new APIError({ code: result.code, data: result.data, message: result.message }) }
+      }
+
+      // All is okay, then just create a new product record into DB
+      // create a new product into ownerships
+      // create a new product into product_statistics
+      // create a new product into stock with initial value
+      // create a new product into redis
+      // create a new product into snapshot
+
       const resultProduct = null
       return { error: null, data: resultProduct, message: '添加成功' }
     } catch (error) {

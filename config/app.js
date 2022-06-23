@@ -53,6 +53,10 @@ const service = {
   replyResource: {
     MIN_LENGTH_CONTENT: 1,
     MAX_LENGTH_CONTENT: 255
+  },
+  productResource: {
+    MIN_LENGTH_NAME: 1,
+    MAX_LENGTH_NAME: 30
   }
   // userService: {
 
