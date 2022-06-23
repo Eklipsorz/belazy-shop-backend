@@ -61,6 +61,9 @@ const adminMiddleware = {
   putSelf: [],
   // add middleware to route (GET /admin/categories/products)
   getProductsFromCategories: [],
+
+  // add middleware to route (POST /admin/products)
+  postProduct: [],
   // add middleware to route (GET /admin/categories/:categoryId/products)
   getProductsFromCategory: [
     ParameterValidator.ExistURIValidate,
@@ -124,6 +127,7 @@ const productMiddleware = {
   getProduct: [
     ParameterValidator.ExistURIValidate
   ],
+
   // add middleware to route (GET /products/:productId/snapshot)
   getProductSnapshot: [
     AuthValidator.authenticateLoggedIn,

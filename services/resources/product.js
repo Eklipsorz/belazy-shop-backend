@@ -3,7 +3,7 @@ const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const { Product, Ownership, Stock, ProductStatistic } = require('../../db/models')
-const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
+const { ProductToolKit } = require('../../utils/product-tool-kit')
 
 class ProductResource {
   static async getProducts(req, type = 'get') {
@@ -106,6 +106,16 @@ class ProductResource {
     }
   }
 
+  static async postProduct(req) {
+    try {
+      console.log('postProduct')
+      const resultProduct = null
+      return { error: null, data: resultProduct, message: '添加成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   static async getStock(req) {
     try {
       const { productId } = req.params
@@ -150,15 +160,12 @@ class ProductResource {
 
   static async putStock(req) {
     try {
-      // check whether parameters are valid
-
-      const message = ParameterValidationKit.updateStockValidate(req)
-
-      if (message.length) {
-        return { error: new APIError({ code: code.BADREQUEST, status, message, data: req.body }) }
-      }
-
       // check whether product exists
+      // check whether parameters are validation
+      const { error, result } = await ProductToolKit.updateStockValidate(req)
+      if (error) {
+        return { error: new APIError({ code: result.code, data: result.data, message: result.message }) }
+      }
       // ready to update stock for the product:
       // - update stock to cache
       // - update stock to DB and build a stock data into cache (if failed for updating cache)
@@ -167,44 +174,33 @@ class ProductResource {
       const { redisClient } = req.app.locals
       const { quantity, restQuantity, price } = req.body
       const stocktKey = `stock:${productId}`
-
-      const product = await redisClient.hgetall(stocktKey)
-      let resultProduct = {}
-      const isExistProductInCache = Boolean(Object.keys(product).length)
-
-      if (!isExistProductInCache) {
-        const stockProduct = await Stock.findOne({ where: { productId } })
-        if (!stockProduct) {
-          return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-        }
-        await stockProduct.update({ quantity, restQuantity, price })
-      }
+      const product = result.data
 
       // update stock to cache
-      const { getRefreshAt } = RedisToolKit
       const template = {
         productId,
         quantity,
         restQuantity,
         price,
-        createdAt: isExistProductInCache ? new Date(product.createdAt) : new Date(),
+        createdAt: new Date(product.createdAt),
         updatedAt: new Date(),
-        dirtyBit: isExistProductInCache ? 1 : 0,
-        refreshAt: isExistProductInCache ? product.refreshAt : getRefreshAt(stocktKey, new Date())
+        dirtyBit: 1,
+        refreshAt: new Date(product.refreshAt)
       }
 
       await redisClient.hset(stocktKey, template)
 
       // sync db according to refreshAt and dirtyBit
-      if (isExistProductInCache) {
+      if (product) {
         const option = {
           taskType: 'update',
           findOption: { where: { productId } }
         }
         await RedisToolKit.syncDBFromCache(stocktKey, redisClient, option)
       }
+
       // normalize a product data
-      resultProduct = {
+      const resultProduct = {
         productId: Number(productId),
         quantity,
         restQuantity,
