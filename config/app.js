@@ -40,7 +40,8 @@ const cache = {
 const service = {
   accountService: {
     DEFAULT_BCRYPT_COMPLEXITY: 10,
-    DEL_OPERATION_CODE: '-1'
+    DEL_OPERATION_CODE: '-1',
+    DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
   },
   userService: {
     SEARCH_HINT_NUMBER: 10,
