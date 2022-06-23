@@ -33,7 +33,7 @@ class AccountToolKit {
       return { error: true, result }
     }
 
-    result = { code: null, data: user, message: '獲取成功' }
+    result = { code: null, data: user }
     return { error: false, result }
   }
 

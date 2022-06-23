@@ -25,7 +25,7 @@ class AccountService {
       if (error) {
         return cb(new APIError({ code: result.code, data: result.data, message: result.message }))
       }
-      console.log('user', result.data)
+
       const resultUser = result.data.toJSON()
       const accessToken = AuthToolKit.generateAccessToken(resultUser)
       delete resultUser.password
