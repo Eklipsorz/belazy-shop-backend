@@ -56,7 +56,8 @@ const service = {
   },
   productResource: {
     MIN_LENGTH_NAME: 1,
-    MAX_LENGTH_NAME: 30
+    MAX_LENGTH_NAME: 30,
+    DEFAULT_PRODUCT_IMAGE: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1656075982/belazy-shop/coming-soon-product_v7e8p7.png'
   }
   // userService: {
 
