@@ -35,6 +35,28 @@ class ReplyToolKit {
     return users
   }
 
+  static async getUsersAndRepliesByProduct(productId) {
+    const { getRepliesByProduct, getReplyHashMap } = ReplyToolKit
+    const replies = await getRepliesByProduct(productId)
+    const hashMap = getReplyHashMap(replies)
+
+    const result = { users: hashMap, replies }
+    return result
+  }
+
+  static getReplyHashMap(replies) {
+    const replyHashMap = {}
+    for (const reply of replies) {
+      const userId = reply.userId
+      if (!replyHashMap[userId]) {
+        replyHashMap[userId] = true
+      }
+    }
+
+    const users = Object.entries(replyHashMap).map(([key, _]) => key)
+    return users
+  }
+
   static replyContentValidate(req) {
     const messageQueue = []
     const { content } = req.body

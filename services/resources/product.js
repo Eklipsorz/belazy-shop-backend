@@ -273,11 +273,11 @@ class ProductResource {
       // const snapshotKey = `product:${productId}`
       // const stockKey = `stock:${productId}`
 
-      const replies = await ReplyToolKit.getRepliesByProduct(productId)
+      const { users, replies } = await ReplyToolKit.getUsersAndRepliesByProduct(productId)
+      console.log(users, replies)
       // const likeUsers = await LikeToolKit.getLikesByProduct(productId)
       // const replyUsers = await ReplyToolKit.getReplyUserByProduct(productId)
 
-      console.log('users', replies)
       // await Promise.all([
       //   redisClient.del(snapshotKey),
       //   redisClient.del(stockKey),
