@@ -6,12 +6,41 @@ const { Product, Category } = require('../db/models')
 
 class ProductToolKit {
   static async postProductsValidate(req) {
+    return await ProductToolKit.productsValidate(req)
+  }
+
+  static async putProductsValidate(req) {
+    // check whether the product exists?
+    const { productId } = req.params
+    const product = await Product.findByPk(productId)
+    let result = {}
+
+    if (!product) {
+      result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
+      return { error: true, result }
+    }
+    // check whether the parameters are valid
+    // - one of all fields (name, categoryId) is empty ?
+    // - length of product name is longer than 30 characters ?
+    // - categoryId can be mapped to valid category ?
+    // - product name is repeated ?
+    const validation = await ProductToolKit.productsValidate(req)
+    if (validation.error) return validation
+
+    // all input is good
+    validation.result.data.product = product
+
+    return { error: false, result: validation.result }
+  }
+
+  static async productsValidate(req) {
     const messageQueue = []
     let { name, categoryId } = req.body
-    const { isNaN, isNumberString, isFilledField } = ParameterValidationKit
-    console.log('input: name categoryId introduct, image', name, categoryId)
+
+    const { isNumberString, isFilledField } = ParameterValidationKit
     let result = {}
     req.name = name = name.trim()
+    req.categoryId = categoryId = categoryId.trim()
     // check whether the parameters are valid
     // - one of all fields (name, categoryId) is empty ?
     if (!isFilledField(name) || !isFilledField(categoryId)) {
@@ -25,16 +54,22 @@ class ProductToolKit {
     }
 
     // categoryId self is valid number or number string?
-    let category = null
-    if (isNumberString(categoryId) || !isNaN(categoryId)) {
-      // - categoryId can be mapped to valid category ?
-      category = await Category.findByPk(categoryId)
-
-      if (!category) {
-        messageQueue.push('產品類別不存在')
+    const categories = []
+    const categoryArray = categoryId.split(' ')
+    console.log('categoryArray', categoryArray)
+    const isValiCategoryArray = categoryArray.every(categoryId => isNumberString(categoryId))
+    console.log('isValiCategoryArray', isValiCategoryArray)
+    if (isValiCategoryArray) {
+      for (const id of categoryArray) {
+        const category = await Category.findByPk(id)
+        if (!category) {
+          messageQueue.push('至少有一個產品類別不存在')
+          break
+        }
+        categories.push(category)
       }
     } else {
-      messageQueue.push('產品類別不存在')
+      messageQueue.push('至少有一個產品類別不存在')
     }
 
     // - product name is repeated ?
@@ -48,7 +83,7 @@ class ProductToolKit {
       return { error: true, result }
     }
 
-    result = { code: null, data: { product, category } }
+    result = { code: null, data: { product, categories } }
     return { error: false, result }
   }
 

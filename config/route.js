@@ -66,6 +66,11 @@ const adminMiddleware = {
   postProducts: [
     upload.single('image')
   ],
+  // add middleware to route (PUT /admin/products/:productId)
+  putProducts: [
+    ParameterValidator.ExistURIValidate,
+    upload.single('image')
+  ],
   // add middleware to route (GET /admin/categories/:categoryId/products)
   getProductsFromCategory: [
     ParameterValidator.ExistURIValidate,

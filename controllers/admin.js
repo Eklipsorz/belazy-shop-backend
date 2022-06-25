@@ -32,6 +32,11 @@ const adminController = {
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
+  putProducts: (req, res, next) => {
+    adminServices.putProducts(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
   getStock: (req, res, next) => {
     adminServices.getStock(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
