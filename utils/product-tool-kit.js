@@ -2,16 +2,45 @@ const validator = require('validator')
 const { ParameterValidationKit } = require('./parameter-validation-kit')
 const { code } = require('../config/result-status-table').errorTable
 const { MIN_LENGTH_NAME, MAX_LENGTH_NAME } = require('../config/app').service.productResource
-const { Product, Category } = require('../db/models')
+const { Product, Category, Sequelize } = require('../db/models')
 
 class ProductToolKit {
   static async postProductsValidate(req) {
+    return await ProductToolKit.productsValidate(req, 'post')
+  }
+
+  static async putProductsValidate(req) {
+    // check whether the product exists?
+    const { productId } = req.params
+    const product = await Product.findByPk(productId)
+    let result = {}
+
+    if (!product) {
+      result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
+      return { error: true, result }
+    }
+    // check whether the parameters are valid
+    // - one of all fields (name, categoryId) is empty ?
+    // - length of product name is longer than 30 characters ?
+    // - categoryId can be mapped to valid category ?
+    // - product name is repeated ?
+    const validation = await ProductToolKit.productsValidate(req, 'put')
+    if (validation.error) return validation
+
+    // all input is good
+    validation.result.data.product = product
+
+    return { error: false, result: validation.result }
+  }
+
+  static async productsValidate(req, type) {
     const messageQueue = []
     let { name, categoryId } = req.body
-    const { isNaN, isNumberString, isFilledField } = ParameterValidationKit
-    console.log('input: name categoryId introduct, image', name, categoryId)
+
+    const { isNumberString, isFilledField } = ParameterValidationKit
     let result = {}
     req.name = name = name.trim()
+    req.categoryId = categoryId = categoryId.trim()
     // check whether the parameters are valid
     // - one of all fields (name, categoryId) is empty ?
     if (!isFilledField(name) || !isFilledField(categoryId)) {
@@ -25,20 +54,40 @@ class ProductToolKit {
     }
 
     // categoryId self is valid number or number string?
-    let category = null
-    if (isNumberString(categoryId) || !isNaN(categoryId)) {
-      // - categoryId can be mapped to valid category ?
-      category = await Category.findByPk(categoryId)
+    const categories = []
+    const categoryArray = categoryId.split(' ')
 
-      if (!category) {
-        messageQueue.push('產品類別不存在')
+    const isValiCategoryArray = categoryArray.every(categoryId => isNumberString(categoryId))
+
+    if (isValiCategoryArray) {
+      for (const id of categoryArray) {
+        const category = await Category.findByPk(id)
+        if (!category) {
+          messageQueue.push('至少有一個產品類別不存在')
+          break
+        }
+        categories.push(category)
       }
     } else {
-      messageQueue.push('產品類別不存在')
+      messageQueue.push('至少有一個產品類別不存在')
     }
 
     // - product name is repeated ?
-    const product = await Product.findOne({ where: { name } })
+    let findOption = {}
+    switch (type) {
+      case 'post': {
+        findOption = { where: { name } }
+        break
+      }
+      case 'put': {
+        const { Op } = Sequelize
+        const { productId } = req.param
+        findOption = { where: { name, id: { [Op.ne]: productId } } }
+        break
+      }
+    }
+
+    const product = await Product.findOne(findOption)
     if (product) {
       messageQueue.push('產品名稱不能與其他產品重複')
     }
@@ -48,7 +97,7 @@ class ProductToolKit {
       return { error: true, result }
     }
 
-    result = { code: null, data: { product, category } }
+    result = { code: null, data: { product, categories } }
     return { error: false, result }
   }
 
