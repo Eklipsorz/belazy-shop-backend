@@ -137,7 +137,6 @@ class ProductResource {
       const product = await Product.create({ name, introduction, image })
       const productId = product.id
 
-   
       // create a new product into ownerships
       for (const category of categories) {
         await Ownership.create({ productId, categoryId: category.id, categoryName: category.name })
