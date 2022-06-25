@@ -1,9 +1,11 @@
 
 const { APIError } = require('../../helpers/api-error')
-const { status, code } = require('../../config/result-status-table').errorTable
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const { Product, Ownership, Stock, ProductStatistic } = require('../../db/models')
 const { ProductToolKit } = require('../../utils/product-tool-kit')
+const { FileUploader } = require('../../middlewares/file-uploader')
+const { status, code } = require('../../config/result-status-table').errorTable
+const { DEFAULT_PRODUCT_IMAGE } = require('../../config/app').service.productResource
 
 class ProductResource {
   static async getProducts(req, type = 'get') {
@@ -106,9 +108,65 @@ class ProductResource {
     }
   }
 
-  static async postProduct(req) {
+  static async postProducts(req) {
     try {
-      console.log('postProduct')
+      // check whether the parameters are valid
+      // - one of all fields (name, categoryId) is empty ?
+      // - length of product name is longer than 30 characters ?
+      // - categoryId can be mapped to valid category ?
+      // - product name is repeated ?
+      const { error, result } = await ProductToolKit.postProductsValidate(req)
+      if (error) {
+        return { error: new APIError({ code: result.code, data: result.data, message: result.message }) }
+      }
+
+      // All is okay, then just create a new product record into DB
+      const { name, categoryId, introduction } = req.body
+      const { category } = result.data
+      const image = req.file ? await FileUploader.upload(req.file) : DEFAULT_PRODUCT_IMAGE
+      const redisClient = req.app.locals.redisClient
+
+      // inital value for stock and statistics
+      const price = 0
+      const quantity = 0
+      const restQuantity = 0
+      const likedTally = 0
+      const repliedTally = 0
+
+      // begin to create
+      const product = await Product.create({ name, introduction, image })
+      const productId = product.id
+      console.log('enter', product.toJSON(), productId)
+      // create a new product into ownerships
+      // create a new product into stock with initial value
+      // create a new product into product_statistics
+      const [stock, ownership, productStatistic] = await Promise.all([
+        Stock.create({ productId, quantity, restQuantity, price }),
+        Ownership.create({ productId, categoryId, categoryName: category.name }),
+        ProductStatistic.create({ productId, likedTally, repliedTally })
+      ])
+
+      // create a new product into redis
+      // create a new product into snapshot
+      // create a new product into stock
+      // key pattern for redis
+      const snapshotKey = `product:${productId}`
+      const stockKey = `stock:${productId}`
+
+      const snapshotTemplate = { name, image }
+      const stockTemplate = {
+        ...stock.toJSON(),
+        dirtyBit: 0,
+        refreshAt: await RedisToolKit.getRefreshAt(stockKey, new Date())
+      }
+
+      if (stockTemplate.id) delete stockTemplate.id
+
+      await Promise.all([
+        redisClient.hset(snapshotKey, snapshotTemplate),
+        redisClient.hset(stockKey, stockTemplate)
+      ])
+
       const resultProduct = null
       return { error: null, data: resultProduct, message: '添加成功' }
     } catch (error) {

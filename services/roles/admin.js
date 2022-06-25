@@ -27,8 +27,8 @@ class AdminService extends AccountService {
     return cb(error, data, message)
   }
 
-  async postProduct(req, cb) {
-    const { error, data, message } = await ProductResource.postProduct(req)
+  async postProducts(req, cb) {
+    const { error, data, message } = await ProductResource.postProducts(req)
     return cb(error, data, message)
   }
 
