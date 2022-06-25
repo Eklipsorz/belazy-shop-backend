@@ -121,7 +121,7 @@ class ProductResource {
       }
 
       // All is okay, then just create a new product record into DB
-      const { name, categoryId, introduction } = req.body
+      const { name, introduction } = req.body
       const { categories } = result.data
       const image = req.file ? await FileUploader.upload(req.file) : DEFAULT_PRODUCT_IMAGE
       const redisClient = req.app.locals.redisClient
@@ -137,7 +137,7 @@ class ProductResource {
       const product = await Product.create({ name, introduction, image })
       const productId = product.id
 
-      console.log('category', categories)
+   
       // create a new product into ownerships
       for (const category of categories) {
         await Ownership.create({ productId, categoryId: category.id, categoryName: category.name })
@@ -193,7 +193,7 @@ class ProductResource {
 
       let { image } = req.body
       const { productId } = req.params
-      const { name, categoryId, introduction } = req.body
+      const { name, introduction } = req.body
       const redisClient = req.app.locals.redisClient
 
       if (image === DEL_OPERATION_CODE) {
@@ -208,9 +208,16 @@ class ProductResource {
       await redisClient.hset(snapshotKey, snapshotTemplate)
 
       // update the record in Ownerships
-      const { category } = result.data
-      await Ownership.update()
+      const { categories } = result.data
+      await Ownership.destroy({ where: { productId } })
+
+      for (const category of categories) {
+        await Ownership.create({ productId, categoryId: category.id, categoryName: category.name })
+      }
       // update the record in Products
+      const { product } = result.data
+      await product.update({ name, introduction, image })
+
       const resultProduct = null
       return { error: null, data: resultProduct, message: '修改成功' }
     } catch (error) {

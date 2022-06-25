@@ -43,7 +43,7 @@ class CartPostprocessor {
   static async checkAndSyncDB(req, _, next) {
     try {
       const stageArea = Array.isArray(req.stageArea) ? req.stageArea : [req.stageArea]
-      // console.log('stageArea', stageArea)
+
       const redisClient = req.app.locals.redisClient
       const checkAndSyncDBTask = CartPostprocessor.checkAndSyncDBTask
       await Promise.all(
