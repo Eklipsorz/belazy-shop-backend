@@ -18,6 +18,7 @@ router.get('/categories', ...middleware.getCategories, controller.getCategories)
 
 router.post('/products', ...middleware.postProducts, controller.postProducts)
 router.put('/products/:productId', ...middleware.putProducts, controller.putProducts)
+router.delete('/products/:productId', ...middleware.deleteProducts, controller.deleteProducts)
 
 router.put('/products/:productId/stock', ...middleware.putStack, controller.putStock)
 router.get('/products/:productId/stock', ...middleware.getStock, controller.getStock)

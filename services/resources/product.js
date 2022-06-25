@@ -224,6 +224,35 @@ class ProductResource {
     }
   }
 
+  static async deleteProducts(req) {
+    try {
+      // check whether the product exists ?
+      const { productId } = req.params
+      const product = await Product.findByPk(productId)
+      if (!product) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+      }
+      // delete cartItem and cart about the product
+
+      // delete the product record inside product snapshot
+      // delete the product record inside stock cache
+      // delete the product record inside stock table
+
+      // update like_tally inside user_statistics of the user who likes the product
+      // update reply_tally inside user_statistics of the user who replies the product
+      // delete the product record inside like table
+      // delete the product record inside reply table
+      // delete the product record inside ownershops table
+      // delete the product record inside product_statistics table
+      // delete the product record inside product table
+
+      const resultProduct = null
+      return { error: null, data: resultProduct, message: '刪除成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
   static async getStock(req) {
     try {
       const { productId } = req.params
