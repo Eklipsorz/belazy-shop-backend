@@ -14,6 +14,27 @@ class ReplyToolKit {
     return reply
   }
 
+  // return replies with product (i.e., productId)
+  static async getRepliesByProduct(productId) {
+    const findOption = {
+      where: { productId }
+    }
+    const Replies = await Reply.findAll(findOption)
+    return Replies
+  }
+
+  // return users who replies to product (i.e., productId)
+  static async getReplyUserByProduct(productId) {
+    const findOption = {
+      where: { productId },
+      attributes: ['userId'],
+      group: 'userId',
+      raw: true
+    }
+    const users = await Reply.findAll(findOption)
+    return users
+  }
+
   static replyContentValidate(req) {
     const messageQueue = []
     const { content } = req.body
