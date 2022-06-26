@@ -283,8 +283,8 @@ class ProductResource {
         Stock.destroy({ where: { productId } })
       ])
 
-      // update like_tally inside user_statistics of the user who likes the product
-      // update reply_tally inside user_statistics of the user who replies the product
+      // // update like_tally inside user_statistics of the user who likes the product
+      // // update reply_tally inside user_statistics of the user who replies the product
       const { getUsersAndRepliesByProduct, updateUserReplyTally } = ReplyToolKit
       const replyResult = await getUsersAndRepliesByProduct(productId)
       await updateUserReplyTally(replyResult)
@@ -293,10 +293,16 @@ class ProductResource {
       const likeResult = await getUsersAndLikesByProduct(productId)
       await updateUserLikeTally(likeResult)
 
-      // delete the product record inside like table
-      await Like.destroy({ where: { productId } })
-      // delete the product record inside reply table
-      await Reply.destroy({ where: { productId } })
+      // // delete the product record inside like table
+
+      for (const like of likeResult.likes) {
+        await like.destroy()
+      }
+
+      // // delete the product record inside reply table
+      for (const reply of replyResult.replies) {
+        await reply.destroy()
+      }
 
       // delete the product record inside ownershops table
       await Ownership.destroy({ where: { productId } })
