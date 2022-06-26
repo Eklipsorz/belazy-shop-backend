@@ -71,6 +71,10 @@ const adminMiddleware = {
     ParameterValidator.ExistURIValidate,
     upload.single('image')
   ],
+  // add middleware to route (DELETE /admin/products/:productId)
+  deleteProducts: [
+    ParameterValidator.ExistURIValidate
+  ],
   // add middleware to route (GET /admin/categories/:categoryId/products)
   getProductsFromCategory: [
     ParameterValidator.ExistURIValidate,

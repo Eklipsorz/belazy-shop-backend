@@ -1,11 +1,19 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
-const { Product, Ownership, Stock, ProductStatistic } = require('../../db/models')
+const {
+  Product, Ownership, Stock,
+  ProductStatistic, Cart, CartItem,
+  Like, Reply
+} = require('../../db/models')
+const { CartToolKit } = require('../../utils/cart-tool-kit')
 const { ProductToolKit } = require('../../utils/product-tool-kit')
 const { FileUploader } = require('../../middlewares/file-uploader')
+const { ReplyToolKit } = require('../../utils/reply-tool-kit')
+const { LikeToolKit } = require('../../utils/like-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { DEFAULT_PRODUCT_IMAGE, DEL_OPERATION_CODE } = require('../../config/app').service.productResource
+const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cache.CART
 
 class ProductResource {
   static async getProducts(req, type = 'get') {
@@ -219,6 +227,92 @@ class ProductResource {
 
       const resultProduct = null
       return { error: null, data: resultProduct, message: '修改成功' }
+    } catch (error) {
+      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    }
+  }
+
+  static async deleteProducts(req) {
+    try {
+      // check whether the product exists ?
+      const { productId } = req.params
+      const product = await Product.findByPk(productId)
+      if (!product) {
+        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+      }
+      // delete product record inside cartItem and cart cache
+      // delete product record inside cartItem table and cart table
+      const redisClient = req.app.locals.redisClient
+      const resultCarts = await CartToolKit.getCartsByProduct(req, productId)
+
+      for (const cartId of resultCarts) {
+        const cartKey = `${PREFIX_CART_KEY}:${cartId}`
+        const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+        const price = await redisClient.hget(cartItemKey, 'price')
+        const sum = await redisClient.hget(cartKey, 'sum')
+
+        const currentSum = sum - price
+        await Promise.all([
+          redisClient.del(cartItemKey),
+          CartItem.destroy({ where: { cartId, productId } })
+        ])
+
+        if (!currentSum) {
+          await Promise.all([
+            redisClient.del(cartKey),
+            Cart.destroy({ where: { id: cartId } })
+          ])
+        } else {
+          const [cart, _] = await Promise.all([
+            Cart.findByPk(cartId),
+            redisClient.hset(cartKey, 'sum', currentSum)
+          ])
+          await cart.update({ ...cart.toJSON(), sum: currentSum })
+        }
+      }
+
+      // delete the product record inside product snapshot
+      // delete the product record inside stock cache
+      // delete the product record inside stock table
+      const snapshotKey = `product:${productId}`
+      const stockKey = `stock:${productId}`
+
+      await Promise.all([
+        redisClient.del(snapshotKey),
+        redisClient.del(stockKey),
+        Stock.destroy({ where: { productId } })
+      ])
+
+      // // update like_tally inside user_statistics of the user who likes the product
+      // // update reply_tally inside user_statistics of the user who replies the product
+      const { getUsersAndRepliesByProduct, updateUserReplyTally } = ReplyToolKit
+      const replyResult = await getUsersAndRepliesByProduct(productId)
+      await updateUserReplyTally(replyResult)
+
+      const { getUsersAndLikesByProduct, updateUserLikeTally } = LikeToolKit
+      const likeResult = await getUsersAndLikesByProduct(productId)
+      await updateUserLikeTally(likeResult)
+
+      // // delete the product record inside like table
+
+      for (const like of likeResult.likes) {
+        await like.destroy()
+      }
+
+      // // delete the product record inside reply table
+      for (const reply of replyResult.replies) {
+        await reply.destroy()
+      }
+
+      // delete the product record inside ownershops table
+      await Ownership.destroy({ where: { productId } })
+      // delete the product record inside product_statistics table
+      await ProductStatistic.destroy({ where: { productId } })
+      // delete the product record inside product table
+      await Product.destroy({ where: { id: productId } })
+
+      const resultProduct = null
+      return { error: null, data: resultProduct, message: '刪除成功' }
     } catch (error) {
       return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }

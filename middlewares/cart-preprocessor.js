@@ -256,10 +256,12 @@ class CartPreprocessor {
       // sync cartItems
       while (true) {
         [cursor, cartItemKeys] = await redisClient.scan(cursor, 'MATCH', cartItemKeyPattern)
-        await Promise.all(
-          cartItemKeys.map(key => setExpireAt(key, expireAt, redisClient))
-        )
 
+        if (cartItemKeys.length) {
+          await Promise.all(
+            cartItemKeys.map(key => setExpireAt(key, expireAt, redisClient))
+          )
+        }
         if (cursor === '0') break
       }
       return next()

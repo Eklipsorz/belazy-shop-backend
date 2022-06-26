@@ -108,6 +108,22 @@ class CartToolKit {
     }
   }
 
+  static async getCartsByProduct(req, productId) {
+    const redisClient = req.app.locals.redisClient
+    const cartItemKeyPattern = `${PREFIX_CARTITEM_KEY}:*:${productId}`
+
+    const results = []
+    let cursor = '0'
+    let result = []
+    while (true) {
+      [cursor, result] = await redisClient.scan(cursor, 'MATCH', cartItemKeyPattern, 'COUNT', 20)
+      result = result.map(item => item.split(':')[1])
+      results.push(...result)
+      if (cursor === '0') break
+    }
+    return results
+  }
+
   // a task template for synchronizing cache:
   // - generate a template for sync cache
   // - sync cache with the template
