@@ -273,8 +273,13 @@ class ProductResource {
       // const snapshotKey = `product:${productId}`
       // const stockKey = `stock:${productId}`
 
-      const { users, replies } = await ReplyToolKit.getUsersAndRepliesByProduct(productId)
-      console.log(users, replies)
+      // const { users, replies } = await ReplyToolKit.getUsersAndRepliesByProduct(productId)
+      // console.log(users, replies)
+
+      const { users, likes } = await LikeToolKit.getUsersAndLikesByProduct(productId)
+      console.log('likes', likes, users)
+      // const { users, likes } = await LikeToolKit.getUsersAndLikesByProduct(productId)
+      // console.log('users', users, likes)
       // const likeUsers = await LikeToolKit.getLikesByProduct(productId)
       // const replyUsers = await ReplyToolKit.getReplyUserByProduct(productId)
 

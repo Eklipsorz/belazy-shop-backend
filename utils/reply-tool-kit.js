@@ -36,15 +36,15 @@ class ReplyToolKit {
   }
 
   static async getUsersAndRepliesByProduct(productId) {
-    const { getRepliesByProduct, getReplyHashMap } = ReplyToolKit
+    const { getRepliesByProduct, getUsersByReplyHashMap } = ReplyToolKit
     const replies = await getRepliesByProduct(productId)
-    const hashMap = getReplyHashMap(replies)
+    const hashMap = getUsersByReplyHashMap(replies)
 
     const result = { users: hashMap, replies }
     return result
   }
 
-  static getReplyHashMap(replies) {
+  static getUsersByReplyHashMap(replies) {
     const replyHashMap = {}
     for (const reply of replies) {
       const userId = reply.userId
