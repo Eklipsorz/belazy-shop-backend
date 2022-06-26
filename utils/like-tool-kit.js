@@ -1,4 +1,4 @@
-const { Like } = require('../db/models')
+const { Like, UserStatistic } = require('../db/models')
 
 class LikeToolKit {
   static async getLikesByProduct(productId) {
@@ -25,10 +25,11 @@ class LikeToolKit {
     for (const like of likes) {
       const userId = like.userId
       if (!likeHashMap[userId]) {
-        likeHashMap[userId] = true
+        likeHashMap[userId] = 0
       }
+      likeHashMap[userId] += 1
     }
-    const users = Object.entries(likeHashMap).map(([key, _]) => key)
+    const users = Object.entries(likeHashMap).map(([key, value]) => ({ userId: key, count: value }))
     return users
   }
 
@@ -39,6 +40,14 @@ class LikeToolKit {
 
     const result = { users, likes }
     return result
+  }
+
+  static async updateUserLikeTally({ users }) {
+    for (const user of users) {
+      const { userId, count } = user
+      const updateOption = { where: { userId }, by: count }
+      await UserStatistic.decrement('likeTally', updateOption)
+    }
   }
 }
 

@@ -1,7 +1,11 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
-const { Product, Ownership, Stock, ProductStatistic, Cart, CartItem } = require('../../db/models')
+const {
+  Product, Ownership, Stock,
+  ProductStatistic, Cart, CartItem,
+  Like, Reply
+} = require('../../db/models')
 const { CartToolKit } = require('../../utils/cart-tool-kit')
 const { ProductToolKit } = require('../../utils/product-tool-kit')
 const { FileUploader } = require('../../middlewares/file-uploader')
@@ -270,32 +274,36 @@ class ProductResource {
       // delete the product record inside product snapshot
       // delete the product record inside stock cache
       // delete the product record inside stock table
-      // const snapshotKey = `product:${productId}`
-      // const stockKey = `stock:${productId}`
+      const snapshotKey = `product:${productId}`
+      const stockKey = `stock:${productId}`
 
-      // const { users, replies } = await ReplyToolKit.getUsersAndRepliesByProduct(productId)
-      // console.log(users, replies)
-
-      const { users, likes } = await LikeToolKit.getUsersAndLikesByProduct(productId)
-      console.log('likes', likes, users)
-      // const { users, likes } = await LikeToolKit.getUsersAndLikesByProduct(productId)
-      // console.log('users', users, likes)
-      // const likeUsers = await LikeToolKit.getLikesByProduct(productId)
-      // const replyUsers = await ReplyToolKit.getReplyUserByProduct(productId)
-
-      // await Promise.all([
-      //   redisClient.del(snapshotKey),
-      //   redisClient.del(stockKey),
-      //   Stock.destroy({ where: { productId } })
-      // ])
+      await Promise.all([
+        redisClient.del(snapshotKey),
+        redisClient.del(stockKey),
+        Stock.destroy({ where: { productId } })
+      ])
 
       // update like_tally inside user_statistics of the user who likes the product
       // update reply_tally inside user_statistics of the user who replies the product
+      const { getUsersAndRepliesByProduct, updateUserReplyTally } = ReplyToolKit
+      const replyResult = await getUsersAndRepliesByProduct(productId)
+      await updateUserReplyTally(replyResult)
+
+      const { getUsersAndLikesByProduct, updateUserLikeTally } = LikeToolKit
+      const likeResult = await getUsersAndLikesByProduct(productId)
+      await updateUserLikeTally(likeResult)
+
       // delete the product record inside like table
+      await Like.destroy({ where: { productId } })
       // delete the product record inside reply table
+      await Reply.destroy({ where: { productId } })
+
       // delete the product record inside ownershops table
+      await Ownership.destroy({ where: { productId } })
       // delete the product record inside product_statistics table
+      await ProductStatistic.destroy({ where: { productId } })
       // delete the product record inside product table
+      await Product.destroy({ where: { id: productId } })
 
       const resultProduct = null
       return { error: null, data: resultProduct, message: '刪除成功' }
