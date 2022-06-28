@@ -21,6 +21,11 @@ const userController = {
     userServices.putSelf(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  postForgotPassword: (req, res, next) => {
+    userServices.postForgotPassword(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

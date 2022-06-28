@@ -9,6 +9,10 @@ const { AuthToolKit } = require('./auth-tool-kit')
 const { code } = require('../config/result-status-table').errorTable
 const { blackListRoleIn } = require('../config/app').generalConfig
 
+const {
+  RESEND_KEY_PREFIX, RESETPWD_KEY_PREFIX
+} = require('../config/app').service.accountService
+
 class AccountToolKit {
   static async loginFormValidate(req, type) {
     const { account, password } = req.body
@@ -153,6 +157,38 @@ class AccountToolKit {
       messageQueue.push('暱稱重複註冊')
     }
     return messageQueue
+  }
+
+  static async forgotPasswordFormValidate(req) {
+    const redisClient = req.app.locals.redisClient
+    let { account } = req.body
+    const forgotKey = `${RESEND_KEY_PREFIX}:${account}`
+
+    req.body.account = account = account.trim()
+
+    const cannotResendEmail = await redisClient.get(forgotKey)
+    let result = {}
+    // check whether user can resend a email for verification
+    if (cannotResendEmail) {
+      result = { code: code.FORBIDDEN, data: req.body, message: '重新發送驗證碼需等待60秒' }
+      return { error: true, result }
+    }
+
+    const { isFilledField } = ParameterValidationKit
+    // check whether account field is empty
+    if (!isFilledField(account)) {
+      result = { code: code.BADREQUEST, data: req.body, message: '請填寫所有欄位"' }
+      return { error: true, result }
+    }
+    // check whether account exists
+    const user = await User.findOne({ where: { account, role: 'user' } })
+    if (!user) {
+      result = { code: code.BADREQUEST, data: req.body, message: '帳號不存在' }
+      return { error: true, result }
+    }
+
+    result = { data: { user } }
+    return { error: false, result }
   }
 }
 

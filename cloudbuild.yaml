@@ -26,6 +26,7 @@ steps:
     - 'PROD_REDIS_PASSWORD=${_REDIS_PASSWORD_}'
     - 'PROD_REDIS_HOSTNAME=${_REDIS_HOSTNAME_}'
     - 'PROD_REDIS_PORT=${_REDIS_PORT_}'
+    - 'PROD_SENDGRID_APIKEY=${_SENDGRID_APIKEY_}'
 - name: node:16
   entrypoint: npm
   args: ['run', 'deploy-config']  

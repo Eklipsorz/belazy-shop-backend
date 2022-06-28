@@ -23,6 +23,9 @@ router.post('/users/login', ...middleware.userLogin, userController.login)
 // registeration for user
 router.post('/users', ...middleware.userRegister, userController.register)
 
+// forgot-password for user
+router.post('/users/forgot-password', ...middleware.forgotPassword, userController.postForgotPassword)
+
 // login for admin
 router.post('/admin/login', ...middleware.adminLogin, adminController.login)
 
