@@ -10,8 +10,8 @@ sendGridMail.setApiKey(SENDGRID_APIKEY)
 class EmailToolKit {
   static async sendSupportEmail({ req, receiver, subject, token }) {
     const supportFrom = RESET_PASSWORD_EMAIL
-    const scheme = req.protocol
     const host = req.headers.host
+    const scheme = req.secure ? 'https' : 'http'
     const supportURL = `${scheme}://${host}/${RESET_PASSWORD_URL}`
 
     const template = {
