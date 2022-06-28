@@ -45,7 +45,7 @@ app.use(
 // })
 
 app.get('/', async (req, res) => {
-  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode</h1>`)
+  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode. protocol: ${req.protocol}</h1>`)
 })
 
 app.use(routes)
