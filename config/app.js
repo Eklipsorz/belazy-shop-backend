@@ -17,6 +17,10 @@ const generalConfig = {
   DEFAULT_TALLY: {
     LIKED: 5,
     REPLIED: 5
+  },
+  CONTACT: {
+    RESET_PASSWORD_EMAIL: 'support@belazy.shop',
+    RESET_PASSWORD_URL: 'users/reset-password'
   }
 }
 const cache = {

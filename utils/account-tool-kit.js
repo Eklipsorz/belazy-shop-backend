@@ -183,7 +183,8 @@ class AccountToolKit {
       return { error: true, result }
     }
 
-    return { error: false, result: req.body }
+    result = { data: { user, input: req.body } }
+    return { error: false, result }
   }
 }
 

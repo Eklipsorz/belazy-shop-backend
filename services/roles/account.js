@@ -1,9 +1,11 @@
 const bcrypt = require('bcryptjs')
+const SHA256 = require('crypto-js/sha256')
 const { APIError } = require('../../helpers/api-error')
 const { code } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { FileUploader } = require('../../middlewares/file-uploader')
 const { AccountToolKit } = require('../../utils/account-tool-kit')
+const { EmailToolKit } = require('../../utils/email-tool-kit')
 
 const { User } = require('../../db/models')
 const {
@@ -114,7 +116,16 @@ class AccountService {
       if (error) {
         return cb(new APIError({ code: result.code, data: result.data, message: result.message }))
       }
+      // hashing with account
+      const { user, input } = result.data
+      const token = SHA256(input.account)
+      // create a key:value to resend email and set expireAt
 
+      // create a key:value to verify email and set expireAt
+
+      // send email
+      const option = { req, subject: '重設密碼', receiver: user, token }
+      await EmailToolKit.sendSupportEmail(option)
       const resultAccount = null
       return cb(null, resultAccount, '申請成功')
     } catch (error) {
