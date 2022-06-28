@@ -2,6 +2,8 @@
 const { project } = require('./config/project')
 require('dotenv').config({ path: project.ENV })
 
+const { SESSION_SECRET } = require('./config/env').ENV
+
 const NODE_ENV = process.env.NODE_ENV || 'development'
 const redisConfig = require('./config/redis')[NODE_ENV]
 const createRedisClient = require('./db/redis')
@@ -16,9 +18,7 @@ const routes = require('./routes')
 
 const PORT = parseInt(process.env.PORT) || 8080
 
-const SESSION_SECRET = NODE_ENV === 'production'
-  ? process.env.PROD_SESSION_SECRET
-  : process.env.SESSION_SECRET
+console.log(SESSION_SECRET)
 
 const app = express()
 

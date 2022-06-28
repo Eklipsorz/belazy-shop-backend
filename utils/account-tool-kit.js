@@ -9,6 +9,10 @@ const { AuthToolKit } = require('./auth-tool-kit')
 const { code } = require('../config/result-status-table').errorTable
 const { blackListRoleIn } = require('../config/app').generalConfig
 
+const {
+  RESEND_KEY_PREFIX, RESETPWD_KEY_PREFIX
+} = require('../config/app').service.accountService
+
 class AccountToolKit {
   static async loginFormValidate(req, type) {
     const { account, password } = req.body
@@ -158,7 +162,7 @@ class AccountToolKit {
   static async forgotPasswordFormValidate(req) {
     const redisClient = req.app.locals.redisClient
     let { account } = req.body
-    const forgotKey = `forgot:${account}`
+    const forgotKey = `${RESEND_KEY_PREFIX}:${account}`
 
     req.body.account = account = account.trim()
 
@@ -183,7 +187,7 @@ class AccountToolKit {
       return { error: true, result }
     }
 
-    result = { data: { user, input: req.body } }
+    result = { data: { user } }
     return { error: false, result }
   }
 }

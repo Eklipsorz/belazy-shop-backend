@@ -20,7 +20,7 @@ const generalConfig = {
   },
   CONTACT: {
     RESET_PASSWORD_EMAIL: 'support@belazy.shop',
-    RESET_PASSWORD_URL: 'users/reset-password'
+    RESET_PASSWORD_URL: 'users/reset-password',
   }
 }
 const cache = {
@@ -45,7 +45,12 @@ const service = {
   accountService: {
     DEFAULT_BCRYPT_COMPLEXITY: 10,
     DEL_OPERATION_CODE: '-1',
-    DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png'
+    DEFAULT_AVATAR: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1650818850/belazy-shop/Avatar_n1jfi9.png',
+    RESEND_KEY_PREFIX: 'reset',
+    RESETPWD_KEY_PREFIX: 'resetPWD',
+    RESET_TOKEN_LENGTH: 128,
+    RESEND_TIME_LIMIT: 60,
+    RESET_PASSWORD_TIME_LIMIT: 600
   },
   userService: {
     SEARCH_HINT_NUMBER: 10,

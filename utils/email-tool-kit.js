@@ -2,9 +2,10 @@ const { project } = require('../config/project')
 require('dotenv').config({ path: project.ENV })
 
 const { RESET_PASSWORD_EMAIL, RESET_PASSWORD_URL } = require('../config/app').generalConfig.CONTACT
+const { SENDGRID_APIKEY } = require('../config/env').ENV
 
 const sendGridMail = require('@sendgrid/mail')
-sendGridMail.setApiKey(process.env.SENDGRID_APIKEY)
+sendGridMail.setApiKey(SENDGRID_APIKEY)
 
 class EmailToolKit {
   static async sendSupportEmail({ req, receiver, subject, token }) {
