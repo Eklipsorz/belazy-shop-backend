@@ -107,6 +107,20 @@ class AccountService {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }
   }
+
+  async postForgotPassword(req, cb) {
+    try {
+      const { error, result } = await AccountToolKit.forgotPasswordFormValidate(req)
+      if (error) {
+        return cb(new APIError({ code: result.code, data: result.data, message: result.message }))
+      }
+
+      const resultAccount = null
+      return cb(null, resultAccount, '申請成功')
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
+    }
+  }
 }
 
 exports = module.exports = {

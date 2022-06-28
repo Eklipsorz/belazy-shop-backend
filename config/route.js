@@ -24,6 +24,8 @@ const generalMiddleware = {
   userRegister: [],
   // add middleware to route (POST /users/login)
   userLogin: [],
+  // add middleware to route (POST /users/forgot-password)
+  forgotPassword: [],
   // add middleware to route (All methods to /admin)
   admin: [
     AuthValidator.authenticateLoggedIn,

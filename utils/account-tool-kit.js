@@ -154,6 +154,37 @@ class AccountToolKit {
     }
     return messageQueue
   }
+
+  static async forgotPasswordFormValidate(req) {
+    const redisClient = req.app.locals.redisClient
+    let { account } = req.body
+    const forgotKey = `forgot:${account}`
+
+    req.body.account = account = account.trim()
+
+    const cannotResendEmail = await redisClient.get(forgotKey)
+    let result = {}
+    // check whether user can resend a email for verification
+    if (cannotResendEmail) {
+      result = { code: code.FORBIDDEN, data: req.body, message: '重新發送驗證碼需等待60秒' }
+      return { error: true, result }
+    }
+
+    const { isFilledField } = ParameterValidationKit
+    // check whether account field is empty
+    if (!isFilledField(account)) {
+      result = { code: code.BADREQUEST, data: req.body, message: '請填寫所有欄位"' }
+      return { error: true, result }
+    }
+    // check whether account exists
+    const user = await User.findOne({ where: { account, role: 'user' } })
+    if (!user) {
+      result = { code: code.BADREQUEST, data: req.body, message: '帳號不存在' }
+      return { error: true, result }
+    }
+
+    return { error: false, result: req.body }
+  }
 }
 
 exports = module.exports = {
