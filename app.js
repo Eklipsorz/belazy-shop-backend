@@ -17,9 +17,6 @@ const express = require('express')
 const routes = require('./routes')
 
 const PORT = parseInt(process.env.PORT) || 8080
-
-console.log(SESSION_SECRET)
-
 const app = express()
 
 app.locals.redisClient = redisClient
