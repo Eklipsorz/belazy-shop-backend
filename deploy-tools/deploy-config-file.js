@@ -5,15 +5,25 @@ require('dotenv').config({ path: project.ENV })
 
 const { FileToolKit } = require('../utils/file-tool-kit')
 
-const { SSLKEY, SSLCERT, SSLCA, CREDENTIALS } = require('../config/env').ENV
+const {
+  DB_SSLKEY, DB_SSLCERT, DB_SSLCA,
+  APP_SSLKEY, APP_SSLCERT, CREDENTIALS
+} = require('../config/env').ENV
 
 async function deployDBSSL() {
-  const keyContent = await FileToolKit.readRemoteFile(SSLKEY)
-  const certContent = await FileToolKit.readRemoteFile(SSLCERT)
-  const caContent = await FileToolKit.readRemoteFile(SSLCA)
-  fs.writeFileSync(`config/${SSLKEY}`, keyContent)
-  fs.writeFileSync(`config/${SSLCERT}`, certContent)
-  fs.writeFileSync(`config/${SSLCA}`, caContent)
+  const keyContent = await FileToolKit.readRemoteFile(DB_SSLKEY)
+  const certContent = await FileToolKit.readRemoteFile(DB_SSLCERT)
+  const caContent = await FileToolKit.readRemoteFile(DB_SSLCA)
+  fs.writeFileSync(`config/${DB_SSLKEY}`, keyContent)
+  fs.writeFileSync(`config/${DB_SSLCERT}`, certContent)
+  fs.writeFileSync(`config/${DB_SSLCA}`, caContent)
+}
+async function deployAPPSSL() {
+  const keyContent = await FileToolKit.readRemoteFile(APP_SSLKEY)
+  const certContent = await FileToolKit.readRemoteFile(APP_SSLCERT)
+
+  fs.writeFileSync(`config/${APP_SSLKEY}`, keyContent)
+  fs.writeFileSync(`config/${APP_SSLCERT}`, certContent)
 }
 
 async function deployCredentials() {
@@ -22,7 +32,8 @@ async function deployCredentials() {
 }
 
 async function main() {
-  deployDBSSL()
+  await deployDBSSL()
+  await deployAPPSSL()
   // deployCredentials()
 }
 
