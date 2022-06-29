@@ -23,12 +23,12 @@ const app = express()
 app.locals.redisClient = redisClient
 app.locals.redisStore = new RedisStore({ client: redisClient })
 
-app.use((req, res, next) => {
-  if (req.protocol === 'http') {
-    return res.redirect(301, `https://${req.headers.host}${req.url}`)
-  }
-  return next()
-})
+// app.use((req, res, next) => {
+//   if (req.protocol === 'http') {
+//     return res.redirect(301, `https://${req.headers.host}${req.url}`)
+//   }
+//   return next()
+// })
 
 // app.enable('trust proxy')
 app.use(cors())
@@ -62,5 +62,5 @@ app.listen(PORT, async () => {
     await RedisToolKit.stockWarmup(redisClient)
     await RedisToolKit.productWarmup(redisClient)
   }
-  console.log(`The express server https verion is running at ${HTTPS_PORT}`)
+  console.log(`The express server verion is running at ${PORT}`)
 })
