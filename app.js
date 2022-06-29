@@ -31,13 +31,13 @@ const httpsOption = {
 app.locals.redisClient = redisClient
 app.locals.redisStore = new RedisStore({ client: redisClient })
 
-app.use((req, res, next) => {
-  if (req.protocol === 'http') {
-    res.writeHead(301, { Location: 'https://' + req.headers.host.replace(HTTP_PORT, HTTPS_PORT) + req.url })
-    return res.end()
-  }
-  return next()
-})
+// app.use((req, res, next) => {
+//   if (req.protocol === 'http') {
+//     res.writeHead(301, { Location: 'https://' + req.headers.host.replace(HTTP_PORT, HTTPS_PORT) + req.url })
+//     return res.end()
+//   }
+//   return next()
+// })
 
 // app.enable('trust proxy')
 app.use(cors())
@@ -66,9 +66,9 @@ app.use(routes)
 const httpServer = http.createServer(app)
 const httpsServer = https.createServer(httpsOption, app)
 
-httpServer.listen(HTTP_PORT, async () => {
-  console.log(`The express server http verion is running at ${HTTP_PORT}, ${process.env.PORT}`)
-})
+// httpServer.listen(HTTP_PORT, async () => {
+//   console.log(`The express server http verion is running at ${HTTP_PORT}, ${process.env.PORT}`)
+// })
 
 httpsServer.listen(HTTPS_PORT, async () => {
   if (NODE_ENV === 'production') {
