@@ -65,7 +65,7 @@ app.use(routes)
 
 const httpServer = http.createServer(app)
 const httpsServer = https.createServer(httpsOption, app)
-
+console.log('port: ', process.env.PORT)
 httpServer.listen(HTTP_PORT, async () => {
   console.log(`The express server http verion is running at ${HTTP_PORT}`)
 })
