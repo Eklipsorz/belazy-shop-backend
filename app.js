@@ -65,13 +65,15 @@ app.use(routes)
 
 const httpServer = http.createServer(app)
 const httpsServer = https.createServer(httpsOption, app)
-console.log('port: ', process.env.PORT)
+
 httpServer.listen(HTTP_PORT, async () => {
   console.log(`The express server http verion is running at ${HTTP_PORT}`)
+  console.log('port: ', process.env.PORT)
 })
 
 httpsServer.listen(HTTPS_PORT, async () => {
   if (NODE_ENV === 'production') {
+    console.log('port: ', process.env.PORT)
     const { RedisToolKit } = require('./utils/redis-tool-kit')
     await redisClient.flushall()
     await RedisToolKit.stockWarmup(redisClient)
