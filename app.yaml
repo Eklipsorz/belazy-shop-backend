@@ -16,4 +16,11 @@ runtime: nodejs16
 
 vpc_access_connector:
   name: projects/pelagic-earth-350902/locations/asia-east1/connectors/belazy-shop-connector
+
+handlers:
+- url: /.*
+  secure: always
+  redirect_http_response_code: 301
+  script: auto
+
 # [END gae_quickstart_yaml]

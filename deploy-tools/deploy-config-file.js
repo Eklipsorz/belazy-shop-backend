@@ -6,8 +6,7 @@ require('dotenv').config({ path: project.ENV })
 const { FileToolKit } = require('../utils/file-tool-kit')
 
 const {
-  DB_SSLKEY, DB_SSLCERT, DB_SSLCA,
-  APP_SSLKEY, APP_SSLCERT, CREDENTIALS
+  DB_SSLKEY, DB_SSLCERT, DB_SSLCA, CREDENTIALS
 } = require('../config/env').ENV
 
 async function deployDBSSL() {
@@ -18,13 +17,6 @@ async function deployDBSSL() {
   fs.writeFileSync(`config/${DB_SSLCERT}`, certContent)
   fs.writeFileSync(`config/${DB_SSLCA}`, caContent)
 }
-async function deployAPPSSL() {
-  const keyContent = await FileToolKit.readRemoteFile(APP_SSLKEY)
-  const certContent = await FileToolKit.readRemoteFile(APP_SSLCERT)
-
-  fs.writeFileSync(`config/${APP_SSLKEY}`, keyContent)
-  fs.writeFileSync(`config/${APP_SSLCERT}`, certContent)
-}
 
 async function deployCredentials() {
   const credentialContent = await FileToolKit.readRemoteFile(CREDENTIALS)
@@ -33,7 +25,6 @@ async function deployCredentials() {
 
 async function main() {
   await deployDBSSL()
-  await deployAPPSSL()
   // deployCredentials()
 }
 
