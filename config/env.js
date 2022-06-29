@@ -15,9 +15,11 @@ switch (NODE_ENV) {
       SEEDER_EMAIL_PREFIX: process.env.PROD_SEEDER_EMAIL_PREFIX,
       SEEDER_EMAIL_SUFFIX: process.env.PROD_SEEDER_EMAIL_SUFFIX,
       SENDGRID_APIKEY: process.env.PROD_SENDGRID_APIKEY,
-      SSLKEY: process.env.PROD_SSL_DBKEY_PATH,
-      SSLCERT: process.env.PROD_SSL_DBCERT_PATH,
-      SSLCA: process.env.PROD_SSL_DBCA_PATH,
+      APP_SSLKEY: process.env.PROD_SSL_APPKEY_PATH,
+      APP_SSLCERT: process.env.PROD_SSL_APPCERT_PATH,
+      DB_SSLKEY: process.env.PROD_SSL_DBKEY_PATH,
+      DB_SSLCERT: process.env.PROD_SSL_DBCERT_PATH,
+      DB_SSLCA: process.env.PROD_SSL_DBCA_PATH,
       CREDENTIALS: process.env.PROD_CREDENTIALS_PATH
     }
 
