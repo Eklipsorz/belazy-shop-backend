@@ -15,8 +15,8 @@
 runtime: nodejs16
 network:
   forwarded_ports:
-    - 80/tcp
-    - 443/tcp
+    - 1024/tcp
+    - 8081/tcp
 
 
 vpc_access_connector:
