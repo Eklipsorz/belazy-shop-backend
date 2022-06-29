@@ -21,7 +21,6 @@ const app = express()
 app.locals.redisClient = redisClient
 app.locals.redisStore = new RedisStore({ client: redisClient })
 
-// app.enable('trust proxy')
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -40,7 +39,7 @@ app.use(
 )
 
 app.get('/', async (req, res) => {
-  res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode. protocol: ${req.protocol}</h1>`)
+  return res.send(`<h1>hi eklipsorz!! this is ${process.env.NODE_ENV} mode. </h1>`)
 })
 
 app.use(routes)
@@ -53,5 +52,5 @@ app.listen(PORT, async () => {
     await RedisToolKit.stockWarmup(redisClient)
     await RedisToolKit.productWarmup(redisClient)
   }
-  console.log(`The express server verion is running at ${PORT}`)
+  console.log(`The express server is running at ${PORT} `)
 })
