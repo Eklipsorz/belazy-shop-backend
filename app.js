@@ -16,28 +16,19 @@ const cors = require('cors')
 const express = require('express')
 const routes = require('./routes')
 
-const { HTTP_PORT, HTTPS_PORT } = require('./config/env').ENV
+const { PORT } = require('./config/env').ENV
 
-const fs = require('fs')
-const http = require('http')
-const https = require('https')
 const app = express()
-
-const httpsOption = {
-  key: fs.readFileSync(__dirname + '/config/ssl/app/api-belazy-shop-backend.key'),
-  cert: fs.readFileSync(__dirname + '/config/ssl/app/api-belazy-shop-backend.crt')
-}
 
 app.locals.redisClient = redisClient
 app.locals.redisStore = new RedisStore({ client: redisClient })
 
-// app.use((req, res, next) => {
-//   if (req.protocol === 'http') {
-//     res.writeHead(301, { Location: 'https://' + req.headers.host.replace(HTTP_PORT, HTTPS_PORT) + req.url })
-//     return res.end()
-//   }
-//   return next()
-// })
+app.use((req, res, next) => {
+  if (req.protocol === 'http') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`)
+  }
+  return next()
+})
 
 // app.enable('trust proxy')
 app.use(cors())
@@ -63,14 +54,7 @@ app.get('/', async (req, res) => {
 
 app.use(routes)
 
-const httpServer = http.createServer(app)
-const httpsServer = https.createServer(httpsOption, app)
-
-// httpServer.listen(HTTP_PORT, async () => {
-//   console.log(`The express server http verion is running at ${HTTP_PORT}, ${process.env.PORT}`)
-// })
-
-httpsServer.listen(HTTPS_PORT, async () => {
+app.listen(PORT, async () => {
   if (NODE_ENV === 'production') {
     console.log('port: ', process.env.PORT)
     const { RedisToolKit } = require('./utils/redis-tool-kit')

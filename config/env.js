@@ -7,8 +7,7 @@ let ENV = {}
 switch (NODE_ENV) {
   case 'production':
     ENV = {
-      HTTP_PORT: process.env.PROD_HTTP_PORT,
-      HTTPS_PORT: process.env.PROD_HTTPS_PORT,
+      PORT: process.env.PROD_PORT || 8080,
       SESSION_SECRET: process.env.PROD_SESSION_SECRET,
       ACCESS_TOKEN_SECRET: process.env.PROD_ACCESS_TOKEN_SECRET,
       REFRESH_TOKEN_SECRET: process.env.PROD_REFRESH_TOKEN_SECRET,
@@ -26,8 +25,7 @@ switch (NODE_ENV) {
     break
   case 'development':
     ENV = {
-      HTTP_PORT: process.env.HTTP_PORT,
-      HTTPS_PORT: process.env.HTTPS_PORT,
+      PORT: process.env.PORT,
       SESSION_SECRET: process.env.SESSION_SECRET,
       ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
       REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
