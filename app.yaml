@@ -13,6 +13,11 @@
 
 # [START gae_quickstart_yaml]
 runtime: nodejs16
+network:
+  forwarded_ports:
+    - 80/tcp
+    - 443/tcp
+
 
 vpc_access_connector:
   name: projects/pelagic-earth-350902/locations/asia-east1/connectors/belazy-shop-connector
