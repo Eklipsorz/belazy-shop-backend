@@ -3,4 +3,5 @@
 temp/
 config/ssl/db/client-*
 config/ssl/db/server-*
+config/ssl/app/api-belazy-shop*
 config/credentials/*

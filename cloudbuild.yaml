@@ -6,6 +6,8 @@ steps:
   entrypoint: npm
   args: ['run', 'create-env']
   env:
+    - 'PROD_HTTP_PORT=${_HTTP_PORT_}'
+    - 'PROD_HTTPS_PORT=${_HTTPS_PORT_}'
     - 'PROD_SESSION_SECRET=${_SESSION_SECRET_}'
     - 'PROD_ACCESS_TOKEN_SECRET=${_ACCESS_TOKEN_SECRET_}'
     - 'PROD_REFRESH_TOKEN_SECRET=${_REFRESH_TOKEN_SECRET_}' 
