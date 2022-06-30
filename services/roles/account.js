@@ -141,6 +141,15 @@ class AccountService {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }
   }
+
+  async getResetPassword(req, cb) {
+    try {
+      const resultAccount = null
+      return cb(null, resultAccount, '驗證成功')
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
+    }
+  }
 }
 
 exports = module.exports = {
