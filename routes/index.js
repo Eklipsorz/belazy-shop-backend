@@ -24,7 +24,10 @@ router.post('/users/login', ...middleware.userLogin, userController.login)
 router.post('/users', ...middleware.userRegister, userController.register)
 
 // forgot-password for user
-router.post('/users/forgot-password', ...middleware.forgotPassword, userController.postForgotPassword)
+router.post('/users/forgot-password', ...middleware.postForgotPassword, userController.postForgotPassword)
+
+// reset-password verification for user
+router.get('/users/reset-password', ...middleware.getResetPassword, userController.getResetPassword)
 
 // login for admin
 router.post('/admin/login', ...middleware.adminLogin, adminController.login)

@@ -20,6 +20,10 @@ class ParameterValidationKit {
     return String(number) === value
   }
 
+  static isUndefined(value) {
+    return value === undefined
+  }
+
   static isDateString(value) {
     const { isNumberString } = ParameterValidationKit
     if (isNumberString(value)) return false

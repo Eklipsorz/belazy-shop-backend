@@ -14,6 +14,8 @@ class EmailToolKit {
     const scheme = process.env.NODE_ENV === 'production' ? 'https' : 'http'
     const supportURL = `${scheme}://${host}/${RESET_PASSWORD_URL}`
 
+    token = encodeURIComponent(token)
+
     const template = {
       from: supportFrom,
       to: receiver.email,

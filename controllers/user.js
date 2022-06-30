@@ -26,6 +26,11 @@ const userController = {
     userServices.postForgotPassword(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getResetPassword: (req, res, next) => {
+    userServices.getResetPassword(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 
