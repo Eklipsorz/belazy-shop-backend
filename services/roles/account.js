@@ -144,6 +144,16 @@ class AccountService {
 
   async getResetPassword(req, cb) {
     try {
+      // check whether token is valid?
+      const { error, result } = await AccountToolKit.resetPasswordURLValidate(req)
+      // if not valid ...., then
+      // sorry, u cannot pass
+      if (error) {
+        return cb(new APIError({ code: result.code, data: result.data, message: result.message }))
+      }
+
+      // if valid, then
+      // return success message
       const resultAccount = null
       return cb(null, resultAccount, '驗證成功')
     } catch (error) {

@@ -190,6 +190,28 @@ class AccountToolKit {
     result = { data: { user } }
     return { error: false, result }
   }
+
+  static async resetPasswordURLValidate(req) {
+    let result = {}
+    const { token } = req.query
+    const { isUndefined, isFilledField } = ParameterValidationKit
+
+    if (isUndefined(token) || !isFilledField(token)) {
+      result = { code: code.BADREQUEST, data: null, message: 'token不合法' }
+      return { error: true, result }
+    }
+
+    const redisClient = req.app.locals.redisClient
+    const resetKey = `${RESETPWD_KEY_PREFIX}:${token}`
+    const isValidURL = await redisClient.get(resetKey)
+    console.log('valid', token, isValidURL)
+    if (!isValidURL) {
+      result = { code: code.BADREQUEST, data: null, message: 'token不合法' }
+      return { error: true, result }
+    }
+
+    return { error: false, result }
+  }
 }
 
 exports = module.exports = {
