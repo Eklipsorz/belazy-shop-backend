@@ -204,7 +204,7 @@ class AccountToolKit {
     const redisClient = req.app.locals.redisClient
     const resetKey = `${RESETPWD_KEY_PREFIX}:${token}`
     const isValidURL = await redisClient.get(resetKey)
-    console.log('valid', token, isValidURL)
+
     if (!isValidURL) {
       result = { code: code.BADREQUEST, data: null, message: 'token不合法' }
       return { error: true, result }
