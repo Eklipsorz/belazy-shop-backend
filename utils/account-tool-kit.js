@@ -197,7 +197,7 @@ class AccountToolKit {
     const { isUndefined, isFilledField } = ParameterValidationKit
 
     if (isUndefined(token) || !isFilledField(token)) {
-      result = { code: code.BADREQUEST, data: null, message: 'token不合法' }
+      result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
       return { error: true, result }
     }
 
@@ -206,10 +206,50 @@ class AccountToolKit {
     const isValidURL = await redisClient.get(resetKey)
 
     if (!isValidURL) {
-      result = { code: code.BADREQUEST, data: null, message: 'token不合法' }
+      result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
       return { error: true, result }
     }
 
+    return { error: false, result }
+  }
+
+  static async resetPasswordFormValidate(req) {
+    // check whether the password and checkPassword are valid
+    const { password, checkPassword } = req.body
+    const { isUndefined, isFilledField } = ParameterValidationKit
+    let result = {}
+
+    if (isUndefined(password) || !isFilledField(password) ||
+      isUndefined(checkPassword) || !isFilledField(checkPassword)) {
+      result = { code: code.BADREQUEST, data: null, message: '未填寫完所有欄位' }
+      return { error: true, result }
+    }
+
+    if (password !== checkPassword) {
+      result = { code: code.BADREQUEST, data: null, message: '密碼和確認密碼不一致' }
+      return { error: true, result }
+    }
+
+    // check whether the token is valid
+    const { token } = req.query
+
+    if (isUndefined(token) || !isFilledField(token)) {
+      result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
+      return { error: true, result }
+    }
+
+    const resetKey = `${RESETPWD_KEY_PREFIX}:${token}`
+    const redisClient = req.app.locals.redisClient
+    const account = await redisClient.get(resetKey)
+
+    if (!account) {
+      result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
+      return { error: true, result }
+    }
+    // find the user according to the token
+    const user = await User.findOne({ where: { account } })
+    // return
+    result = { data: { user } }
     return { error: false, result }
   }
 }

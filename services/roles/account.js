@@ -160,6 +160,38 @@ class AccountService {
       return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
     }
   }
+
+  async postResetPassword(req, cb) {
+    try {
+      // check whether token and password are valid?
+      const { error, result } = await AccountToolKit.resetPasswordFormValidate(req)
+      // if not valid ...., then
+      // sorry, u cannot pass
+      if (error) {
+        return cb(new APIError({ code: result.code, data: result.data, message: result.message }))
+      }
+      // if valid, then
+      // update the password
+      const { password } = req.body
+      const { user } = result.data
+
+      await user.update({
+        ...user.toJSON(),
+        password: bcrypt.hashSync(password, DEFAULT_BCRYPT_COMPLEXITY)
+      })
+
+      // remove a chance to change password
+      const { token } = req.query
+      const resetKey = `${RESETPWD_KEY_PREFIX}:${token}`
+      const redisClient = req.app.locals.redisClient
+      await redisClient.del(resetKey)
+      // return success message
+      const resultAccount = null
+      return cb(null, resultAccount, '更改成功')
+    } catch (error) {
+      return cb(new APIError({ code: code.SERVERERROR, message: error.message }))
+    }
+  }
 }
 
 exports = module.exports = {
