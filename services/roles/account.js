@@ -133,8 +133,15 @@ class AccountService {
       await redisClient.expire(resetKey, RESET_PASSWORD_TIME_LIMIT)
 
       // send email
-      const option = { req, subject: '重設密碼', receiver: user, token }
-      await EmailToolKit.sendSupportEmail(option)
+      const reqOption = {
+        host: req.headers.host,
+        scheme: process.env.NODE_ENV === 'production' ? 'https' : 'http'
+      }
+      const option = { req: reqOption, subject: '重設密碼', receiver: user, token }
+      const channel = 'reset-password'
+      await redisClient.publish(channel, JSON.stringify(option))
+      // await EmailToolKit.sendSupportEmail(option)
+
       const resultAccount = null
       return cb(null, resultAccount, '申請成功')
     } catch (error) {
