@@ -28,7 +28,7 @@ redisClient.subscribe('reset-password', (error, count) => {
 
 redisClient.on('message', async (channel, message) => {
   const data = JSON.parse(message)
-
+  console.log('inside thread message', data)
   await sendSupportEmail(data)
 })
 
@@ -39,7 +39,7 @@ async function sendSupportEmail({ req, receiver, subject, token }) {
   const supportURL = `${scheme}://${host}/${RESET_PASSWORD_URL}`
 
   token = encodeURIComponent(token)
-
+  console.log('inside sendGrid', token)
   const template = {
     from: supportFrom,
     to: receiver.email,
