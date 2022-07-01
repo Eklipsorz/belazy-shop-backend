@@ -2,6 +2,7 @@
 const { project } = require('./config/project')
 require('dotenv').config({ path: project.ENV })
 
+const { Worker, workerData } = require('worker_threads')
 const { SESSION_SECRET, PORT } = require('./config/env').ENV
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
@@ -45,6 +46,8 @@ app.get('/', async (req, res) => {
 app.use(routes)
 
 app.listen(PORT, async () => {
+  const option = { NODE_ENV }
+  const worker = new Worker(__dirname + '/daemons/reset-password-mailer.js', { workerData: option })
   if (NODE_ENV === 'production') {
     console.log('port: ', process.env.PORT)
     const { RedisToolKit } = require('./utils/redis-tool-kit')
