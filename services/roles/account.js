@@ -5,7 +5,6 @@ const { code } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { FileUploader } = require('../../middlewares/file-uploader')
 const { AccountToolKit } = require('../../utils/account-tool-kit')
-const { EmailToolKit } = require('../../utils/email-tool-kit')
 
 const { User } = require('../../db/models')
 const {
