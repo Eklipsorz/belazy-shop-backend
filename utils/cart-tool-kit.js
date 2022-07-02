@@ -5,6 +5,8 @@ const { Cart, CartItem } = require('../db/models')
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../config/app').cache.CART
 const { RedisToolKit } = require('../utils/redis-tool-kit')
 const { AuthToolKit } = require('../utils/auth-tool-kit')
+const { ParameterValidationKit } = require('./parameter-validation-kit')
+const { code } = require('../config/result-status-table').errorTable
 
 class CartToolKit {
   static async existCartCache(cart, key = null, cache = null) {
@@ -25,6 +27,37 @@ class CartToolKit {
     if (!keys.length || product.quantity === '0') return false
     // the product is in the cart
     return true
+  }
+
+  static cartHashMapSyntaxValidate(req) {
+    const { isInvalidFormat, isNumberString } = ParameterValidationKit
+    const cartHashMap = req.body
+
+    const entries = Object.entries(cartHashMap)
+    let result = {}
+
+    for (const [key, value] of entries) {
+      if (isInvalidFormat(key) || !isNumberString(key) ||
+        isInvalidFormat(value) || !isNumberString(value)) {
+        result = { code: code.NOTFOUND, data: null, message: '找不到對應項目或者數量不是正確格式' }
+
+        return { error: true, result }
+      }
+    }
+    return { error: false, result }
+  }
+
+  static cartItemSyntaxValidate(req) {
+    const { productId } = req.body
+    const { isInvalidFormat, isNumberString } = ParameterValidationKit
+    let result = {}
+
+    if (isInvalidFormat(productId) || !isNumberString(productId)) {
+      result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
+      return { error: true, result }
+    }
+
+    return { error: false, result }
   }
 
   static isEmptyCart(cart) {

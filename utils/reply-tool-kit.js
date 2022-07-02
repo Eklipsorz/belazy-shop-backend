@@ -1,4 +1,5 @@
 const validator = require('validator')
+const { ParameterValidationKit } = require('./parameter-validation-kit')
 const { Reply, UserStatistic } = require('../db/models')
 const { APIError } = require('../helpers/api-error')
 const { MAX_LENGTH_CONTENT, MIN_LENGTH_CONTENT } = require('../config/app').service.replyResource
@@ -68,9 +69,12 @@ class ReplyToolKit {
 
   static replyContentValidate(req) {
     const messageQueue = []
-    const { content } = req.body
+    let { content } = req.body
     const minLength = MIN_LENGTH_CONTENT
     const maxLength = MAX_LENGTH_CONTENT
+    const { isInvalidFormat } = ParameterValidationKit
+
+    if (isInvalidFormat(content)) req.body.content = content = ''
 
     if (!validator.isLength(content, { min: minLength, max: maxLength })) {
       messageQueue.push(`留言字數範圍得為：${minLength} - ${maxLength} 字`)

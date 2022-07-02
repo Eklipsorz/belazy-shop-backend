@@ -13,6 +13,9 @@ const redisClient = createRedisClient(redisConfig)
 const session = require('express-session')
 const RedisStore = require('connect-redis')(session)
 
+const { APIErrorHandler } = require('./middlewares/api-error-handler')
+const { BadURLFilter } = require('./middlewares/bad-url-filter')
+
 const cors = require('cors')
 const express = require('express')
 const routes = require('./routes')
@@ -22,6 +25,10 @@ app.locals.redisClient = redisClient
 app.locals.redisStore = new RedisStore({ client: redisClient })
 
 app.use(cors())
+
+// filter bad URL from clients
+app.use(BadURLFilter.preDetect)
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
@@ -43,6 +50,10 @@ app.get('/', async (req, res) => {
 })
 
 app.use(routes)
+
+// filter bad URL from clients
+app.use(BadURLFilter.postDetect)
+app.use(APIErrorHandler)
 
 app.listen(PORT, async () => {
   const option = { NODE_ENV }

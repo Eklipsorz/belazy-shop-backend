@@ -76,8 +76,8 @@ class ReplyResource {
         return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
       }
 
-      const { content } = req.body
       const message = ReplyToolKit.replyContentValidate(req)
+      const { content } = req.body
       if (message.length) {
         return { error: new APIError({ code: code.BADREQUEST, status, message, data: { content } }) }
       }
@@ -185,8 +185,8 @@ class ReplyResource {
       }
 
       // begin to edit the reply
-      const { content } = req.body
       const message = ReplyToolKit.replyContentValidate(req)
+      const { content } = req.body
       if (message.length) {
         return { error: new APIError({ code: code.BADREQUEST, status, message, data: { content } }) }
       }

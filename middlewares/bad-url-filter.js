@@ -13,7 +13,7 @@ class BadURLFilter {
   static preDetect(req, _, next) {
     let isInvalid = false
     isInvalid = BadURLFilter.continuousSlashDectect(req)
-    console.log('preDetect')
+
     if (isInvalid) {
       return next(new APIError({ code: code.NOTFOUND, message: '找不到對應項目' }))
     }
@@ -22,7 +22,6 @@ class BadURLFilter {
   }
 
   static postDetect(req, _, next) {
-    console.log('postDetect')
     return next(new APIError({ code: code.NOTFOUND, message: '找不到對應項目' }))
   }
 }

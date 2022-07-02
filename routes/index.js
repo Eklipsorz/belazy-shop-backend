@@ -9,15 +9,10 @@ const cartRoutes = require('./modules/cart')
 const { generalMiddleware } = require('../config/route')
 const { userController } = require('../controllers/user')
 const { adminController } = require('../controllers/admin')
-const { APIErrorHandler } = require('../middlewares/api-error-handler')
-const { BadURLFilter } = require('../middlewares/bad-url-filter')
 
 const router = express.Router()
 
 const middleware = generalMiddleware
-
-// filter bad URL from clients
-router.use(BadURLFilter.preDetect)
 
 // default process for every route type
 router.use('/', ...middleware.all)
@@ -47,7 +42,4 @@ router.use('/replies', ...middleware.replies, replyRoutes)
 router.use('/users', ...middleware.users, userRoutes)
 router.use('/admin', ...middleware.admin, adminRoutes)
 
-// filter bad URL from clients
-router.use(BadURLFilter.postDetect)
-router.use(APIErrorHandler)
 exports = module.exports = router
