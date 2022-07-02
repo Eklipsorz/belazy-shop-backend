@@ -17,7 +17,7 @@ const router = express.Router()
 const middleware = generalMiddleware
 
 // filter bad URL from clients
-router.use(BadURLFilter.detect)
+router.use(BadURLFilter.preDetect)
 
 // default process for every route type
 router.use('/', ...middleware.all)
@@ -47,5 +47,7 @@ router.use('/replies', ...middleware.replies, replyRoutes)
 router.use('/users', ...middleware.users, userRoutes)
 router.use('/admin', ...middleware.admin, adminRoutes)
 
+// filter bad URL from clients
+router.use(BadURLFilter.postDetect)
 router.use(APIErrorHandler)
 exports = module.exports = router
