@@ -37,13 +37,13 @@ class ProductToolKit {
     const messageQueue = []
     let { name, categoryId } = req.body
 
-    const { isNumberString, isFilledField } = ParameterValidationKit
+    const { isNumberString, isInvalidFormat } = ParameterValidationKit
     let result = {}
-    req.name = name = name.trim()
-    req.categoryId = categoryId = categoryId.trim()
+    if (req.body?.name) req.body.name = name = name.trim()
+    if (req.body?.categoryId) req.body.categoryId = categoryId = categoryId.trim()
     // check whether the parameters are valid
     // - one of all fields (name, categoryId) is empty ?
-    if (!isFilledField(name) || !isFilledField(categoryId)) {
+    if (isInvalidFormat(name) || isInvalidFormat(categoryId)) {
       result = { code: code.BADREQUEST, data: req.body, message: '名稱和產品類別要填寫' }
       return { error: true, result }
     }
@@ -104,7 +104,7 @@ class ProductToolKit {
   static async updateStockValidate(req) {
     const messageQueue = []
     const { quantity, restQuantity, price } = req.body
-    const { isNaN, isFilledField } = ParameterValidationKit
+    const { isNaN, isInvalidFormat } = ParameterValidationKit
 
     const { productId } = req.params
     const redisClient = req.app.locals.redisClient
@@ -120,8 +120,10 @@ class ProductToolKit {
       return { error: true, result }
     }
 
-    if (!isFilledField(quantity) || !isFilledField(restQuantity) || !isFilledField(price)) {
+    if (isInvalidFormat(quantity) || isInvalidFormat(restQuantity) || isInvalidFormat(price)) {
       messageQueue.push('所有欄位都要填寫')
+      result = { code: code.BADREQUEST, data: req.body, message: messageQueue }
+      return { error: true, result }
     }
 
     if (isNaN(quantity) || isNaN(restQuantity) || isNaN(price)) {

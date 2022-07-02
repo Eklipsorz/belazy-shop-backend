@@ -227,7 +227,7 @@ class AccountToolKit {
     // check whether the token is valid
     const { token } = req.query
 
-    if (isInvalidFormat(token) || isInvalidFormat(token)) {
+    if (isInvalidFormat(token)) {
       result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
       return { error: true, result }
     }
@@ -235,14 +235,13 @@ class AccountToolKit {
     const resetKey = `${RESETPWD_KEY_PREFIX}:${token}`
     const redisClient = req.app.locals.redisClient
     const account = await redisClient.get(resetKey)
-    console.log('token', token)
+
     if (!account) {
       result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
       return { error: true, result }
     }
 
-    if (isInvalidFormat(password) || isInvalidFormat(password) ||
-      isInvalidFormat(checkPassword) || isInvalidFormat(checkPassword)) {
+    if (isInvalidFormat(password) || isInvalidFormat(checkPassword)) {
       result = { code: code.BADREQUEST, data: null, message: '未填寫完所有欄位' }
       return { error: true, result }
     }
