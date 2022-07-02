@@ -13,7 +13,7 @@ function APIErrorHandler(error, _, res, next) {
   const status = error.status || DEFAULT_STATUS
   const data = error.data || DEFAULT_DATA
 
-  switch (error.code) {
+  switch (errorCode) {
     case code.BADREQUEST:
     case code.UNAUTHORIZED:
     case code.FORBIDDEN:

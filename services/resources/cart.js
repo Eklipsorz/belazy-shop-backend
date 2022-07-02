@@ -178,6 +178,10 @@ class CartResource {
       const redisClient = req.app.locals.redisClient
       const productKey = `product:${productId}`
 
+      const { error, result } = CartToolKit.cartItemSyntaxValidate(req)
+      if (error) {
+        return { error: new APIError({ code: result.code, status, message: result.message }) }
+      }
       // check whether product exists in product
       const product = await redisClient.hgetall(productKey)
       // nothing
@@ -245,6 +249,12 @@ class CartResource {
       const redisClient = req.app.locals.redisClient
       const { cartId } = req.session
       const cartHashMap = req.body
+
+      const { error, result } = CartToolKit.cartHashMapSyntaxValidate(req)
+      if (error) {
+        return { error: new APIError({ code: result.code, message: result.message, status }) }
+      }
+
       const { isNaN } = ParameterValidationKit
       const entries = Object.entries(cartHashMap)
       const keys = entries.map(([key, _]) => key)
@@ -329,6 +339,12 @@ class CartResource {
     try {
       const { productId } = req.body
       const { cartId } = req.session
+
+      const { error, result } = CartToolKit.cartItemSyntaxValidate(req)
+      if (error) {
+        return { error: new APIError({ code: result.code, status, message: result.message }) }
+      }
+
       const redisClient = req.app.locals.redisClient
       const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
 

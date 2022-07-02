@@ -33,6 +33,7 @@
     "lodash": "^4.17.21",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^2.3.3",
+    "normalize-url": "^7.0.3",
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",
     "sequelize": "^6.21.0",

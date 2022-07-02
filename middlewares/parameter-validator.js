@@ -1,5 +1,6 @@
 
 const { parameterValidator } = require('../config/app').middleware
+const { ParameterValidationKit } = require('../utils/parameter-validation-kit')
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
 
@@ -26,9 +27,11 @@ class ParameterValidator {
     return next()
   }
 
-  static ExistURIValidate(req, _, next) {
+  static existURIValidate(req, _, next) {
     const URIParams = req.params
-    const isExistURI = Object.values(URIParams).every(key => !isNaN(key))
+    const { isNumberString } = ParameterValidationKit
+
+    const isExistURI = Object.values(URIParams).every(key => isNumberString(key))
 
     if (isExistURI) {
       return next()

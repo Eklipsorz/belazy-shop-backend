@@ -9,12 +9,12 @@ const cartRoutes = require('./modules/cart')
 const { generalMiddleware } = require('../config/route')
 const { userController } = require('../controllers/user')
 const { adminController } = require('../controllers/admin')
-const { APIErrorHandler } = require('../middlewares/api-error-handler')
 
 const router = express.Router()
 
 const middleware = generalMiddleware
 
+// default process for every route type
 router.use('/', ...middleware.all)
 
 // login for user
@@ -42,5 +42,4 @@ router.use('/replies', ...middleware.replies, replyRoutes)
 router.use('/users', ...middleware.users, userRoutes)
 router.use('/admin', ...middleware.admin, adminRoutes)
 
-router.use(APIErrorHandler)
 exports = module.exports = router

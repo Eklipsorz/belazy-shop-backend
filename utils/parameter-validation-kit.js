@@ -24,6 +24,12 @@ class ParameterValidationKit {
     return value === undefined
   }
 
+  static isInvalidFormat(value) {
+    const { isFilledField, isUndefined } = ParameterValidationKit
+    if (typeof value === 'string') value = value.trim()
+    return isUndefined(value) || !isFilledField(value)
+  }
+
   static isDateString(value) {
     const { isNumberString } = ParameterValidationKit
     if (isNumberString(value)) return false

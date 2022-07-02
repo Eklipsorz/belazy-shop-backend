@@ -74,21 +74,21 @@ const adminMiddleware = {
   ],
   // add middleware to route (PUT /admin/products/:productId)
   putProducts: [
-    ParameterValidator.ExistURIValidate,
+    ParameterValidator.existURIValidate,
     upload.single('image')
   ],
   // add middleware to route (DELETE /admin/products/:productId)
   deleteProducts: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /admin/categories/:categoryId/products)
   getProductsFromCategory: [
-    ParameterValidator.ExistURIValidate,
+    ParameterValidator.existURIValidate,
     ParameterPreprocessor.paging
   ],
   // add middleware to route (GET /admin/categories/:categoryId)
   getCategory: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /admin/categories)
   getCategories: [
@@ -96,14 +96,14 @@ const adminMiddleware = {
   ],
   // add middleware to route (GET /admin/products/:productId)
   getProduct: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /admin/products/:productId/stock)
   getStock: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   putStack: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /admin/products)
   getProducts: [
@@ -128,13 +128,13 @@ const productMiddleware = {
   likeProduct: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /products/:productId/unlike)
   unlikeProduct: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /products)
   getProducts: [
@@ -142,22 +142,22 @@ const productMiddleware = {
   ],
   // add middleware to route (GET /products/:productId)
   getProduct: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
 
   // add middleware to route (GET /products/:productId/snapshot)
   getProductSnapshot: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /products/:proudctId/stock)
   getStock: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /products/:productId/replies)
   getReplies: [
-    ParameterValidator.ExistURIValidate,
+    ParameterValidator.existURIValidate,
     ParameterPreprocessor.paging
   ],
 
@@ -165,7 +165,7 @@ const productMiddleware = {
   postReplies: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ]
 
 }
@@ -178,7 +178,7 @@ const categoryMiddleware = {
   ],
   // add middleware to route (GET /category/:categoryId)
   getCategory: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /categories/products)
   getProductsFromCategories: [
@@ -186,7 +186,7 @@ const categoryMiddleware = {
   ],
   // add middleware to route (GET /categories/:categoryId/products)
   getProductsFromCategory: [
-    ParameterValidator.ExistURIValidate,
+    ParameterValidator.existURIValidate,
     ParameterPreprocessor.paging
   ]
 }
@@ -196,17 +196,17 @@ const replyMiddleware = {
   deleteReply: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (PUT /replies/:replyId)
   putReply: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ],
   // add middleware to route (GET /replies/:replyId)
   getReply: [
-    ParameterValidator.ExistURIValidate
+    ParameterValidator.existURIValidate
   ]
 }
 

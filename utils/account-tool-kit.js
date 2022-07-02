@@ -15,15 +15,17 @@ const {
 
 class AccountToolKit {
   static async loginFormValidate(req, type) {
-    const { account, password } = req.body
+    let { account } = req.body
+    const { password } = req.body
 
-    const { isFilledField } = ParameterValidationKit
+    const { isInvalidFormat } = ParameterValidationKit
     let result = {}
 
-    if (!isFilledField(account) || !isFilledField(password)) {
+    if (isInvalidFormat(account) || isInvalidFormat(password)) {
       result = { code: code.FORBIDDEN, data: null, message: '未填寫完所有欄位' }
       return { error: true, result }
     }
+    req.body.account = account = account.trim()
 
     const user = await User.findOne({ where: { account } })
 
@@ -43,33 +45,34 @@ class AccountToolKit {
 
   static async registerFormValidate(req) {
     const messageQueue = []
-    const {
-      account, nickname,
-      email, password,
-      confirmPassword
-    } = req.body
-
-    const { isFilledField } = ParameterValidationKit
+    const { password, confirmPassword } = req.body
+    let { account, nickname, email } = req.body
+    const { isInvalidFormat } = ParameterValidationKit
     // 未填寫完所有欄位
     if (
-      !isFilledField(account) || !isFilledField(nickname) ||
-      !isFilledField(email) || !isFilledField(password) ||
-      !isFilledField(confirmPassword)
+      isInvalidFormat(account) || isInvalidFormat(nickname) ||
+      isInvalidFormat(email) || isInvalidFormat(password) ||
+      isInvalidFormat(confirmPassword)
     ) {
       messageQueue.push('未填寫完所有欄位')
+      return messageQueue
     }
+
+    req.body.nickname = nickname = nickname.trim()
     // 使用者暱稱名稱超過30字
-    if (nickname && !validator.isLength(nickname, { min: 0, max: 30 })) {
+    if (!validator.isLength(nickname, { min: 0, max: 30 })) {
       messageQueue.push('使用者暱稱名稱超過30字')
     }
 
+    req.body.account = account = account.trim()
     // 帳號名稱超過10字
-    if (account && !validator.isLength(account, { min: 0, max: 10 })) {
+    if (!validator.isLength(account, { min: 0, max: 10 })) {
       messageQueue.push('帳號名稱超過10字')
     }
 
+    req.body.email = email = email.trim()
     // 電子郵件不是正確格式
-    if (email && !validator.isEmail(email)) {
+    if (!validator.isEmail(email)) {
       messageQueue.push('電子郵件不是正確格式')
     }
 
@@ -99,32 +102,33 @@ class AccountToolKit {
     const messageQueue = []
     const currentUserId = AuthToolKit.getUserId(req)
 
-    const {
-      account, nickname,
-      email, password,
-      confirmPassword
-    } = req.body
+    const { password, confirmPassword } = req.body
+    let { account, nickname, email } = req.body
 
-    const { isFilledField } = ParameterValidationKit
+    const { isInvalidFormat } = ParameterValidationKit
     // 未填寫完所有欄位
     if (
-      !isFilledField(account) || !isFilledField(nickname) ||
-      !isFilledField(email) || !isFilledField(password) ||
-      !isFilledField(confirmPassword)
+      isInvalidFormat(account) || isInvalidFormat(nickname) ||
+      isInvalidFormat(email) || isInvalidFormat(password) ||
+      isInvalidFormat(confirmPassword)
     ) {
       messageQueue.push('未填寫完所有欄位')
+      return messageQueue
     }
 
+    req.body.nickname = nickname = nickname.trim()
     // 使用者暱稱名稱超過30字
     if (nickname && !validator.isLength(nickname, { min: 0, max: 30 })) {
       messageQueue.push('使用者暱稱名稱超過30字')
     }
 
+    req.body.account = account = account.trim()
     // 帳號名稱超過10字
     if (account && !validator.isLength(account, { min: 0, max: 10 })) {
       messageQueue.push('帳號名稱超過10字')
     }
 
+    req.body.email = email = email.trim()
     // 電子郵件不是正確格式
     if (email && !validator.isEmail(email)) {
       messageQueue.push('電子郵件不是正確格式')
@@ -160,26 +164,27 @@ class AccountToolKit {
   }
 
   static async forgotPasswordFormValidate(req) {
-    const redisClient = req.app.locals.redisClient
+    // check whether account field is empty
+    const { isInvalidFormat } = ParameterValidationKit
     let { account } = req.body
+    let result = {}
+    if (isInvalidFormat(account)) {
+      result = { code: code.BADREQUEST, data: req.body, message: '請填寫所有欄位' }
+      return { error: true, result }
+    }
+    req.body.account = account = account.trim()
+    const redisClient = req.app.locals.redisClient
+
     const forgotKey = `${RESEND_KEY_PREFIX}:${account}`
 
-    req.body.account = account = account.trim()
-
     const cannotResendEmail = await redisClient.get(forgotKey)
-    let result = {}
+
     // check whether user can resend a email for verification
     if (cannotResendEmail) {
       result = { code: code.FORBIDDEN, data: req.body, message: '重新發送驗證碼需等待60秒' }
       return { error: true, result }
     }
 
-    const { isFilledField } = ParameterValidationKit
-    // check whether account field is empty
-    if (!isFilledField(account)) {
-      result = { code: code.BADREQUEST, data: req.body, message: '請填寫所有欄位"' }
-      return { error: true, result }
-    }
     // check whether account exists
     const user = await User.findOne({ where: { account, role: 'user' } })
     if (!user) {
@@ -194,9 +199,9 @@ class AccountToolKit {
   static async resetPasswordURLValidate(req) {
     let result = {}
     const { token } = req.query
-    const { isUndefined, isFilledField } = ParameterValidationKit
+    const { isInvalidFormat } = ParameterValidationKit
 
-    if (isUndefined(token) || !isFilledField(token)) {
+    if (isInvalidFormat(token)) {
       result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
       return { error: true, result }
     }
@@ -216,24 +221,13 @@ class AccountToolKit {
   static async resetPasswordFormValidate(req) {
     // check whether the password and checkPassword are valid
     const { password, checkPassword } = req.body
-    const { isUndefined, isFilledField } = ParameterValidationKit
+    const { isInvalidFormat } = ParameterValidationKit
     let result = {}
-
-    if (isUndefined(password) || !isFilledField(password) ||
-      isUndefined(checkPassword) || !isFilledField(checkPassword)) {
-      result = { code: code.BADREQUEST, data: null, message: '未填寫完所有欄位' }
-      return { error: true, result }
-    }
-
-    if (password !== checkPassword) {
-      result = { code: code.BADREQUEST, data: null, message: '密碼和確認密碼不一致' }
-      return { error: true, result }
-    }
 
     // check whether the token is valid
     const { token } = req.query
 
-    if (isUndefined(token) || !isFilledField(token)) {
+    if (isInvalidFormat(token)) {
       result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
       return { error: true, result }
     }
@@ -246,6 +240,17 @@ class AccountToolKit {
       result = { code: code.NOTFOUND, data: null, message: '目前token對應不到任何資料' }
       return { error: true, result }
     }
+
+    if (isInvalidFormat(password) || isInvalidFormat(checkPassword)) {
+      result = { code: code.BADREQUEST, data: null, message: '未填寫完所有欄位' }
+      return { error: true, result }
+    }
+
+    if (password !== checkPassword) {
+      result = { code: code.BADREQUEST, data: null, message: '密碼和確認密碼不一致' }
+      return { error: true, result }
+    }
+
     // find the user according to the token
     const user = await User.findOne({ where: { account } })
     // return
