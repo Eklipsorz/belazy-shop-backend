@@ -10,11 +10,16 @@ const { generalMiddleware } = require('../config/route')
 const { userController } = require('../controllers/user')
 const { adminController } = require('../controllers/admin')
 const { APIErrorHandler } = require('../middlewares/api-error-handler')
+const { BadURLFilter } = require('../middlewares/bad-url-filter')
 
 const router = express.Router()
 
 const middleware = generalMiddleware
 
+// filter bad URL from clients
+router.use(BadURLFilter.detect)
+
+// default process for every route type
 router.use('/', ...middleware.all)
 
 // login for user

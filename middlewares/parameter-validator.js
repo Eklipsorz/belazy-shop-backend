@@ -27,6 +27,10 @@ class ParameterValidator {
     return next()
   }
 
+  static UndefinedURIValidate(req, _, next) {
+    const URIParams = req.params
+  }
+
   static ExistURIValidate(req, _, next) {
     const URIParams = req.params
     const { isNumberString } = ParameterValidationKit

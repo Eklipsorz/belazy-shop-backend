@@ -126,12 +126,14 @@ const productMiddleware = {
   ],
   // add middleware to route (POST /products/:productId/like)
   likeProduct: [
+    // ParameterValidator.UndefinedURIValidate,
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
     ParameterValidator.ExistURIValidate
   ],
   // add middleware to route (GET /products/:productId/unlike)
   unlikeProduct: [
+
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
     ParameterValidator.ExistURIValidate
