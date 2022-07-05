@@ -29,18 +29,23 @@ class CartToolKit {
     return true
   }
 
-  static cartHashMapSyntaxValidate(req) {
-    const { isInvalidFormat, isNumberString } = ParameterValidationKit
-    const cartHashMap = req.body
-
-    const entries = Object.entries(cartHashMap)
+  static cartHashMapSyntaxValidate(cart) {
     let result = {}
+    if (!Array.isArray(cart)) {
+      result = { code: code.NOTFOUND, data: null, message: '購物車內找不到對應項目' }
+      return { error: true, result }
+    }
 
-    for (const [key, value] of entries) {
-      if (isInvalidFormat(key) || !isNumberString(key) ||
-        isInvalidFormat(value) || !isNumberString(value)) {
-        result = { code: code.NOTFOUND, data: null, message: '找不到對應項目或者數量不是正確格式' }
+    const { isInvalidFormat, canBeANumber } = ParameterValidationKit
 
+    for (const item of cart) {
+      const { productId, quantity } = item
+      if (isInvalidFormat(productId) || !canBeANumber(productId)) {
+        result = { code: code.NOTFOUND, data: null, message: '購物車內找不到對應項目' }
+        return { error: true, result }
+      }
+      if (isInvalidFormat(quantity) || !canBeANumber(quantity)) {
+        result = { code: code.BADREQUEST, data: null, message: '數量不是數字' }
         return { error: true, result }
       }
     }
@@ -49,10 +54,10 @@ class CartToolKit {
 
   static cartItemSyntaxValidate(req) {
     const { productId } = req.body
-    const { isInvalidFormat, isNumberString } = ParameterValidationKit
+    const { isInvalidFormat, canBeANumber } = ParameterValidationKit
     let result = {}
 
-    if (isInvalidFormat(productId) || !isNumberString(productId)) {
+    if (isInvalidFormat(productId) || !canBeANumber(productId)) {
       result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
       return { error: true, result }
     }

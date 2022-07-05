@@ -19,8 +19,7 @@ function APIErrorHandler(error, _, res, next) {
     case code.FORBIDDEN:
     case code.NOTFOUND:
     case code.SERVERERROR:
-      res.status(errorCode).json({ status, message, data })
-      break
+      return res.status(errorCode).json({ status, message, data })
   }
   return next(error)
 }

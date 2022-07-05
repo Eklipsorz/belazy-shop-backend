@@ -5,6 +5,11 @@ class ParameterValidationKit {
     return number !== value
   }
 
+  static canBeANumber(value) {
+    const { isNumberString, isNaN } = ParameterValidationKit
+    return isNumberString(value) || !isNaN(value)
+  }
+
   static isFilledField(field) {
     const string = String(field)
     return string !== ''

@@ -1,5 +1,6 @@
 const { status, code } = require('../config/result-status-table').errorTable
 const { APIError } = require('../helpers/api-error')
+const { ParameterValidationKit } = require('../utils/parameter-validation-kit')
 const { RedisToolKit } = require('../utils/redis-tool-kit')
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../config/app').cache.CART
 
@@ -42,11 +43,13 @@ class CartPostprocessor {
 
   static async checkAndSyncDB(req, _, next) {
     try {
+      const { isUndefined } = ParameterValidationKit
+      if (isUndefined(req.stageArea)) return
       const stageArea = Array.isArray(req.stageArea) ? req.stageArea : [req.stageArea]
 
       const redisClient = req.app.locals.redisClient
       const checkAndSyncDBTask = CartPostprocessor.checkAndSyncDBTask
-      await Promise.all(
+      return await Promise.all(
         stageArea.map(item => checkAndSyncDBTask(item, redisClient))
       )
     } catch (error) {
