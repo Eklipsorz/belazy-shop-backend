@@ -9,6 +9,14 @@ class ProductToolKit {
     return await ProductToolKit.productsValidate(req, 'post')
   }
 
+  static async getProductTotalPrice(req, productId, quantity) {
+    const redisClient = req.app.locals.redisClient
+    const stockKey = `stock:${productId}`
+    const stock = await redisClient.hgetall(stockKey)
+
+    return Number(stock.price) * Number(quantity)
+  }
+
   static async putProductsValidate(req) {
     // check whether the product exists?
     const { productId } = req.params

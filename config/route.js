@@ -169,8 +169,8 @@ const productMiddleware = {
   ],
   // add middleware to route (POST /products/purchase)
   postPurchase: [
-    AuthValidator.authenticateLoggedIn,
-    AuthValidator.authenticateUser
+    // AuthValidator.authenticateLoggedIn,
+    // AuthValidator.authenticateUser
   ]
 
 }

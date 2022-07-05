@@ -206,8 +206,8 @@ const seeder = {
       REST: 50
     },
     DEFEAULT_PRICE: {
-      MIN: 100,
-      MAX: 1000
+      MIN: 1,
+      MAX: 20
     }
   },
   productStatisticsSeeder: {
