@@ -166,6 +166,11 @@ const productMiddleware = {
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser,
     ParameterValidator.existURIValidate
+  ],
+  // add middleware to route (POST /products/purchase)
+  postPurchase: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser
   ]
 
 }

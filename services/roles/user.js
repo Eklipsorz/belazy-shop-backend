@@ -4,7 +4,7 @@ const { CategoryResource } = require('../resources/category')
 const { LikeResource } = require('../resources/like')
 const { ReplyResource } = require('../resources/reply')
 const { CartResource } = require('../resources/cart')
-
+const { PurchaseResource } = require('../resources/purchase')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -217,6 +217,11 @@ class UserService extends AccountService {
 
   async deleteCart(req, cb) {
     const { error, data, message } = await CartResource.deleteCart(req)
+    return cb(error, data, message)
+  }
+
+  async postPurchase(req, cb) {
+    const { error, data, message } = await PurchaseResource.postPurchase(req)
     return cb(error, data, message)
   }
 }
