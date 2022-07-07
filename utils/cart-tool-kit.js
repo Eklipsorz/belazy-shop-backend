@@ -29,29 +29,6 @@ class CartToolKit {
     return true
   }
 
-  static cartHashMapSyntaxValidate(cart) {
-    let result = {}
-    if (!Array.isArray(cart)) {
-      result = { code: code.NOTFOUND, data: null, message: '購物車內找不到對應項目' }
-      return { error: true, result }
-    }
-
-    const { isInvalidFormat, canBeANumber } = ParameterValidationKit
-
-    for (const item of cart) {
-      const { productId, quantity } = item
-      if (isInvalidFormat(productId) || !canBeANumber(productId)) {
-        result = { code: code.NOTFOUND, data: null, message: '購物車內找不到對應項目' }
-        return { error: true, result }
-      }
-      if (isInvalidFormat(quantity) || !canBeANumber(quantity)) {
-        result = { code: code.BADREQUEST, data: null, message: '數量不是數字' }
-        return { error: true, result }
-      }
-    }
-    return { error: false, result }
-  }
-
   static cartItemSyntaxValidate(req) {
     const { productId } = req.body
     const { isInvalidFormat, canBeANumber } = ParameterValidationKit

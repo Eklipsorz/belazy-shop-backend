@@ -5,6 +5,56 @@ const { MIN_LENGTH_NAME, MAX_LENGTH_NAME } = require('../config/app').service.pr
 const { Product, Category, Sequelize } = require('../db/models')
 
 class ProductToolKit {
+  static getQuantityHashMap(items) {
+    const result = {}
+    for (const item of items) {
+      result[item.productId] = item.quantity
+    }
+    return result
+  }
+
+  static async existProductsValidate(keys, cache) {
+    let result = {}
+    for (const key of keys) {
+      const productKey = `product:${key}`
+      const product = await cache.hgetall(productKey)
+
+      if (!Object.keys(product).length) {
+        result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
+        return { error: true, result }
+      }
+    }
+
+    return { error: false, result }
+  }
+
+  static quantityHashMapSyntaxValidate(items) {
+    let result = {}
+    if (!Array.isArray(items)) {
+      result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
+      return { error: true, result }
+    }
+
+    const { isInvalidFormat, canBeANumber } = ParameterValidationKit
+
+    for (const item of items) {
+      const { productId, quantity } = item
+      if (isInvalidFormat(productId) || !canBeANumber(productId)) {
+        result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
+        return { error: true, result }
+      }
+      if (isInvalidFormat(quantity) || !canBeANumber(quantity)) {
+        result = { code: code.BADREQUEST, data: null, message: '數量不是數字' }
+        return { error: true, result }
+      }
+      if (Number(quantity) <= 0) {
+        result = { code: code.BADREQUEST, data: null, message: '數量必須至少是1以上' }
+        return { error: true, result }
+      }
+    }
+    return { error: false, result }
+  }
+
   static async postProductsValidate(req) {
     return await ProductToolKit.productsValidate(req, 'post')
   }
@@ -29,12 +79,12 @@ class ProductToolKit {
   }
 
   // check stock according to cart requirement
-  static async checkStockStatus(cart, stock) {
-    const cartKeys = Object.keys(cart)
+  static checkStockStatus(items, stock) {
+    const keys = Object.keys(items)
     const soldOut = []
     const notEnough = []
 
-    for (const key of cartKeys) {
+    for (const key of keys) {
       const restQuantity = Number(stock[key].restQuantity)
       const productId = Number(key)
       // const productName = snapshots[key].name
@@ -42,7 +92,7 @@ class ProductToolKit {
         case (!restQuantity):
           soldOut.push(productId)
           break
-        case (Number(cart[key]) > restQuantity):
+        case (Number(items[key]) > restQuantity):
           notEnough.push(productId)
           break
       }

@@ -71,6 +71,7 @@ const service = {
   },
 
   redisLock: {
+    DEFAULT_LOCKNAME: 'lock',
     DEFAULT_LOCKTIME: 5000,
     DEFAULT_TIMEOUT: 15000,
     DEFAULT_EXPIRY_MODE: 'PX',

@@ -221,15 +221,12 @@ class CartResource {
       const defaultData = isUndefined(items) ? null : JSON.stringify(items)
       const cart = items
 
-      const { error, result } = CartToolKit.cartHashMapSyntaxValidate(cart)
+      const { error, result } = ProductToolKit.quantityHashMapSyntaxValidate(cart)
       if (error) {
         return { error: new APIError({ code: result.code, message: result.message, data: defaultData }) }
       }
 
-      const cartHashMap = {}
-      for (const item of cart) {
-        cartHashMap[item.productId] = item.quantity
-      }
+      const cartHashMap = ProductToolKit.getQuantityHashMap(cart)
 
       const entries = Object.entries(cartHashMap)
       const keys = entries.map(([key, _]) => key)
@@ -251,19 +248,10 @@ class CartResource {
         return { error: new APIError({ code: code.NOTFOUND, message: '購物車內找不到對應項目', data: defaultData }) }
       }
 
-      // check whether one of products has invalid quantity:
-      // - quantity is NaN?
-      // - quantity is greater than 0?
-      const values = entries.map(([_, value]) => Number(value))
-
-      const areGreaterThanZero = values.every(value => Number(value) > 0)
-      if (!areGreaterThanZero) {
-        return { error: new APIError({ code: code.BADREQUEST, message: '數量必須至少是1以上', data: defaultData }) }
-      }
-
-      // // check whether stock is enough?
-      const stock = await CartResource.getStock(keys, redisClient)
-      const { soldOut, notEnough } = await CartResource.checkStockStatus(cartHashMap, stock)
+      //  check whether stock is enough?
+      const { getStock, checkStockStatus } = ProductToolKit
+      const stock = await getStock(keys, redisClient)
+      const { soldOut, notEnough } = checkStockStatus(cartHashMap, stock)
       const stockError = Boolean(soldOut.length) || Boolean(notEnough.length)
 
       if (stockError) {

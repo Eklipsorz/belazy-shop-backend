@@ -13,7 +13,7 @@ const {
 class RedisLock {
   constructor(client, option = {}) {
     if (!client) throw new Error('並未存在對應redis client')
-    if (client.status !== 'connecting') throw new Error('redis client 並未正常連接 redis')
+    // if (client.status !== 'connecting') throw new Error('redis client 並未正常連接 redis')
     this.client = client
     this.lockTime = option.lockTime || DEFAULT_LOCKTIME
     this.lockTimeOut = option.lockTimeOut || DEFAULT_TIMEOUT
