@@ -17,6 +17,40 @@ class ProductToolKit {
     return Number(stock.price) * Number(quantity)
   }
 
+  // get stock hashmap
+  static async getStock(productKeys, cache) {
+    const result = {}
+    if (!Array.isArray(productKeys)) productKeys = [productKeys]
+    for (const key of productKeys) {
+      const stockKey = `stock:${key}`
+      result[key] = (await cache.hgetall(stockKey))
+    }
+    return result
+  }
+
+  // check stock according to cart requirement
+  static async checkStockStatus(cart, stock) {
+    const cartKeys = Object.keys(cart)
+    const soldOut = []
+    const notEnough = []
+
+    for (const key of cartKeys) {
+      const restQuantity = Number(stock[key].restQuantity)
+      const productId = Number(key)
+      // const productName = snapshots[key].name
+      switch (true) {
+        case (!restQuantity):
+          soldOut.push(productId)
+          break
+        case (Number(cart[key]) > restQuantity):
+          notEnough.push(productId)
+          break
+      }
+    }
+    const result = { soldOut, notEnough }
+    return result
+  }
+
   static async putProductsValidate(req) {
     // check whether the product exists?
     const { productId } = req.params

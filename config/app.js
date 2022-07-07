@@ -68,6 +68,16 @@ const service = {
     MAX_LENGTH_NAME: 30,
     DEL_OPERATION_CODE: '-1',
     DEFAULT_PRODUCT_IMAGE: 'https://res.cloudinary.com/dqfxgtyoi/image/upload/v1656075982/belazy-shop/coming-soon-product_v7e8p7.png'
+  },
+
+  redisLock: {
+    DEFAULT_LOCKTIME: 5000,
+    DEFAULT_TIMEOUT: 15000,
+    DEFAULT_EXPIRY_MODE: 'PX',
+    DEFAULT_SET_MODE: 'NX',
+    // in ms
+    DEFAULT_SLEEP_PERIOD: 200,
+    DEFAULT_REFRESH_PERIOD: 2500
   }
   // userService: {
 

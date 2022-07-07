@@ -4,44 +4,11 @@ const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { CartToolKit } = require('../../utils/cart-tool-kit')
+const { ProductToolKit } = require('../../utils/product-tool-kit')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cache.CART
 
 class CartResource {
-  // get stock hashmap
-  static async getStock(productKeys, cache) {
-    const result = {}
-    if (!Array.isArray(productKeys)) productKeys = [productKeys]
-    for (const key of productKeys) {
-      const stockKey = `stock:${key}`
-      result[key] = (await cache.hgetall(stockKey))
-    }
-    return result
-  }
-
-  // check stock according to cart requirement
-  static async checkStockStatus(cart, stock) {
-    const cartKeys = Object.keys(cart)
-    const soldOut = []
-    const notEnough = []
-
-    for (const key of cartKeys) {
-      const restQuantity = Number(stock[key].restQuantity)
-      const productId = Number(key)
-      // const productName = snapshots[key].name
-      switch (true) {
-        case (!restQuantity):
-          soldOut.push(productId)
-          break
-        case (Number(cart[key]) > restQuantity):
-          notEnough.push(productId)
-          break
-      }
-    }
-    const result = { soldOut, notEnough }
-    return result
-  }
-
   static async getCartRecord(req, sum, type = 'add') {
     const redisClient = req.app.locals.redisClient
     const { cartId } = req.session
@@ -201,8 +168,9 @@ class CartResource {
       const cartHashMap = {}
       cartHashMap[productId] = quantity
 
-      const stock = await CartResource.getStock(productId, redisClient)
-      const { soldOut, notEnough } = await CartResource.checkStockStatus(cartHashMap, stock)
+      const { getStock, checkStockStatus } = ProductToolKit
+      const stock = await getStock(productId, redisClient)
+      const { soldOut, notEnough } = await checkStockStatus(cartHashMap, stock)
       const stockError = Boolean(soldOut.length) || Boolean(notEnough.length)
 
       // if not enough, just say sorry and return
