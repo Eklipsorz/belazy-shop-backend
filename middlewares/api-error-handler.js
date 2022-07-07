@@ -10,7 +10,7 @@ const { code } = require('../config/result-status-table').errorTable
 function APIErrorHandler(error, _, res, next) {
   const errorCode = error.code || DEFAULT_CODE
   const message = error.message || DEFAULT_MESSAGE
-  const status = error.status || DEFAULT_STATUS
+  const status = DEFAULT_STATUS
   const data = error.data || DEFAULT_DATA
 
   switch (errorCode) {
@@ -19,8 +19,7 @@ function APIErrorHandler(error, _, res, next) {
     case code.FORBIDDEN:
     case code.NOTFOUND:
     case code.SERVERERROR:
-      res.status(errorCode).json({ status, message, data })
-      break
+      return res.status(errorCode).json({ status, message, data })
   }
   return next(error)
 }

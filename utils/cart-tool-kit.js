@@ -29,30 +29,12 @@ class CartToolKit {
     return true
   }
 
-  static cartHashMapSyntaxValidate(req) {
-    const { isInvalidFormat, isNumberString } = ParameterValidationKit
-    const cartHashMap = req.body
-
-    const entries = Object.entries(cartHashMap)
-    let result = {}
-
-    for (const [key, value] of entries) {
-      if (isInvalidFormat(key) || !isNumberString(key) ||
-        isInvalidFormat(value) || !isNumberString(value)) {
-        result = { code: code.NOTFOUND, data: null, message: '找不到對應項目或者數量不是正確格式' }
-
-        return { error: true, result }
-      }
-    }
-    return { error: false, result }
-  }
-
   static cartItemSyntaxValidate(req) {
     const { productId } = req.body
-    const { isInvalidFormat, isNumberString } = ParameterValidationKit
+    const { isInvalidFormat, canBeANumber } = ParameterValidationKit
     let result = {}
 
-    if (isInvalidFormat(productId) || !isNumberString(productId)) {
+    if (isInvalidFormat(productId) || !canBeANumber(productId)) {
       result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
       return { error: true, result }
     }

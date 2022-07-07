@@ -58,6 +58,7 @@ app.use(APIErrorHandler)
 app.listen(PORT, async () => {
   const option = { NODE_ENV }
   const worker = new Worker(__dirname + '/daemons/reset-password-mailer.js', { workerData: option })
+
   if (NODE_ENV === 'production') {
     console.log('port: ', process.env.PORT)
     const { RedisToolKit } = require('./utils/redis-tool-kit')
