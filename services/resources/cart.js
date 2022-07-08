@@ -342,52 +342,46 @@ class CartResource {
   }
 
   // remove all products from current cart
-  static async deleteCart(req) {
-    try {
-      // check whether there is something inside the cart
-      const { cartId } = req.session
-      const redisClient = req.app.locals.redisClient
-      const { isEmptyCart, getValidProducts } = CartToolKit
+  static async deleteCart(req, data = null) {
+    req.session.cartId = '93c1b1fc-9af4-4020-8e07-d83f028b3d20'
+    const { cartId } = req.session
+    const redisClient = req.app.locals.redisClient
 
-      const getCacheValues = RedisToolKit.getCacheValues
+    let cart = data
+    if (!cart) {
       const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
-      const cart = await getCacheValues(cartKeyPattern, redisClient)
-
-      // if none, then
-      if (isEmptyCart(cart)) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車是空的' }) }
-      }
-
-      // if yes, then
-      // remove all products with quantity = 0
-      const products = getValidProducts(cart)
-      const templates = []
-      for (const product of products) {
-        const { productId } = product
-        const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
-        const template = {
-          ...product,
-          quantity: 0,
-          price: 0,
-          dirtyBit: 1,
-          updatedAt: new Date()
-        }
-        templates.push(template)
-        await redisClient.hset(cartItemKey, template)
-      }
-      // sync to cart
-      const cartTemplate = await CartResource.putCart(req, 0)
-
-      // ready to check and sync db
-      templates.push(cartTemplate)
-      req.stageArea = templates
-
-      // return success message
-      const resultCart = null
-      return { error: null, data: resultCart, message: '移除成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+      cart = await RedisToolKit.getCacheValues(cartKeyPattern, redisClient)
+      console.log('cartId, cartKey', cartId, cartKeyPattern)
     }
+
+    const products = CartToolKit.getValidProducts(cart)
+    console.log('product', products, data)
+    const templates = []
+    for (const product of products) {
+      const { productId } = product
+      const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+
+      const template = {
+        ...product,
+        quantity: 0,
+        price: 0,
+        dirtyBit: 1,
+        updatedAt: new Date()
+      }
+      templates.push(template)
+      await redisClient.hset(cartItemKey, template)
+    }
+
+    // sync to cart
+    const cartTemplate = await CartResource.putCart(req, 0)
+
+    // ready to check and sync db
+    templates.push(cartTemplate)
+    req.stageArea = templates
+
+    // return success message
+    const resultCart = null
+    return { error: null, data: resultCart, message: '移除成功' }
   }
 }
 

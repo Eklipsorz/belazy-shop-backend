@@ -4,6 +4,7 @@ const { CategoryResource } = require('../resources/category')
 const { LikeResource } = require('../resources/like')
 const { ReplyResource } = require('../resources/reply')
 const { CartResource } = require('../resources/cart')
+const { ServiceValidator } = require('../service-validator')
 const { PurchaseResource } = require('../resources/purchase')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
@@ -216,8 +217,13 @@ class UserService extends AccountService {
   }
 
   async deleteCart(req, cb) {
-    const { error, data, message } = await CartResource.deleteCart(req)
-    return cb(error, data, message)
+    try {
+      const result = await ServiceValidator.deleteCart(req)
+      const { error, data, message } = await CartResource.deleteCart(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async postPurchase(req, cb) {

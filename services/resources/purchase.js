@@ -5,6 +5,7 @@ const stripe = require('stripe')(process.env.STRIPE_BACKEND_APIKEY)
 const { APIError } = require('../../helpers/api-error')
 const { code } = require('../../config/result-status-table').errorTable
 const { ProductToolKit } = require('../../utils/product-tool-kit')
+const { CartResource } = require('../resources/cart')
 const { RedisLock } = require('../db/redisLock')
 const { v4: uuidv4 } = require('uuid')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
@@ -55,16 +56,12 @@ class PurchaseResource {
     return { error: false, result }
   }
 
-  static async postPurchase(req) {
+  static async postPurchase(req, from) {
     const redisClient = req.app.locals.redisClient
     const redisLock = new RedisLock(redisClient)
     const lockId = uuidv4()
 
     try {
-      // calculate total amount
-      // const { getProductTotalPrice } = ProductToolKit
-      // console.log(req.body.items)
-      // return
       const { isInvalidFormat } = ParameterValidationKit
       const { items, stripeToken } = req.body
 
@@ -122,6 +119,14 @@ class PurchaseResource {
         return { error: new APIError({ code: code.FORBIDDEN, message: '目前付款資訊無法正常付款' }) }
       }
       await redisLock.unlock(DEFAULT_LOCKNAME, lockId)
+
+      switch (from) {
+        case 'cart':
+          await CartResource.deleteCart(req)
+          break
+        case 'direct':
+          break
+      }
 
       const resultPurchase = null
       return { error: null, data: resultPurchase, message: '購買成功' }
