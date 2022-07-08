@@ -226,9 +226,27 @@ class UserService extends AccountService {
     }
   }
 
-  async postPurchase(req, cb) {
-    const { error, data, message } = await PurchaseResource.postPurchase(req)
-    return cb(error, data, message)
+  async postPagePurchase(req, cb) {
+    try {
+      req.body.items = [req.body.items]
+      const result = await ServiceValidator.postPagePurchase(req)
+      console.log('page purchase', result)
+      const { error, data, message } = await PurchaseResource.postPurchase('page', req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
+  }
+
+  async postCartPurchase(req, cb) {
+    try {
+      const result = await ServiceValidator.postCartPurchase(req)
+      console.log('cart purchase', result)
+      // const { error, data, message } = await PurchaseResource.postPurchase(req)
+      // return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 }
 

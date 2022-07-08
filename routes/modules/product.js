@@ -19,7 +19,7 @@ router.post('/:productId/replies', ...middleware.postReplies, controller.postRep
 router.post('/:productId/like', ...middleware.likeProduct, controller.likeProduct)
 router.post('/:productId/unlike', ...middleware.unlikeProduct, controller.unlikeProduct)
 
-router.post('/purchase', ...middleware.postPurchase, controller.postPurchase)
+router.post('/purchase', ...middleware.postPagePurchase, controller.postPagePurchase)
 
 router.get('/:productId', ...middleware.getProduct, controller.getProduct)
 router.get('/', ...middleware.getProducts, controller.getProducts)

@@ -9,6 +9,7 @@ const { CartResource } = require('../resources/cart')
 const { RedisLock } = require('../db/redisLock')
 const { v4: uuidv4 } = require('uuid')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
+const { raw } = require('express')
 const { DEFAULT_LOCKNAME } = require('../../config/app').service.redisLock
 
 class PurchaseResource {
@@ -17,7 +18,7 @@ class PurchaseResource {
     const { items, stripeToken } = req.body
     const redisClient = req.app.locals.redisClient
     const { getProductTotalPrice } = ProductToolKit
-    let result = {}
+    const result = {}
     let amount = 0
 
     for (const item of items) {
@@ -27,16 +28,16 @@ class PurchaseResource {
     }
 
     // charge
-    const chargeResult = await stripe.charges.create({
+    await stripe.charges.create({
       amount,
       source: stripeToken,
       currency: 'usd'
     })
-
-    if (chargeResult instanceof Error) {
-      result = { code: code.FORBIDDEN, data: null, message: '目前付款資訊無法正常付款' }
-      return { error: true, result }
-    }
+    // console.log(chargeResult)
+    // if (chargeResult instanceof Error) {
+    //   result = { code: code.FORBIDDEN, data: null, message: '目前付款資訊無法正常付款' }
+    //   return { error: true, result }
+    // }
 
     // update stock
     const map = Object.entries(quantityHashMap)
@@ -56,43 +57,18 @@ class PurchaseResource {
     return { error: false, result }
   }
 
-  static async postPurchase(req, from) {
+  static async postPurchase(from, req, data) {
     const redisClient = req.app.locals.redisClient
     const redisLock = new RedisLock(redisClient)
     const lockId = uuidv4()
-
     try {
       const { isInvalidFormat } = ParameterValidationKit
-      const { items, stripeToken } = req.body
-
-      // check whether token and items fields are filled?
-      if (isInvalidFormat(stripeToken)) {
-        return { error: new APIError({ code: code.FORBIDDEN, message: '目前付款資訊無法正常付款' }) }
-      }
-
-      if (isInvalidFormat(items)) {
-        return { error: new APIError({ code: code.NOTFOUND, message: '找不到對應項目' }) }
-      }
-
-      // check whether syntax of items field is valid?
-      const { quantityHashMapSyntaxValidate } = ProductToolKit
-      const syntaxValidation = quantityHashMapSyntaxValidate(items)
-      if (syntaxValidation.error) {
-        const { result } = syntaxValidation
-        return { error: new APIError({ code: result.code, message: result.message }) }
-      }
-
-      // check whether products are exist?
-      const { existProductsValidate, getQuantityHashMap } = ProductToolKit
-      const quantityHashMap = getQuantityHashMap(items)
-      const keys = Object.keys(quantityHashMap)
-      const existValidation = await existProductsValidate(keys, redisClient)
-      if (existValidation.error) {
-        const { result } = existValidation
-        return { error: new APIError({ code: result.code, message: result.message }) }
-      }
-
+      const { getQuantityHashMap } = ProductToolKit
       // check whether stock is enough
+      const { items } = req.body
+      console.log('result', isInvalidFormat(data), data)
+      const quantityHashMap = isInvalidFormat(data) ? getQuantityHashMap(items) : data.quantityHashMap
+      const keys = Object.keys(quantityHashMap)
 
       await redisLock.lock(DEFAULT_LOCKNAME, lockId)
       const { getStock, checkStockStatus } = ProductToolKit
@@ -103,28 +79,24 @@ class PurchaseResource {
 
       if (stockError) {
         await redisLock.unlock(DEFAULT_LOCKNAME, lockId)
-        return { error: new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' }) }
+        throw new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' })
       }
 
       // if error
       const { purchaseTask } = PurchaseResource
 
-      const chargeResult = await Promise.race([
+      await Promise.race([
         purchaseTask(req, quantityHashMap, stockHashMap),
         redisLock.refresh(DEFAULT_LOCKNAME, lockId)
       ])
 
-      if (chargeResult instanceof Error) {
-        await redisLock.unlock(DEFAULT_LOCKNAME, lockId)
-        return { error: new APIError({ code: code.FORBIDDEN, message: '目前付款資訊無法正常付款' }) }
-      }
       await redisLock.unlock(DEFAULT_LOCKNAME, lockId)
 
       switch (from) {
         case 'cart':
           await CartResource.deleteCart(req)
           break
-        case 'direct':
+        case 'page':
           break
       }
 
@@ -132,7 +104,12 @@ class PurchaseResource {
       return { error: null, data: resultPurchase, message: '購買成功' }
     } catch (error) {
       await redisLock.unlock(DEFAULT_LOCKNAME, lockId)
-      return { error: new APIError({ code: code.SERVERERROR, message: error.message }) }
+      switch (error.type) {
+        case 'StripeInvalidRequestError':
+          throw new APIError({ code: error.raw.statusCode, message: '目前付款資訊無法正常付款' })
+        default:
+          throw new APIError({ code: code.SERVERERROR, message: error.message })
+      }
     }
   }
 }
