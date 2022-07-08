@@ -2,14 +2,18 @@ const { project } = require('../../config/project')
 require('dotenv').config({ path: project.ENV })
 
 const stripe = require('stripe')(process.env.STRIPE_BACKEND_APIKEY)
+
+const { UserStatistic } = require('../../db/models')
+const { AuthToolKit } = require('../../utils/auth-tool-kit')
+
 const { APIError } = require('../../helpers/api-error')
+
 const { code } = require('../../config/result-status-table').errorTable
 const { ProductToolKit } = require('../../utils/product-tool-kit')
 const { CartResource } = require('../resources/cart')
 const { RedisLock } = require('../db/redisLock')
 const { v4: uuidv4 } = require('uuid')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
-const { raw } = require('express')
 const { DEFAULT_LOCKNAME } = require('../../config/app').service.redisLock
 
 class PurchaseResource {
@@ -33,11 +37,6 @@ class PurchaseResource {
       source: stripeToken,
       currency: 'usd'
     })
-    // console.log(chargeResult)
-    // if (chargeResult instanceof Error) {
-    //   result = { code: code.FORBIDDEN, data: null, message: '目前付款資訊無法正常付款' }
-    //   return { error: true, result }
-    // }
 
     // update stock
     const map = Object.entries(quantityHashMap)
@@ -61,12 +60,13 @@ class PurchaseResource {
     const redisClient = req.app.locals.redisClient
     const redisLock = new RedisLock(redisClient)
     const lockId = uuidv4()
+
     try {
       const { isInvalidFormat } = ParameterValidationKit
       const { getQuantityHashMap } = ProductToolKit
       // check whether stock is enough
-      const { items } = req.body
-      console.log('result', isInvalidFormat(data), data)
+      let { items } = req.body
+      if (!Array.isArray(items)) req.body.items = items = [items]
       const quantityHashMap = isInvalidFormat(data) ? getQuantityHashMap(items) : data.quantityHashMap
       const keys = Object.keys(quantityHashMap)
 
@@ -92,6 +92,7 @@ class PurchaseResource {
 
       await redisLock.unlock(DEFAULT_LOCKNAME, lockId)
 
+      // sync cart or something else
       switch (from) {
         case 'cart':
           await CartResource.deleteCart(req)
@@ -99,6 +100,10 @@ class PurchaseResource {
         case 'page':
           break
       }
+      // update UserStatistic for buyer
+      const currentUser = AuthToolKit.getUser(req)
+      const updateOption = { where: { userId: currentUser.id } }
+      await UserStatistic.increment('orderTally', updateOption)
 
       const resultPurchase = null
       return { error: null, data: resultPurchase, message: '購買成功' }

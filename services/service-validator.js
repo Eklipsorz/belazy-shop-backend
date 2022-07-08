@@ -41,7 +41,6 @@ class ServiceValidator {
     const redisClient = req.app.locals.redisClient
     const { isInvalidFormat } = ParameterValidationKit
     const { items, stripeToken } = req.body
-    console.log('pawde', isInvalidFormat(items))
     // check whether token and items fields are filled?
     if (isInvalidFormat(stripeToken)) {
       throw new APIError({ code: code.FORBIDDEN, message: '目前付款資訊無法正常付款' })

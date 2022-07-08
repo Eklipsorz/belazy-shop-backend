@@ -230,7 +230,6 @@ class UserService extends AccountService {
     try {
       req.body.items = [req.body.items]
       const result = await ServiceValidator.postPagePurchase(req)
-      console.log('page purchase', result)
       const { error, data, message } = await PurchaseResource.postPurchase('page', req, result.data)
       return cb(error, data, message)
     } catch (error) {
@@ -241,9 +240,8 @@ class UserService extends AccountService {
   async postCartPurchase(req, cb) {
     try {
       const result = await ServiceValidator.postCartPurchase(req)
-      console.log('cart purchase', result)
-      // const { error, data, message } = await PurchaseResource.postPurchase(req)
-      // return cb(error, data, message)
+      const { error, data, message } = await PurchaseResource.postPurchase('cart', req, result.data)
+      return cb(error, data, message)
     } catch (error) {
       return cb(error)
     }

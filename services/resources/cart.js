@@ -343,7 +343,6 @@ class CartResource {
 
   // remove all products from current cart
   static async deleteCart(req, data = null) {
-    req.session.cartId = '93c1b1fc-9af4-4020-8e07-d83f028b3d20'
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
 
@@ -351,11 +350,10 @@ class CartResource {
     if (!cart) {
       const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
       cart = await RedisToolKit.getCacheValues(cartKeyPattern, redisClient)
-      console.log('cartId, cartKey', cartId, cartKeyPattern)
     }
 
     const products = CartToolKit.getValidProducts(cart)
-    console.log('product', products, data)
+
     const templates = []
     for (const product of products) {
       const { productId } = product
