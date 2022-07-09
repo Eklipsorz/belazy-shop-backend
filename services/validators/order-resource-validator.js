@@ -3,6 +3,7 @@ require('dotenv').config({ path: project.ENV })
 
 const { GeneralResourceValidator } = require('./general-resource-validator')
 const { code } = require('../../config/result-status-table').errorTable
+const { ProductToolKit } = require('../../utils/product-tool-kit')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 const { APIError } = require('../../helpers/api-error')
 const { User } = require('../../db/models')
@@ -29,7 +30,21 @@ class OrderResourceValidator {
     // check whether product requirement is valid
     await GeneralResourceValidator.checkProductRequirement(req)
 
-    const resultData = buyer
+    // calculate the sum
+    const { items } = req.body
+    let sum = 0
+    for (const item of items) {
+      const { productId, quantity } = item
+      const totalPrice = await ProductToolKit.getProductTotalPrice(req, productId, quantity)
+      sum += totalPrice
+    }
+
+    // transfer items into stockHashMap
+    const redisClient = req.app.locals.redisClient
+    const keys = items.map(item => item.productId)
+    const stockHashMap = await ProductToolKit.getStock(keys, redisClient)
+
+    const resultData = { user: buyer, sum, stockHashMap }
     return { data: resultData }
   }
 }

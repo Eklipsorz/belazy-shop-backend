@@ -253,8 +253,8 @@ class UserService extends AccountService {
 
   async postOrders(req, cb) {
     try {
-      await OrderResourceValidator.postOrders(req)
-      const { error, data, message } = await OrderResource.postOrders(req)
+      const result = await OrderResourceValidator.postOrders(req)
+      const { error, data, message } = await OrderResource.postOrders(req, result.data)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)

@@ -11,26 +11,19 @@ const { APIError } = require('../../helpers/api-error')
 const { code } = require('../../config/result-status-table').errorTable
 const { ProductToolKit } = require('../../utils/product-tool-kit')
 const { CartResource } = require('../resources/cart')
+const { OrderResource } = require('../resources/order')
 const { RedisLock } = require('../db/redisLock')
 const { v4: uuidv4 } = require('uuid')
 const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 const { DEFAULT_LOCKNAME } = require('../../config/app').service.redisLock
 
 class PurchaseResource {
-  static async purchaseTask(req, quantityHashMap, stockHashMap) {
+  static async purchaseTask(req, { quantityHashMap, stockHashMap, amount }) {
     // calculate total amount
-    const { items, stripeToken } = req.body
+    const { stripeToken } = req.body
     const redisClient = req.app.locals.redisClient
-    const { getProductTotalPrice } = ProductToolKit
+
     const result = {}
-    let amount = 0
-
-    for (const item of items) {
-      const { productId, quantity } = item
-      const productTotal = await getProductTotalPrice(req, productId, quantity)
-      amount += productTotal
-    }
-
     // charge
     await stripe.charges.create({
       amount,
@@ -82,11 +75,22 @@ class PurchaseResource {
         throw new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' })
       }
 
-      // if error
+      // calculate total amount
+      const { getProductTotalPrice } = ProductToolKit
+
+      let amount = 0
+
+      for (const item of items) {
+        const { productId, quantity } = item
+        const productTotal = await getProductTotalPrice(req, productId, quantity)
+        amount += productTotal
+      }
+
+      const purchaseOption = { quantityHashMap, stockHashMap, amount }
       const { purchaseTask } = PurchaseResource
 
       await Promise.race([
-        purchaseTask(req, quantityHashMap, stockHashMap),
+        purchaseTask(req, purchaseOption),
         redisLock.refresh(DEFAULT_LOCKNAME, lockId)
       ])
 
@@ -101,8 +105,12 @@ class PurchaseResource {
           break
       }
 
-      // update UserStatistic for buyer
+      // create a order
       const currentUser = AuthToolKit.getUser(req)
+      const postOrderOption = { user: currentUser, sum: amount, stockHashMap }
+      await OrderResource.postOrders(req, postOrderOption)
+      // update UserStatistic for buyer
+
       const updateOption = { where: { userId: currentUser.id } }
       await UserStatistic.increment('orderTally', updateOption)
 
