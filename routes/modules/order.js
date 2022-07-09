@@ -1,7 +1,7 @@
 const { orderController } = require('../../controllers/order')
 const { orderMiddleware } = require('../../config/route')
 const express = require('express')
-const router = express()
+const router = express.Router()
 
 const controller = orderController
 const middleware = orderMiddleware

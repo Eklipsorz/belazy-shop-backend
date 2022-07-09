@@ -41,6 +41,7 @@ class GeneralResourceValidator {
     // check whether products are exist?
     const { existProductsValidate, getQuantityHashMap } = ProductToolKit
     const quantityHashMap = getQuantityHashMap(items)
+
     const keys = Object.keys(quantityHashMap)
     const existValidation = await existProductsValidate(keys, redisClient)
     if (existValidation.error) {

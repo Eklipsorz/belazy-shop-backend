@@ -9,7 +9,7 @@ const { PurchaseResource } = require('../resources/purchase')
 
 const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
 const { CartResourceValidator } = require('../validators/cart-resource-validator')
-
+const { OrderResourceValidator } = require('../validators/order-resource-validator')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -253,6 +253,7 @@ class UserService extends AccountService {
 
   async postOrders(req, cb) {
     try {
+      await OrderResourceValidator.postOrders(req)
       const { error, data, message } = await OrderResource.postOrders(req)
       return cb(error, data, message)
     } catch (error) {
