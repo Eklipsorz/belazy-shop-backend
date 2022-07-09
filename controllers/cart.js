@@ -34,7 +34,7 @@ const cartController = {
   },
   postCartPurchase: (req, res, next) => {
     userServices.postCartPurchase(req, (error, data, message) =>
-      error ? next(error) : res.status(code.OK).json({ status, message, data })
+      error ? next(error) : res.status(code.OK).json({ status, message, data }) && next()
     )
   }
 }

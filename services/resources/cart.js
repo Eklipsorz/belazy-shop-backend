@@ -343,6 +343,7 @@ class CartResource {
 
   // remove all products from current cart
   static async deleteCart(req, data = null) {
+    // req.session.cartId = '3e6a6f7c-b4c8-4558-aa11-dcba2c5e969d'
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
 

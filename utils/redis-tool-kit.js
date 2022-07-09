@@ -167,7 +167,7 @@ class RedisToolKit {
     const refreshAt = new Date(resultObject.refreshAt)
     // test data
     // refreshAt = new Date('Fri Jun 01 2022 23:51:04 GMT+0800 (台北標準時間)')
-    // // resultObject.quantity = '1312354'
+    // resultObject.quantity = '1312354'
     // dirtyBit = 1
 
     if (currentTime.getTime() > refreshAt.getTime() && dirtyBit) {

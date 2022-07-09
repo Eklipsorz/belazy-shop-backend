@@ -100,6 +100,7 @@ class PurchaseResource {
         case 'page':
           break
       }
+
       // update UserStatistic for buyer
       const currentUser = AuthToolKit.getUser(req)
       const updateOption = { where: { userId: currentUser.id } }
