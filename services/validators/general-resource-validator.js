@@ -8,7 +8,8 @@ const { ProductToolKit } = require('../../utils/product-tool-kit')
 
 class GeneralResourceValidator {
   // check whether receiver info is valid
-  static isInvalidReceiver(req) {
+
+  static checkReceiver(req) {
     const { isInvalidFormat } = ParameterValidationKit
     const { receiverName, receiverPhone, receiverAddr } = req.body
     if (
@@ -21,7 +22,7 @@ class GeneralResourceValidator {
   }
 
   // check whether items which buyer is buying are valid?
-  static async isValidRequirement(req) {
+  static async checkProductRequirement(req) {
     const redisClient = req.app.locals.redisClient
     const { isInvalidFormat } = ParameterValidationKit
     const { items } = req.body

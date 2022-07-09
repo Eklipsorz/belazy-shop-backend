@@ -13,27 +13,27 @@ class PurchaseResourceValidator {
     const { isInvalidFormat } = ParameterValidationKit
     const { stripeToken } = req.body
     // check whether receiver info is valid
-    GeneralResourceValidator.isInvalidReceiver(req)
+    GeneralResourceValidator.checkReceiver(req)
 
     // check whether token and items fields are filled?
     if (isInvalidFormat(stripeToken)) {
       throw new APIError({ code: code.FORBIDDEN, message: '目前付款資訊無法正常付款' })
     }
-    return await GeneralResourceValidator.isValidRequirement(req)
+    return await GeneralResourceValidator.checkProductRequirement(req)
   }
 
   static async postCartPurchase(req) {
     const { isInvalidFormat } = ParameterValidationKit
     const { stripeToken } = req.body
     // check whether receiver info is valid
-    GeneralResourceValidator.isInvalidReceiver(req)
+    GeneralResourceValidator.checkReceiver(req)
 
     // check whether token and items fields are filled?
     if (isInvalidFormat(stripeToken)) {
       throw new APIError({ code: code.FORBIDDEN, message: '目前付款資訊無法正常付款' })
     }
 
-    return await GeneralResourceValidator.isValidRequirement(req)
+    return await GeneralResourceValidator.checkProductRequirement(req)
   }
 }
 
