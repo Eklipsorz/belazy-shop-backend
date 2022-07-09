@@ -4,7 +4,12 @@ const { CategoryResource } = require('../resources/category')
 const { LikeResource } = require('../resources/like')
 const { ReplyResource } = require('../resources/reply')
 const { CartResource } = require('../resources/cart')
+const { OrderResource } = require('../resources/order')
 const { PurchaseResource } = require('../resources/purchase')
+
+const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
+const { CartResourceValidator } = require('../validators/cart-resource-validator')
+const { OrderResourceValidator } = require('../validators/order-resource-validator')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -216,13 +221,44 @@ class UserService extends AccountService {
   }
 
   async deleteCart(req, cb) {
-    const { error, data, message } = await CartResource.deleteCart(req)
-    return cb(error, data, message)
+    try {
+      const result = await CartResourceValidator.deleteCart(req)
+      const { error, data, message } = await CartResource.deleteCart(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
-  async postPurchase(req, cb) {
-    const { error, data, message } = await PurchaseResource.postPurchase(req)
-    return cb(error, data, message)
+  async postPagePurchase(req, cb) {
+    try {
+      req.body.items = [req.body.items]
+      const result = await PurchaseResourceValidator.postPagePurchase(req)
+      const { error, data, message } = await PurchaseResource.postPurchase('page', req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
+  }
+
+  async postCartPurchase(req, cb) {
+    try {
+      const result = await PurchaseResourceValidator.postCartPurchase(req)
+      const { error, data, message } = await PurchaseResource.postPurchase('cart', req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
+  }
+
+  async postOrders(req, cb) {
+    try {
+      const result = await OrderResourceValidator.postOrders(req)
+      const { error, data, message } = await OrderResource.postOrders(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 }
 

@@ -13,6 +13,9 @@ class CartPreprocessor {
     // initialize each session & cookie:
     // - refresh expiration date of cart cookie
     // - generate a config to tell redis how to set expiration of cart & cartItem in redis
+
+    req.session.cookie.path = '/carts'
+
     const createdAt = new Date()
     const key = `sess:${req.session.id}`
     const config = {
@@ -21,9 +24,7 @@ class CartPreprocessor {
     }
 
     req.session.expireAtConfig = config
-    req.session.cookie.path = '/carts'
     req.session.cookie.expires = config.expireAt
-
     // a cart owner which has a valid session
     if (req.session && req.session.cartId) {
       return next()
@@ -202,7 +203,6 @@ class CartPreprocessor {
       // false -> there is nothing data in cache or db
       const isExistInCache = await CartToolKit.existCartCache(cartInCache)
       const isExistInDB = await CartToolKit.existCartDB(cartInDB)
-
       // case 1: There is nothing on cache and DB
       // do nothing
 

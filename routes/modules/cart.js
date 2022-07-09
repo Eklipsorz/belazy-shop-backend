@@ -17,4 +17,5 @@ router.post('/self/items', ...preprocessor.postCartItems, controller.postCartIte
 router.put('/self/items', ...preprocessor.putCartItems, controller.putCartItems, ...postprocessor.putCartItems)
 router.delete('/self/items', ...preprocessor.deleteCartItem, controller.deleteCartItem, ...postprocessor.deleteCartItem)
 router.delete('/self', ...preprocessor.deleteCart, controller.deleteCart, ...postprocessor.deleteCart)
+router.post('/self/purchase', preprocessor.postCartPurchase, controller.postCartPurchase, ...postprocessor.postCartPurchase)
 exports = module.exports = router

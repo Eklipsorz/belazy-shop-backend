@@ -64,8 +64,8 @@ const productController = {
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   },
-  postPurchase: (req, res, next) => {
-    userServices.postPurchase(req, (error, data, message) =>
+  postPagePurchase: (req, res, next) => {
+    userServices.postPagePurchase(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
   }

@@ -48,6 +48,11 @@ const generalMiddleware = {
     CartPreprocessor.getSession,
     CartPreprocessor.loginSyncCart,
     CartPreprocessor.syncExpireAt
+  ],
+  // add middleware to route (All methods to /orders)
+  orders: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser
   ]
 }
 
@@ -168,11 +173,10 @@ const productMiddleware = {
     ParameterValidator.existURIValidate
   ],
   // add middleware to route (POST /products/purchase)
-  postPurchase: [
+  postPagePurchase: [
     AuthValidator.authenticateLoggedIn,
     AuthValidator.authenticateUser
   ]
-
 }
 
 const categoryMiddleware = {
@@ -215,6 +219,11 @@ const replyMiddleware = {
   ]
 }
 
+const orderMiddleware = {
+  // add middleware to route (POST /orders)
+  postOrders: []
+}
+
 const cartMiddleware = {
 
   preprocessor: {
@@ -244,6 +253,11 @@ const cartMiddleware = {
     deleteCart: [
       AuthValidator.authenticateLoggedIn,
       AuthValidator.authenticateUser
+    ],
+    // add middleware to route (POST /cart/self/purchase)
+    postCartPurchase: [
+      AuthValidator.authenticateLoggedIn,
+      AuthValidator.authenticateUser
     ]
   },
   postprocessor: {
@@ -270,6 +284,10 @@ const cartMiddleware = {
     // add middleware to route (DELETE /carts/self)
     deleteCart: [
       CartPostprocessor.checkAndSyncDB
+    ],
+    // add middleware to route (POST /cart/self/purchase)
+    postCartPurchase: [
+      CartPostprocessor.checkAndSyncDB
     ]
   }
 
@@ -282,5 +300,6 @@ exports = module.exports = {
   replyMiddleware,
   cartMiddleware,
   productMiddleware,
-  categoryMiddleware
+  categoryMiddleware,
+  orderMiddleware
 }
