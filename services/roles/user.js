@@ -4,6 +4,7 @@ const { CategoryResource } = require('../resources/category')
 const { LikeResource } = require('../resources/like')
 const { ReplyResource } = require('../resources/reply')
 const { CartResource } = require('../resources/cart')
+const { OrderResource } = require('../resources/order')
 const { PurchaseResource } = require('../resources/purchase')
 
 const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
@@ -244,6 +245,15 @@ class UserService extends AccountService {
     try {
       const result = await PurchaseResourceValidator.postCartPurchase(req)
       const { error, data, message } = await PurchaseResource.postPurchase('cart', req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
+  }
+
+  async postOrders(req, cb) {
+    try {
+      const { error, data, message } = await OrderResource.postOrders(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)

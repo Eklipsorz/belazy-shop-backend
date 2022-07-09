@@ -5,6 +5,7 @@ const adminRoutes = require('./modules/admin')
 const categoryRoutes = require('./modules/category')
 const productRoutes = require('./modules/product')
 const cartRoutes = require('./modules/cart')
+const orderRoutes = require('./modules/order')
 
 const { generalMiddleware } = require('../config/route')
 const { userController } = require('../controllers/user')
@@ -41,5 +42,6 @@ router.use('/products', ...middleware.products, productRoutes)
 router.use('/replies', ...middleware.replies, replyRoutes)
 router.use('/users', ...middleware.users, userRoutes)
 router.use('/admin', ...middleware.admin, adminRoutes)
+router.use('/orders', ...middleware.orders, orderRoutes)
 
 exports = module.exports = router

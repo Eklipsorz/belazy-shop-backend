@@ -48,6 +48,11 @@ const generalMiddleware = {
     CartPreprocessor.getSession,
     CartPreprocessor.loginSyncCart,
     CartPreprocessor.syncExpireAt
+  ],
+  // add middleware to route (All methods to /orders)
+  orders: [
+    AuthValidator.authenticateLoggedIn,
+    AuthValidator.authenticateUser
   ]
 }
 
@@ -214,6 +219,11 @@ const replyMiddleware = {
   ]
 }
 
+const orderMiddleware = {
+  // add middleware to route (POST /orders)
+  postOrders: []
+}
+
 const cartMiddleware = {
 
   preprocessor: {
@@ -290,5 +300,6 @@ exports = module.exports = {
   replyMiddleware,
   cartMiddleware,
   productMiddleware,
-  categoryMiddleware
+  categoryMiddleware,
+  orderMiddleware
 }
