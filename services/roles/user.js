@@ -4,8 +4,11 @@ const { CategoryResource } = require('../resources/category')
 const { LikeResource } = require('../resources/like')
 const { ReplyResource } = require('../resources/reply')
 const { CartResource } = require('../resources/cart')
-const { ServiceValidator } = require('../service-validator')
 const { PurchaseResource } = require('../resources/purchase')
+
+const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
+const { CartResourceValidator } = require('../validators/cart-resource-validator')
+
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -218,7 +221,7 @@ class UserService extends AccountService {
 
   async deleteCart(req, cb) {
     try {
-      const result = await ServiceValidator.deleteCart(req)
+      const result = await CartResourceValidator.deleteCart(req)
       const { error, data, message } = await CartResource.deleteCart(req, result.data)
       return cb(error, data, message)
     } catch (error) {
@@ -229,7 +232,7 @@ class UserService extends AccountService {
   async postPagePurchase(req, cb) {
     try {
       req.body.items = [req.body.items]
-      const result = await ServiceValidator.postPagePurchase(req)
+      const result = await PurchaseResourceValidator.postPagePurchase(req)
       const { error, data, message } = await PurchaseResource.postPurchase('page', req, result.data)
       return cb(error, data, message)
     } catch (error) {
@@ -239,7 +242,7 @@ class UserService extends AccountService {
 
   async postCartPurchase(req, cb) {
     try {
-      const result = await ServiceValidator.postCartPurchase(req)
+      const result = await PurchaseResourceValidator.postCartPurchase(req)
       const { error, data, message } = await PurchaseResource.postPurchase('cart', req, result.data)
       return cb(error, data, message)
     } catch (error) {
