@@ -67,19 +67,9 @@ class CartResource {
   }
 
   // get cart info from current cart
-  static async getCart(req) {
+  static async getCart(req, data) {
     try {
-      // check whether the cart is empty
-      const redisClient = req.app.locals.redisClient
-      const { cartId } = req.session
-      const cartKey = `${PREFIX_CART_KEY}:${cartId}`
-
-      const cart = await redisClient.hgetall(cartKey)
-
-      const existCart = Boolean(Object.keys(cart).length) && Boolean(cart.sum !== '0')
-      if (!existCart) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車是空的' }) }
-      }
+      const cart = data
       // return success message
       const template = {
         id: cart.id,
@@ -99,25 +89,12 @@ class CartResource {
   }
 
   // get all cartItems from current cart
-  static async getCartItems(req) {
+  static async getCartItems(req, data) {
     try {
-      // check whether there is something in the cart
-      const { cartId } = req.session
-      const redisClient = req.app.locals.redisClient
-      const { isEmptyCart, getValidProducts } = CartToolKit
-      const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
-
-      const getCacheValues = RedisToolKit.getCacheValues
-      const cart = await getCacheValues(cartKeyPattern, redisClient)
-
-      // if none
-      if (isEmptyCart(cart)) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車是空的' }) }
-      }
-
+      const cart = data
       // if yes
       // get all products from the cart
-      const products = getValidProducts(cart)
+      const products = CartToolKit.getValidProducts(cart)
 
       const template = []
 
@@ -139,47 +116,19 @@ class CartResource {
   }
 
   // add a product into current cart
-  static async postCartItems(req) {
+  static async postCartItems(req, data) {
     try {
-      const { productId } = req.body
       const redisClient = req.app.locals.redisClient
-      const productKey = `product:${productId}`
-
-      const { error, result } = CartToolKit.cartItemSyntaxValidate(req)
-      if (error) {
-        return { error: new APIError({ code: result.code, status, message: result.message }) }
-      }
-      // check whether product exists in product
-      const product = await redisClient.hgetall(productKey)
-      // nothing
-      if (!Object.keys(product).length) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-      }
-      // I've found that
-      // check whether the stock is enough
-
+      const { productId } = req.body
       const { cartId } = req.session
+      const { stockHashMap, cartItem } = data
       const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
-      const cartItem = await redisClient.hgetall(cartKey)
-      const isExistCart = Boolean(Object.keys(cartItem).length) && Boolean(Number(cartItem.quantity))
 
+      const isExistCart = Boolean(Object.keys(cartItem).length) && Boolean(Number(cartItem.quantity))
       const quantity = isExistCart ? Number(cartItem.quantity) + 1 : 1
 
-      const cartHashMap = {}
-      cartHashMap[productId] = quantity
-
-      const { getStock, checkStockStatus } = ProductToolKit
-      const stock = await getStock(productId, redisClient)
-      const { soldOut, notEnough } = await checkStockStatus(cartHashMap, stock)
-      const stockError = Boolean(soldOut.length) || Boolean(notEnough.length)
-
-      // if not enough, just say sorry and return
-      if (stockError) {
-        return { error: new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' }) }
-      }
-
       // if enough, just create or update a cart data in cache
-      const unitPrice = Number(stock[productId].price)
+      const unitPrice = Number(stockHashMap[productId].price)
 
       const template = {
         cartId,
@@ -343,7 +292,7 @@ class CartResource {
 
   // remove all products from current cart
   static async deleteCart(req, data = null) {
-    req.session.cartId = '5bbd8cf9-0656-4126-b7fc-1b5ace445883'
+    // req.session.cartId = '5bbd8cf9-0656-4126-b7fc-1b5ace445883'
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
 
