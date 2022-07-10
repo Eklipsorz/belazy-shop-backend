@@ -91,6 +91,21 @@ class AdminService extends AccountService {
       return cb(error)
     }
   }
+
+  async getOrder(req, cb) {
+    try {
+      const { orderId } = req.params
+      const findOption = {
+        where: { id: orderId }
+      }
+      const option = { findOption }
+
+      const { error, data, message } = await OrderResource.getOrder(req, option)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
+  }
 }
 
 const adminServices = new AdminService()

@@ -81,6 +81,11 @@ const adminController = {
     adminServices.getOrders(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getOrder: (req, res, next) => {
+    adminServices.getOrder(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 
