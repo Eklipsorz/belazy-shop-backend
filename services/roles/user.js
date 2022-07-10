@@ -196,28 +196,53 @@ class UserService extends AccountService {
   }
 
   async getCart(req, cb) {
-    const { error, data, message } = await CartResource.getCart(req)
-    return cb(error, data, message)
+    try {
+      const result = await CartResourceValidator.getCart(req)
+      const { error, data, message } = await CartResource.getCart(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getCartItems(req, cb) {
-    const { error, data, message } = await CartResource.getCartItems(req)
-    return cb(error, data, message)
+    try {
+      const result = await CartResourceValidator.getCartItems(req)
+      const { error, data, message } = await CartResource.getCartItems(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async putCartItems(req, cb) {
-    const { error, data, message } = await CartResource.putCartItems(req)
-    return cb(error, data, message)
+    try {
+      const result = await CartResourceValidator.putCartItems(req)
+      const { error, data, message } = await CartResource.putCartItems(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async postCartItems(req, cb) {
-    const { error, data, message } = await CartResource.postCartItems(req)
-    return cb(error, data, message)
+    try {
+      const result = await CartResourceValidator.postCartItems(req)
+      const { error, data, message } = await CartResource.postCartItems(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async deleteCartItem(req, cb) {
-    const { error, data, message } = await CartResource.deleteCartItem(req)
-    return cb(error, data, message)
+    try {
+      const result = await CartResourceValidator.deleteCartItem(req)
+      const { error, data, message } = await CartResource.deleteCartItem(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async deleteCart(req, cb) {
