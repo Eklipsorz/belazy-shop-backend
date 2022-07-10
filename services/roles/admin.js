@@ -73,6 +73,24 @@ class AdminService extends AccountService {
       return cb(error)
     }
   }
+
+  async getOrders(req, cb) {
+    try {
+      const { limit, offset, order } = req.query
+      const findOption = {
+        // detemeter how to find
+        limit,
+        offset,
+        order: [['createdAt', order]]
+      }
+      const option = { user: null, findOption }
+
+      const { error, data, message } = await OrderResource.getOrders(req, option)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
+  }
 }
 
 const adminServices = new AdminService()

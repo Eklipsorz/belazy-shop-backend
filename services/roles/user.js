@@ -264,8 +264,12 @@ class UserService extends AccountService {
   async getOrders(req, cb) {
     try {
       const currentUser = AuthToolKit.getUser(req)
+      const { limit, offset, order } = req.query
       const findOption = {
-        where: { userId: currentUser.id }
+        where: { userId: currentUser.id },
+        limit,
+        offset,
+        order: [['createdAt', order]]
       }
       const option = { user: currentUser, findOption }
 

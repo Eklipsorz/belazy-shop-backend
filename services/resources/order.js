@@ -44,7 +44,7 @@ class OrderResource {
 
   static async getOrders(req, data) {
     const { findOption } = data
-
+    const { page } = req.query
     const orders = await Order.findAll(findOption)
     if (!orders.length) {
       throw new APIError({ code: code.NOTFOUND, message: '找不到對象項目' })
@@ -52,7 +52,6 @@ class OrderResource {
 
     const results = []
     for (const order of orders) {
-      console.log(order)
       const detailOption = {
         where: { orderId: order.id },
         attributes: ['productId', 'price', 'quantity'],
@@ -64,7 +63,7 @@ class OrderResource {
     }
 
     const resultOrder = results
-    return { error: null, data: resultOrder, message: '獲取成功' }
+    return { error: null, data: { currentPage: page, resultOrder }, message: '獲取成功' }
   }
 }
 

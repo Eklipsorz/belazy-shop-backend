@@ -107,6 +107,7 @@ const adminMiddleware = {
   getStock: [
     ParameterValidator.existURIValidate
   ],
+  // add middleware to route (PUT /admin/products/:productId/stock)
   putStack: [
     ParameterValidator.existURIValidate
   ],
@@ -115,7 +116,11 @@ const adminMiddleware = {
     ParameterPreprocessor.paging
   ],
   // add middleware to route (POST /admin/orders)
-  postOrders: []
+  postOrders: [],
+  // add middleware to route (GET /admin/orders)
+  getOrders: [
+    ParameterPreprocessor.paging
+  ]
 }
 
 const productMiddleware = {
@@ -225,7 +230,9 @@ const orderMiddleware = {
   // add middleware to route (POST /orders)
   postOrders: [],
   // add middleware to route (POST /orders)
-  getOrders: []
+  getOrders: [
+    ParameterPreprocessor.paging
+  ]
 }
 
 const cartMiddleware = {
