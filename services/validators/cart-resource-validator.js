@@ -5,6 +5,7 @@ const { APIError } = require('../../helpers/api-error')
 const { CartToolKit } = require('../../utils/cart-tool-kit')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const { ProductToolKit } = require('../../utils/product-tool-kit')
+const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 
 const { PREFIX_CARTITEM_KEY, PREFIX_CART_KEY } = require('../../config/app').cache.CART
 const { code } = require('../../config/result-status-table').errorTable
@@ -80,7 +81,56 @@ class CartResourceValidator {
       throw new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' })
     }
 
-    const resultData = { stockHashMap, cartItem }
+    const resultData = { cartHashMap, stockHashMap, cartItem }
+    return { data: resultData }
+  }
+
+  static async putCartItems(req) {
+    const { isUndefined } = ParameterValidationKit
+    const redisClient = req.app.locals.redisClient
+    const { cartId } = req.session
+    const { items } = req.body
+    const defaultData = isUndefined(items) ? null : JSON.stringify(items)
+    const cart = items
+
+    const { error, result } = ProductToolKit.quantityHashMapSyntaxValidate(cart)
+    if (error) {
+      throw new APIError({ code: result.code, message: result.message, data: defaultData })
+    }
+
+    const cartHashMap = ProductToolKit.getQuantityHashMap(cart)
+
+    const entries = Object.entries(cartHashMap)
+    const keys = entries.map(([key, _]) => key)
+
+    async function ExistenceTest(keys, cache) {
+      for (const key of keys) {
+        const result = await cache.hgetall(key)
+        if (result.quantity === '0') return false
+        if (!Object.keys(result).length) return false
+      }
+      return true
+    }
+
+    // check whether one of products is not inside the cart
+    const cartKeys = keys.map(item => `${PREFIX_CARTITEM_KEY}:${cartId}:${item}`)
+    const areValidProducts = await ExistenceTest(cartKeys, redisClient)
+
+    if (!areValidProducts) {
+      throw new APIError({ code: code.NOTFOUND, message: '購物車內找不到對應項目', data: defaultData })
+    }
+
+    //  check whether stock is enough?
+    const { getStock, checkStockStatus } = ProductToolKit
+    const stockHashMap = await getStock(keys, redisClient)
+    const { soldOut, notEnough } = checkStockStatus(cartHashMap, stockHashMap)
+    const stockError = Boolean(soldOut.length) || Boolean(notEnough.length)
+
+    if (stockError) {
+      throw new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' })
+    }
+
+    const resultData = { cartHashMap, stockHashMap }
     return { data: resultData }
   }
 

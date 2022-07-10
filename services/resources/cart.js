@@ -161,64 +161,24 @@ class CartResource {
   }
 
   // update a cartItem inside current cart
-  static async putCartItems(req) {
+  static async putCartItems(req, data) {
     try {
-      const { isUndefined } = ParameterValidationKit
       const redisClient = req.app.locals.redisClient
       const { cartId } = req.session
-      const { items } = req.body
-      const defaultData = isUndefined(items) ? null : JSON.stringify(items)
-      const cart = items
-
-      const { error, result } = ProductToolKit.quantityHashMapSyntaxValidate(cart)
-      if (error) {
-        return { error: new APIError({ code: result.code, message: result.message, data: defaultData }) }
-      }
-
-      const cartHashMap = ProductToolKit.getQuantityHashMap(cart)
-
+      const { stockHashMap, cartHashMap } = data
       const entries = Object.entries(cartHashMap)
-      const keys = entries.map(([key, _]) => key)
-
-      async function ExistenceTest(keys, cache) {
-        for (const key of keys) {
-          const result = await cache.hgetall(key)
-          if (result.quantity === '0') return false
-          if (!Object.keys(result).length) return false
-        }
-        return true
-      }
-
-      // check whether one of products is not inside the cart
-      const cartKeys = keys.map(item => `${PREFIX_CARTITEM_KEY}:${cartId}:${item}`)
-      const areValidProducts = await ExistenceTest(cartKeys, redisClient)
-
-      if (!areValidProducts) {
-        return { error: new APIError({ code: code.NOTFOUND, message: '購物車內找不到對應項目', data: defaultData }) }
-      }
-
-      //  check whether stock is enough?
-      const { getStock, checkStockStatus } = ProductToolKit
-      const stock = await getStock(keys, redisClient)
-      const { soldOut, notEnough } = checkStockStatus(cartHashMap, stock)
-      const stockError = Boolean(soldOut.length) || Boolean(notEnough.length)
-
-      if (stockError) {
-        return { error: new APIError({ code: code.BADREQUEST, data: { soldOut, notEnough }, message: '庫存問題' }) }
-      }
-
       //  All is ok, then buy some goods
       const templates = []
       let sum = 0
-      for (const [key, value] of entries) {
-        const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${key}`
-        const total = Number(stock[key].price) * value
+      for (const [id, quantity] of entries) {
+        const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${id}`
+        const total = Number(stockHashMap[id].price) * quantity
         const createdAt = await redisClient.hget(cartItemKey, 'createdAt')
         const refreshAt = await redisClient.hget(cartItemKey, 'refreshAt')
         const template = {
           cartId,
-          productId: Number(key),
-          quantity: value,
+          productId: Number(id),
+          quantity: quantity,
           price: total,
           createdAt: new Date(createdAt),
           updatedAt: new Date(),

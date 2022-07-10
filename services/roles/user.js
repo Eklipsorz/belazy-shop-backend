@@ -217,8 +217,13 @@ class UserService extends AccountService {
   }
 
   async putCartItems(req, cb) {
-    const { error, data, message } = await CartResource.putCartItems(req)
-    return cb(error, data, message)
+    try {
+      const result = await CartResourceValidator.putCartItems(req)
+      const { error, data, message } = await CartResource.putCartItems(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async postCartItems(req, cb) {
