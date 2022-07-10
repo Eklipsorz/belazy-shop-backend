@@ -25,4 +25,7 @@ router.get('/products/:productId/stock', ...middleware.getStock, controller.getS
 router.get('/products/:productId', ...middleware.getProduct, controller.getProduct)
 router.get('/products', ...middleware.getProducts, controller.getProducts)
 
+router.post('/orders', ...middleware.postOrders, controller.postOrders)
+router.get('/orders/:orderId', ...middleware.getOrder, controller.getOrder)
+router.get('/orders', ...middleware.getOrders, controller.getOrders)
 exports = module.exports = router

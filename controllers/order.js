@@ -6,6 +6,16 @@ const orderController = {
     userServices.postOrders(req, (error, data, message) =>
       error ? next(error) : res.status(code.OK).json({ status, message, data })
     )
+  },
+  getOrders: (req, res, next) => {
+    userServices.getOrders(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
+  },
+  getOrder: (req, res, next) => {
+    userServices.getOrder(req, (error, data, message) =>
+      error ? next(error) : res.status(code.OK).json({ status, message, data })
+    )
   }
 }
 

@@ -260,6 +260,40 @@ class UserService extends AccountService {
       return cb(error)
     }
   }
+
+  async getOrders(req, cb) {
+    try {
+      const currentUser = AuthToolKit.getUser(req)
+      const { limit, offset, order } = req.query
+      const findOption = {
+        where: { userId: currentUser.id },
+        limit,
+        offset,
+        order: [['createdAt', order]]
+      }
+      const option = { user: currentUser, findOption }
+
+      const { error, data, message } = await OrderResource.getOrders(req, option)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
+  }
+
+  async getOrder(req, cb) {
+    try {
+      const { orderId } = req.params
+      const currentUser = AuthToolKit.getUser(req)
+      const findOption = {
+        where: { userId: currentUser.id, id: orderId }
+      }
+      const option = { user: currentUser, findOption }
+      const { error, data, message } = await OrderResource.getOrder(req, option)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
+  }
 }
 
 const userServices = new UserService()
