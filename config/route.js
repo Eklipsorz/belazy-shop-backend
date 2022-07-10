@@ -223,7 +223,9 @@ const replyMiddleware = {
 
 const orderMiddleware = {
   // add middleware to route (POST /orders)
-  postOrders: []
+  postOrders: [],
+  // add middleware to route (POST /orders)
+  getOrders: []
 }
 
 const cartMiddleware = {

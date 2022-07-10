@@ -13,9 +13,16 @@ const successTable = {
   code: {
     OK: 200
   }
+}
 
+const orderStatusTable = {
+  status: {
+    done: 'done',
+    undone: 'undone'
+  }
 }
 exports = module.exports = {
   errorTable,
-  successTable
+  successTable,
+  orderStatusTable
 }

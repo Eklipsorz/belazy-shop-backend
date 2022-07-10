@@ -8,5 +8,6 @@ const middleware = orderMiddleware
 
 // postOrders API is not opened temporary for client because of security
 // router.post('/', ...middleware.postOrders, controller.postOrders)
+router.get('/', ...middleware.getOrders, controller.getOrders)
 
 exports = module.exports = router
