@@ -22,7 +22,7 @@ class BadURLFilter {
   }
 
   static postDetect(req, _, next) {
-    return next(new APIError({ code: code.NOTFOUND, message: '找不到對應項目' }))
+    return next(new APIError({ code: code.NOTFOUND, message: '找不到對應服務' }))
   }
 }
 

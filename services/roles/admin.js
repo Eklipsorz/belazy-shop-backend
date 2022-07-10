@@ -1,6 +1,8 @@
 const { AccountService } = require('./account')
 const { ProductResource } = require('../resources/product')
 const { CategoryResource } = require('../resources/category')
+const { OrderResource } = require('../resources/order')
+const { OrderResourceValidator } = require('../validators/order-resource-validator')
 
 class AdminService extends AccountService {
   constructor() {
@@ -60,6 +62,16 @@ class AdminService extends AccountService {
   async getProductsFromCategories(req, cb) {
     const { error, data, message } = await CategoryResource.getProductsFromCategories(req)
     return cb(error, data, message)
+  }
+
+  async postOrders(req, cb) {
+    try {
+      const result = await OrderResourceValidator.postOrders(req)
+      const { error, data, message } = await OrderResource.postOrders(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 }
 

@@ -113,7 +113,9 @@ const adminMiddleware = {
   // add middleware to route (GET /admin/products)
   getProducts: [
     ParameterPreprocessor.paging
-  ]
+  ],
+  // add middleware to route (POST /admin/orders)
+  postOrders: []
 }
 
 const productMiddleware = {
