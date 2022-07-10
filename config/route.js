@@ -232,6 +232,10 @@ const orderMiddleware = {
   // add middleware to route (POST /orders)
   getOrders: [
     ParameterPreprocessor.paging
+  ],
+  // add middleware to route (POST /orders)
+  getOrder: [
+    ParameterValidator.existURIValidate
   ]
 }
 

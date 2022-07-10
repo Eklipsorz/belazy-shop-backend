@@ -42,13 +42,8 @@ class OrderResource {
     return { error: null, data: resultOrder, message: '訂單建立成功' }
   }
 
-  static async getOrders(req, data) {
-    const { findOption } = data
-    const { page } = req.query
-    const orders = await Order.findAll(findOption)
-    if (!orders.length) {
-      throw new APIError({ code: code.NOTFOUND, message: '找不到對象項目' })
-    }
+  static async getOrderDetails(orders) {
+    if (!Array.isArray(orders)) orders = [orders]
 
     const results = []
     for (const order of orders) {
@@ -62,8 +57,47 @@ class OrderResource {
       results.push(result)
     }
 
+    return results
+  }
+
+  static async getOrders(req, data) {
+    const { findOption } = data
+    const { page } = req.query
+    const orders = await Order.findAll(findOption)
+    if (!orders.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對象項目' })
+    }
+
+    const results = await OrderResource.getOrderDetails(orders)
+    // const results = []
+    // for (const order of orders) {
+    //   const detailOption = {
+    //     where: { orderId: order.id },
+    //     attributes: ['productId', 'price', 'quantity'],
+    //     raw: true
+    //   }
+    //   const orderDetail = await OrderDetail.findAll(detailOption)
+    //   const result = { ...order.toJSON(), products: orderDetail }
+    //   results.push(result)
+    // }
+
     const resultOrder = results
     return { error: null, data: { currentPage: page, resultOrder }, message: '獲取成功' }
+  }
+
+  static async getOrder(req, data) {
+    const { findOption } = data
+
+    const order = await Order.findOne(findOption)
+
+    if (!order) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對象項目' })
+    }
+
+    const results = await OrderResource.getOrderDetails(order)
+
+    const resultOrder = results
+    return { error: null, data: resultOrder, message: '獲取成功' }
   }
 }
 
