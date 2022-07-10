@@ -198,7 +198,6 @@ class UserService extends AccountService {
   async getCart(req, cb) {
     try {
       const result = await CartResourceValidator.getCart(req)
-
       const { error, data, message } = await CartResource.getCart(req, result.data)
       return cb(error, data, message)
     } catch (error) {
@@ -237,8 +236,13 @@ class UserService extends AccountService {
   }
 
   async deleteCartItem(req, cb) {
-    const { error, data, message } = await CartResource.deleteCartItem(req)
-    return cb(error, data, message)
+    try {
+      const result = await CartResourceValidator.deleteCartItem(req)
+      const { error, data, message } = await CartResource.deleteCartItem(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async deleteCart(req, cb) {

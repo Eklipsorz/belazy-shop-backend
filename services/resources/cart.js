@@ -68,186 +68,153 @@ class CartResource {
 
   // get cart info from current cart
   static async getCart(req, data) {
-    try {
-      const cart = data
-      // return success message
-      const template = {
-        id: cart.id,
-        userId: cart.userId,
-        sum: Number(cart.sum),
-        createdAt: new Date(cart.createdAt),
-        updatedAt: new Date(cart.updatedAt)
-      }
-      // ready to check and sync db
-      req.stageArea = template
-
-      const resultCart = template
-      return { error: null, data: resultCart, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    const cart = data
+    // return success message
+    const template = {
+      id: cart.id,
+      userId: cart.userId,
+      sum: Number(cart.sum),
+      createdAt: new Date(cart.createdAt),
+      updatedAt: new Date(cart.updatedAt)
     }
+    // ready to check and sync db
+    req.stageArea = template
+
+    const resultCart = template
+    return { error: null, data: resultCart, message: '獲取成功' }
   }
 
   // get all cartItems from current cart
   static async getCartItems(req, data) {
-    try {
-      const cart = data
-      // if yes
-      // get all products from the cart
-      const products = CartToolKit.getValidProducts(cart)
+    const cart = data
+    // if yes
+    // get all products from the cart
+    const products = CartToolKit.getValidProducts(cart)
 
-      const template = []
+    const template = []
 
-      for (const product of products) {
-        template.push({
-          ...product
-        })
-      }
-
-      // ready to check and sync
-      req.stageArea = products
-
-      // return success message
-      const resultCart = template
-      return { error: null, data: resultCart, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    for (const product of products) {
+      template.push({
+        ...product
+      })
     }
+
+    // ready to check and sync
+    req.stageArea = products
+
+    // return success message
+    const resultCart = template
+    return { error: null, data: resultCart, message: '獲取成功' }
   }
 
   // add a product into current cart
   static async postCartItems(req, data) {
-    try {
-      const redisClient = req.app.locals.redisClient
-      const { productId } = req.body
-      const { cartId } = req.session
-      const { stockHashMap, cartItem } = data
-      const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+    const redisClient = req.app.locals.redisClient
+    const { productId } = req.body
+    const { cartId } = req.session
+    const { stockHashMap, cartItem } = data
+    const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
 
-      const isExistCart = Boolean(Object.keys(cartItem).length) && Boolean(Number(cartItem.quantity))
-      const quantity = isExistCart ? Number(cartItem.quantity) + 1 : 1
+    const isExistCart = Boolean(Object.keys(cartItem).length) && Boolean(Number(cartItem.quantity))
+    const quantity = isExistCart ? Number(cartItem.quantity) + 1 : 1
 
-      // if enough, just create or update a cart data in cache
-      const unitPrice = Number(stockHashMap[productId].price)
+    // if enough, just create or update a cart data in cache
+    const unitPrice = Number(stockHashMap[productId].price)
 
-      const template = {
-        cartId,
-        productId,
-        price: unitPrice * quantity,
-        quantity,
-        createdAt: isExistCart ? new Date(cartItem.createdAt) : new Date(),
-        updatedAt: new Date(),
-        dirtyBit: 1,
-        refreshAt: isExistCart ? new Date(cartItem.refreshAt) : RedisToolKit.getRefreshAt(cartKey, new Date())
-      }
-      await redisClient.hset(cartKey, template)
-
-      // sync to cart
-      const cartTemplate = await CartResource.postCart(req, unitPrice)
-
-      // if user has successfully logined, then check refreshAt and dirty
-      // ready to check and sync
-      req.stageArea = [template, cartTemplate]
-
-      // return success message
-      const resultCartItem = { ...template }
-      delete resultCartItem.dirtyBit
-      delete resultCartItem.refreshAt
-
-      return { error: null, data: resultCartItem, message: '添加成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    const template = {
+      cartId,
+      productId,
+      price: unitPrice * quantity,
+      quantity,
+      createdAt: isExistCart ? new Date(cartItem.createdAt) : new Date(),
+      updatedAt: new Date(),
+      dirtyBit: 1,
+      refreshAt: isExistCart ? new Date(cartItem.refreshAt) : RedisToolKit.getRefreshAt(cartKey, new Date())
     }
+    await redisClient.hset(cartKey, template)
+
+    // sync to cart
+    const cartTemplate = await CartResource.postCart(req, unitPrice)
+
+    // if user has successfully logined, then check refreshAt and dirty
+    // ready to check and sync
+    req.stageArea = [template, cartTemplate]
+
+    // return success message
+    const resultCartItem = { ...template }
+    delete resultCartItem.dirtyBit
+    delete resultCartItem.refreshAt
+
+    return { error: null, data: resultCartItem, message: '添加成功' }
   }
 
   // update a cartItem inside current cart
   static async putCartItems(req, data) {
-    try {
-      const redisClient = req.app.locals.redisClient
-      const { cartId } = req.session
-      const { stockHashMap, cartHashMap } = data
-      const entries = Object.entries(cartHashMap)
-      //  All is ok, then buy some goods
-      const templates = []
-      let sum = 0
-      for (const [id, quantity] of entries) {
-        const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${id}`
-        const total = Number(stockHashMap[id].price) * quantity
-        const createdAt = await redisClient.hget(cartItemKey, 'createdAt')
-        const refreshAt = await redisClient.hget(cartItemKey, 'refreshAt')
-        const template = {
-          cartId,
-          productId: Number(id),
-          quantity: quantity,
-          price: total,
-          createdAt: new Date(createdAt),
-          updatedAt: new Date(),
-          dirtyBit: 1,
-          refreshAt: new Date(refreshAt)
-        }
-        await redisClient.hset(cartItemKey, template)
-        templates.push(template)
-        sum += total
+    const redisClient = req.app.locals.redisClient
+    const { cartId } = req.session
+    const { stockHashMap, cartHashMap } = data
+    const entries = Object.entries(cartHashMap)
+    //  All is ok, then buy some goods
+    const templates = []
+    let sum = 0
+    for (const [id, quantity] of entries) {
+      const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${id}`
+      const total = Number(stockHashMap[id].price) * quantity
+      const createdAt = await redisClient.hget(cartItemKey, 'createdAt')
+      const refreshAt = await redisClient.hget(cartItemKey, 'refreshAt')
+      const template = {
+        cartId,
+        productId: Number(id),
+        quantity: quantity,
+        price: total,
+        createdAt: new Date(createdAt),
+        updatedAt: new Date(),
+        dirtyBit: 1,
+        refreshAt: new Date(refreshAt)
       }
-
-      // sync to cart
-      const cartTemplate = await CartResource.putCart(req, sum)
-      // ready to check and sync
-      templates.push(cartTemplate)
-      req.stageArea = templates
-
-      const resultCart = null
-      return { error: null, data: resultCart, message: '修改成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, message: error.message }) }
+      await redisClient.hset(cartItemKey, template)
+      templates.push(template)
+      sum += total
     }
+
+    // sync to cart
+    const cartTemplate = await CartResource.putCart(req, sum)
+    // ready to check and sync
+    templates.push(cartTemplate)
+    req.stageArea = templates
+
+    const resultCart = null
+    return { error: null, data: resultCart, message: '修改成功' }
   }
 
   // remove a product from current cart
-  static async deleteCartItem(req) {
-    try {
-      const { productId } = req.body
-      const { cartId } = req.session
+  static async deleteCartItem(req, data) {
+    const { productId } = req.body
+    const { cartId } = req.session
+    const redisClient = req.app.locals.redisClient
+    const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+    const cartItem = data
 
-      const { error, result } = CartToolKit.cartItemSyntaxValidate(req)
-      if (error) {
-        return { error: new APIError({ code: result.code, status, message: result.message }) }
-      }
-
-      const redisClient = req.app.locals.redisClient
-      const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
-
-      // check whether product exists in carts
-      const cartItem = await redisClient.hgetall(cartItemKey)
-
-      // nothing
-      if (!CartToolKit.existCartProduct(cartItem)) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '購物車內找不到對應項目' }) }
-      }
-
-      // I've found that
-      // remove that product with quantity = 0
-      const template = {
-        ...cartItem,
-        quantity: 0,
-        price: 0,
-        dirtyBit: 1,
-        updatedAt: new Date()
-      }
-
-      await redisClient.hset(cartItemKey, template)
-      // sync to cart
-      const cartTemplate = await CartResource.postCart(req, -1 * Number(cartItem.price))
-
-      // ready to check and sync
-      req.stageArea = [template, cartTemplate]
-
-      const resultCartItem = null
-      // return success message
-      return { error: null, data: resultCartItem, message: '移除成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    // I've found that
+    // remove that product with quantity = 0
+    const template = {
+      ...cartItem,
+      quantity: 0,
+      price: 0,
+      dirtyBit: 1,
+      updatedAt: new Date()
     }
+
+    await redisClient.hset(cartItemKey, template)
+    // sync to cart
+    const cartTemplate = await CartResource.postCart(req, -1 * Number(cartItem.price))
+
+    // ready to check and sync
+    req.stageArea = [template, cartTemplate]
+
+    const resultCartItem = null
+    // return success message
+    return { error: null, data: resultCartItem, message: '移除成功' }
   }
 
   // remove all products from current cart

@@ -151,6 +151,30 @@ class CartResourceValidator {
     const resultData = cart
     return { data: resultData }
   }
+
+  static async deleteCartItem(req) {
+    const { productId } = req.body
+    const { cartId } = req.session
+
+    const { error, result } = CartToolKit.cartItemSyntaxValidate(req)
+    if (error) {
+      throw new APIError({ code: result.code, message: result.message })
+    }
+
+    const redisClient = req.app.locals.redisClient
+    const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+
+    // check whether product exists in carts
+    const cartItem = await redisClient.hgetall(cartItemKey)
+
+    // nothing
+    if (!CartToolKit.existCartProduct(cartItem)) {
+      throw new APIError({ code: code.NOTFOUND, message: '購物車內找不到對應項目' })
+    }
+
+    const resultData = cartItem
+    return { data: resultData }
+  }
 }
 
 exports = module.exports = {
