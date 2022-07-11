@@ -1,11 +1,9 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
-const { ParameterValidationKit } = require('../../utils/parameter-validation-kit')
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { CartToolKit } = require('../../utils/cart-tool-kit')
-const { ProductToolKit } = require('../../utils/product-tool-kit')
-const { status, code } = require('../../config/result-status-table').errorTable
+const { code } = require('../../config/result-status-table').errorTable
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cache.CART
 
 class CartResource {
@@ -108,6 +106,10 @@ class CartResource {
     }
 
     products = products.slice(offset, limit + offset)
+    if (!products.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+
     const template = []
 
     for (const product of products) {
