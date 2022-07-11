@@ -254,7 +254,8 @@ const cartMiddleware = {
     // add middleware to route (GET /carts/self/items)
     getCartItems: [
       AuthValidator.authenticateLoggedIn,
-      AuthValidator.authenticateUser
+      AuthValidator.authenticateUser,
+      ParameterPreprocessor.paging
     ],
     // add middleware to route (POST /carts/self/items)
     postCartItems: [],

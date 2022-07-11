@@ -86,11 +86,28 @@ class CartResource {
 
   // get all cartItems from current cart
   static async getCartItems(req, data) {
-    const cart = data
     // if yes
     // get all products from the cart
-    const products = CartToolKit.getValidProducts(cart)
+    const cart = data
 
+    const results = CartToolKit.getValidProducts(cart)
+    const { page, offset, limit, order } = req.query
+    let products = []
+
+    switch (order) {
+      case 'DESC': {
+        const compare = (a, b) => (Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        products = results.sort(compare)
+        break
+      }
+      case 'ASC': {
+        const compare = (a, b) => (Date.parse(a.createdAt) - Date.parse(b.createdAt))
+        products = results.sort(compare)
+        break
+      }
+    }
+
+    products = products.slice(offset, limit + offset)
     const template = []
 
     for (const product of products) {
@@ -104,7 +121,7 @@ class CartResource {
 
     // return success message
     const resultCart = template
-    return { error: null, data: resultCart, message: '獲取成功' }
+    return { error: null, data: { currentPage: page, resultCart }, message: '獲取成功' }
   }
 
   // add a product into current cart
