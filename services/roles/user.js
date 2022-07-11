@@ -10,6 +10,7 @@ const { PurchaseResource } = require('../resources/purchase')
 const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
 const { CartResourceValidator } = require('../validators/cart-resource-validator')
 const { OrderResourceValidator } = require('../validators/order-resource-validator')
+const { LikeResourceValidator } = require('../validators/like-resource-validator')
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -143,8 +144,13 @@ class UserService extends AccountService {
 
   // like a specific product
   async likeProduct(req, cb) {
-    const { error, data, message } = await LikeResource.likeProduct(req)
-    return cb(error, message, data)
+    try {
+      const result = await LikeResourceValidator.likeProduct(req)
+      const { error, data, message } = await LikeResource.likeProduct(req, result.data)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   // unlike a specific product
