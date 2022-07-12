@@ -1,12 +1,22 @@
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
-const { ProductStatistic, UserStatistic } = require('../../db/models')
+const { ProductStatistic, UserStatistic, Like } = require('../../db/models')
+const { code } = require('../../config/result-status-table').errorTable
+const { APIError } = require('../../helpers/api-error')
 
 class LikeResource {
   static async likeProduct(req, data) {
     // user can like product
     const loginUser = AuthToolKit.getUser(req)
     const { productId } = req.params
-    const like = data
+    const { findLikeOption } = data
+
+    // check whether the user has repeatedly liked the same product
+    // return error if it's true
+    const [like, created] = await Like.findOrCreate(findLikeOption)
+    if (!created) {
+      throw new APIError({ code: code.FORBIDDEN, message: '使用者不能重複喜歡同個產品' })
+    }
+
     // update likeTally to user statistic
     const findUserStatOption = {
       where: { userId: loginUser.id },

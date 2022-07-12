@@ -149,7 +149,14 @@ class UserService extends AccountService {
   // like a specific product
   async likeProduct(req, cb) {
     try {
+      // current login user
+      const loginUser = AuthToolKit.getUser(req)
+      const { productId } = req.params
+      const findLikeOption = {
+        where: { userId: loginUser.id, productId }
+      }
       const result = await LikeResourceValidator.likeProduct(req)
+      result.data = { ...result.data, findLikeOption }
       const { error, data, message } = await LikeResource.likeProduct(req, result.data)
       return cb(error, data, message)
     } catch (error) {
