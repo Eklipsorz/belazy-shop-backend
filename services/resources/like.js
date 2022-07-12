@@ -50,7 +50,13 @@ class LikeResource {
     // user can unlike product
     const loginUser = AuthToolKit.getUser(req)
     const { productId } = req.params
-    const like = data
+    const { findUnlikeOption } = data
+    // check whether the user has repeatedly liked the same product
+    // return error if it's true
+    const like = await Like.findOne(findUnlikeOption)
+    if (!like) {
+      throw new APIError({ code: code.UNAUTHORIZED, message: '使用者不能取消從未喜歡過的產品' })
+    }
     await like.destroy()
 
     // update likeTally to user statistic

@@ -155,6 +155,7 @@ class UserService extends AccountService {
       const findLikeOption = {
         where: { userId: loginUser.id, productId }
       }
+
       const result = await LikeResourceValidator.likeProduct(req)
       result.data = { ...result.data, findLikeOption }
       const { error, data, message } = await LikeResource.likeProduct(req, result.data)
@@ -167,7 +168,17 @@ class UserService extends AccountService {
   // unlike a specific product
   async unlikeProduct(req, cb) {
     try {
+      const loginUser = AuthToolKit.getUser(req)
+      const { productId } = req.params
+      const findUnlikeOption = {
+        where: {
+          userId: loginUser.id,
+          productId
+        }
+      }
+
       const result = await LikeResourceValidator.unlikeProduct(req)
+      result.data = { ...result.data, findUnlikeOption }
       const { error, data, message } = await LikeResource.unlikeProduct(req, result.data)
       return cb(error, data, message)
     } catch (error) {
