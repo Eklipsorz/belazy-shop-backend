@@ -76,74 +76,74 @@ class SearchResource {
   }
 
   static async searchProductsFromCategory(req) {
-    const { error, data, message } = await CategoryResource.getCategories(req, 'search')
-    if (error) return { error, data, message }
-    try {
-      const { keyword, by, page, limit, offset } = req.query
-      const matchingType = by
-      // match category according "by" parameter
-      let result = ''
-      const categories = data.resultCategories
-      const searchOption = { data: categories, field: 'name', keyword }
+    const { data } = await CategoryResource.getCategories(req, 'search')
+    const { keyword, by, page, limit, offset } = req.query
+    const matchingType = by
+    // match category according "by" parameter
+    let result = ''
+    const categories = data.resultCategories
+    const searchOption = { data: categories, field: 'name', keyword }
 
-      switch (matchingType) {
-        case 'relevancy':
-          result = ArrayToolKit.fuzzySearch(searchOption)
-          break
-        case 'accuracy':
-          result = ArrayToolKit.exactSearch(searchOption)
-          break
-      }
-
-      if (!result.length) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
-      }
-
-      // get all products from some specific categories
-      const products = await Promise
-        .all(
-          result.map(async item => {
-            req.params.categoryId = item.id
-            return await CategoryResource.getProductsFromCategory(req, 'search')
-          })
-        )
-
-      // [{error,data,message}, ..] -> [{data.productSet1}, {data.productSet2}]
-      // every productSet is all products for each category
-      // BTW, I use HashTable to de-duplicate the same product
-      const productHashTable = {}
-      const resultProductArrays = products.map(set => {
-        if (set.error) return []
-        // build "productCategory" property
-        const productCategory = {
-          categoryId: set.data.categoryId,
-          categoryName: set.data.categoryName
-        }
-
-        // remove the same product
-        const products = set.data.resultProducts
-        const results = products.filter(product => {
-          if (!productHashTable[product.id]) {
-            product.productCategory = productCategory
-            productHashTable[product.id] = true
-            return product
-          }
-        })
-
-        return results
-      })
-      // [{data.productSet1}, {data.productSet2}] -> [product1, product2, ....]
-      let resultProducts = resultProductArrays.reduce((prev, next) => prev.concat(next))
-      if (!resultProducts.length) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
-      }
-      // paging
-      resultProducts = resultProducts.slice(offset, offset + limit)
-
-      return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    switch (matchingType) {
+      case 'relevancy':
+        result = ArrayToolKit.fuzzySearch(searchOption)
+        break
+      case 'accuracy':
+        result = ArrayToolKit.exactSearch(searchOption)
+        break
     }
+    // The category user want to find does not exist
+    if (!result.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應類別' })
+    }
+
+    // get all products from some specific categories
+    const products = await Promise
+      .all(
+        result.map(async item => {
+          req.params.categoryId = item.id
+          return await CategoryResource.getProductsFromCategory(req, 'search')
+        })
+      )
+
+    // [{error,data,message}, ..] -> [{data.productSet1}, {data.productSet2}]
+    // every productSet is all products for each category
+    // BTW, I use HashTable to de-duplicate the same product
+    const productHashTable = {}
+    const resultProductArrays = products.map(set => {
+      if (set.error) return []
+      // build "productCategory" property
+      const productCategory = {
+        categoryId: set.data.categoryId,
+        categoryName: set.data.categoryName
+      }
+
+      // remove the same product
+      const products = set.data.resultProducts
+      const results = products.filter(product => {
+        if (!productHashTable[product.id]) {
+          product.productCategory = productCategory
+          productHashTable[product.id] = true
+          return product
+        }
+      })
+
+      return results
+    })
+    // [{data.productSet1}, {data.productSet2}] -> [product1, product2, ....]
+    let resultProducts = resultProductArrays.reduce((prev, next) => prev.concat(next))
+
+    // The category user want to search really exists but there is nothing in that category
+    if (!resultProducts.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    // paging
+    resultProducts = resultProducts.slice(offset, offset + limit)
+    // There is nothing in the current page
+    if (!resultProducts.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
   }
 }
 

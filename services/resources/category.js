@@ -5,35 +5,31 @@ const { Ownership, Category, Product, ProductStatistic, sequelize } = require('.
 class CategoryResource {
   // Get all category (Only include category)
   static async getCategories(req, type = 'get') {
-    try {
-      const { page, limit, offset, order } = req.query
-      // define how to find
-      const findOption = {
-        // settings
-        order: [['createdAt', order]]
-      }
-      switch (type) {
-        case 'get':
-          findOption.limit = limit
-          findOption.offset = offset
-          break
-        case 'search':
-          break
-      }
-      // begin to find
-      const categories = await Category.findAll(findOption)
-
-      // nothing to find
-      if (!categories.length) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品類別' }) }
-      }
-
-      const resultCategories = categories.map(category => category.toJSON())
-
-      return { error: null, data: { currentPage: page, resultCategories }, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    const { page, limit, offset, order } = req.query
+    // define how to find
+    const findOption = {
+      // settings
+      order: [['createdAt', order]]
     }
+    switch (type) {
+      case 'get':
+        findOption.limit = limit
+        findOption.offset = offset
+        break
+      case 'search':
+        break
+    }
+    // begin to find
+    const categories = await Category.findAll(findOption)
+
+    // nothing to find
+    if (!categories.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到產品類別' })
+    }
+
+    const resultCategories = categories.map(category => category.toJSON())
+
+    return { error: null, data: { currentPage: page, resultCategories }, message: '獲取成功' }
   }
 
   // Get a specific category

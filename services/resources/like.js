@@ -1,22 +1,38 @@
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
-const { ProductStatistic, UserStatistic, Like } = require('../../db/models')
+const { ProductStatistic, UserStatistic, Like, Product } = require('../../db/models')
 const { code } = require('../../config/result-status-table').errorTable
 const { APIError } = require('../../helpers/api-error')
 
 class LikeResource {
-  static async likeProduct(req, data) {
-    // user can like product
+  // check whether a specific product exists
+  static async existProductValidation(req) {
+    const { productId } = req.params
+
+    const product = await Product.findByPk(productId)
+
+    // return error if nothing to find
+    if (!product) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    const resultData = null
+    return { data: resultData }
+  }
+
+  static async likeProduct(req) {
+    // check whether a specific product exists
+    await LikeResource.existProductValidation(req)
     const loginUser = AuthToolKit.getUser(req)
     const { productId } = req.params
-    const { findLikeOption } = data
-
+    const findLikeOption = {
+      where: { userId: loginUser.id, productId }
+    }
     // check whether the user has repeatedly liked the same product
     // return error if it's true
     const [like, created] = await Like.findOrCreate(findLikeOption)
     if (!created) {
       throw new APIError({ code: code.FORBIDDEN, message: '使用者不能重複喜歡同個產品' })
     }
-
+    // user can like product
     // update likeTally to user statistic
     const findUserStatOption = {
       where: { userId: loginUser.id },
@@ -47,10 +63,19 @@ class LikeResource {
   }
 
   static async unlikeProduct(req, data) {
+    // check whether a specific product exists
+    await LikeResource.existProductValidation(req)
+
     // user can unlike product
     const loginUser = AuthToolKit.getUser(req)
+
     const { productId } = req.params
-    const { findUnlikeOption } = data
+    const findUnlikeOption = {
+      where: {
+        userId: loginUser.id,
+        productId
+      }
+    }
     // check whether the user has repeatedly liked the same product
     // return error if it's true
     const like = await Like.findOne(findUnlikeOption)

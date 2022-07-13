@@ -10,7 +10,6 @@ const { PurchaseResource } = require('../resources/purchase')
 const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
 const { CartResourceValidator } = require('../validators/cart-resource-validator')
 const { OrderResourceValidator } = require('../validators/order-resource-validator')
-const { LikeResourceValidator } = require('../validators/like-resource-validator')
 
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
@@ -39,15 +38,13 @@ class UserService extends AccountService {
 
   // get all products
   async getProducts(req, cb) {
-    const { error, data, message } = await ProductResource.getProducts(req, 'get')
-    if (error) return cb(error, data, message)
-
     try {
+      const { error, data, message } = await ProductResource.getProducts(req, 'get')
       const products = data.resultProducts
       statusMarker(req, products)
-      return cb(null, data, message)
+      return cb(error, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 
@@ -100,15 +97,14 @@ class UserService extends AccountService {
 
   // search products with a specific category
   async searchProductsFromCategory(req, cb) {
-    const { error, data, message } = await SearchResource.searchProductsFromCategory(req)
-    if (error) return cb(error, data, message)
     try {
+      const { error, data, message } = await SearchResource.searchProductsFromCategory(req)
       const resultProducts = data.resultProducts
       // mark isLiked & isReplied
       statusMarker(req, resultProducts)
-      return cb(null, data, '獲取成功')
+      return cb(error, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 
@@ -120,8 +116,12 @@ class UserService extends AccountService {
 
   // get all categories
   async getCategories(req, cb) {
-    const { error, data, message } = await CategoryResource.getCategories(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getCategories(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   // get all products from a specific category
@@ -140,16 +140,7 @@ class UserService extends AccountService {
   // like a specific product
   async likeProduct(req, cb) {
     try {
-      // current login user
-      const loginUser = AuthToolKit.getUser(req)
-      const { productId } = req.params
-      const findLikeOption = {
-        where: { userId: loginUser.id, productId }
-      }
-
-      const result = await LikeResourceValidator.likeProduct(req)
-      result.data = { ...result.data, findLikeOption }
-      const { error, data, message } = await LikeResource.likeProduct(req, result.data)
+      const { error, data, message } = await LikeResource.likeProduct(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -159,18 +150,7 @@ class UserService extends AccountService {
   // unlike a specific product
   async unlikeProduct(req, cb) {
     try {
-      const loginUser = AuthToolKit.getUser(req)
-      const { productId } = req.params
-      const findUnlikeOption = {
-        where: {
-          userId: loginUser.id,
-          productId
-        }
-      }
-
-      const result = await LikeResourceValidator.unlikeProduct(req)
-      result.data = { ...result.data, findUnlikeOption }
-      const { error, data, message } = await LikeResource.unlikeProduct(req, result.data)
+      const { error, data, message } = await LikeResource.unlikeProduct(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
