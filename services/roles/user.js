@@ -82,14 +82,9 @@ class UserService extends AccountService {
 
   // get search hint when user input something in search bar
   async getSearchHints(req, cb) {
-    // if (error) return cb(error, data, message)
-
     try {
-      const result = SearchResourceValidator.getSearchHints(req)
-      const { error, data, message } = await SearchResource.getSearchHints(req, result.data)
-      const hintNumber = userService.SEARCH_HINT_NUMBER
-      const results = data.slice(0, hintNumber)
-      return cb(error, results, message)
+      const { error, data, message } = await SearchResource.getSearchHints(req)
+      return cb(error, data, message)
     } catch (error) {
       return cb(error)
     }
@@ -97,13 +92,12 @@ class UserService extends AccountService {
 
   // search product with a specific product name
   async searchProducts(req, cb) {
-    const { error, data, message } = await SearchResource.searchProducts(req)
-    if (error) return cb(error, data, message)
     try {
+      const { error, data, message } = await SearchResource.searchProducts(req)
       const resultProducts = data.resultProducts
       // mark isLiked & isReplied
       statusMarker(req, resultProducts)
-      return cb(null, data, message)
+      return cb(error, data, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }

@@ -7,8 +7,8 @@ const { ArrayToolKit } = require('../../utils/array-tool-kit')
 const { Category, Product } = require('../../db/models')
 
 class SearchResource {
-  static async getSearchHints(req, data) {
-    const { keyword } = req.query
+  static async getSearchHints(req) {
+    const { keyword, by, page, offset, limit } = req.query
     // 建立一個搜尋用的關鍵字陣列
     const keywords = []
     // 獲取所有類別的名稱，來加進關鍵字陣列
@@ -28,44 +28,51 @@ class SearchResource {
     keywords.push(...categories, ...products)
 
     const searchOption = { data: keywords, field: 'name', keyword }
-    const fuseResults = ArrayToolKit.fuzzySearch(searchOption)
-    if (!fuseResults.length) {
+    const matchingType = by
+    let result = []
+
+    switch (matchingType) {
+      case 'relevancy':
+        result = ArrayToolKit.fuzzySearch(searchOption)
+        break
+      case 'accuracy':
+        result = ArrayToolKit.exactSearch(searchOption)
+        break
+    }
+
+    result = result.slice(offset, offset + limit)
+    if (!result.length) {
       throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
     }
 
-    return { error: null, data: fuseResults, message: '獲取成功' }
+    return { error: null, data: { currentPage: page, result: result }, message: '獲取成功' }
   }
 
   static async searchProducts(req) {
-    const { error, data, message } = await ProductResource.getProducts(req, 'search')
-    if (error) return { error, data, message }
-    try {
-      const { keyword, by, page, limit, offset } = req.query
-      const matchingType = by
-      // match category according "by" parameter
-      let result = ''
+    const { data } = await ProductResource.getProducts(req, 'search')
+    const { keyword, by, page, limit, offset } = req.query
+    const matchingType = by
+    // match category according "by" parameter
+    let result = ''
 
-      const searchOption = { data: data.resultProducts, field: 'name', keyword }
+    const searchOption = { data: data.resultProducts, field: 'name', keyword }
 
-      switch (matchingType) {
-        case 'relevancy':
-          result = ArrayToolKit.fuzzySearch(searchOption)
-          break
-        case 'accuracy':
-          result = ArrayToolKit.exactSearch(searchOption)
-          break
-      }
-
-      if (!result.length) {
-        return { error: APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
-      }
-      // paging
-      const resultProducts = result.slice(offset, offset + limit)
-
-      return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    switch (matchingType) {
+      case 'relevancy':
+        result = ArrayToolKit.fuzzySearch(searchOption)
+        break
+      case 'accuracy':
+        result = ArrayToolKit.exactSearch(searchOption)
+        break
     }
+
+    if (!result.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    // paging
+    const resultProducts = result.slice(offset, offset + limit)
+
+    return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
   }
 
   static async searchProductsFromCategory(req) {
