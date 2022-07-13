@@ -23,7 +23,6 @@ class LikeResourceValidator {
   }
 
   static async unlikeProduct(req) {
-
     const { productId } = req.params
 
     // check whether a specific product exists

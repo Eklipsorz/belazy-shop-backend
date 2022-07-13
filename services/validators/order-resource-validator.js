@@ -47,6 +47,8 @@ class OrderResourceValidator {
     const resultData = { user: buyer, sum, stockHashMap }
     return { data: resultData }
   }
+  // skip getOrders
+  // skip getOrder
 }
 
 exports = module.exports = {
