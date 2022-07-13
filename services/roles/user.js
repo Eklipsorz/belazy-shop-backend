@@ -10,16 +10,11 @@ const { PurchaseResource } = require('../resources/purchase')
 const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
 const { CartResourceValidator } = require('../validators/cart-resource-validator')
 const { OrderResourceValidator } = require('../validators/order-resource-validator')
-const { LikeResourceValidator } = require('../validators/like-resource-validator')
-const { ReplyResourceValidator } = require('../validators/reply-resource-validator')
 
-const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { SearchResource } = require('../resources/search')
-
-const { User } = require('../../db/models')
 
 // isLiked & isReplied status marker for each product
 function statusMarker(req, products) {
@@ -43,15 +38,13 @@ class UserService extends AccountService {
 
   // get all products
   async getProducts(req, cb) {
-    const { error, data, message } = await ProductResource.getProducts(req, 'get')
-    if (error) return cb(error, data, message)
-
     try {
+      const { error, data, message } = await ProductResource.getProducts(req, 'get')
       const products = data.resultProducts
       statusMarker(req, products)
-      return cb(null, data, message)
+      return cb(error, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 
@@ -81,27 +74,22 @@ class UserService extends AccountService {
 
   // get search hint when user input something in search bar
   async getSearchHints(req, cb) {
-    const { error, data, message } = await SearchResource.getSearchHints(req)
-    if (error) return cb(error, data, message)
-
     try {
-      const hintNumber = userService.SEARCH_HINT_NUMBER
-      const results = data.slice(0, hintNumber)
-      return cb(error, results, message)
+      const { error, data, message } = await SearchResource.getSearchHints(req)
+      return cb(error, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 
   // search product with a specific product name
   async searchProducts(req, cb) {
-    const { error, data, message } = await SearchResource.searchProducts(req)
-    if (error) return cb(error, data, message)
     try {
+      const { error, data, message } = await SearchResource.searchProducts(req)
       const resultProducts = data.resultProducts
       // mark isLiked & isReplied
       statusMarker(req, resultProducts)
-      return cb(null, data, message)
+      return cb(error, data, message)
     } catch (error) {
       return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
     }
@@ -109,15 +97,14 @@ class UserService extends AccountService {
 
   // search products with a specific category
   async searchProductsFromCategory(req, cb) {
-    const { error, data, message } = await SearchResource.searchProductsFromCategory(req)
-    if (error) return cb(error, data, message)
     try {
+      const { error, data, message } = await SearchResource.searchProductsFromCategory(req)
       const resultProducts = data.resultProducts
       // mark isLiked & isReplied
       statusMarker(req, resultProducts)
-      return cb(null, data, '獲取成功')
+      return cb(error, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 
@@ -129,8 +116,12 @@ class UserService extends AccountService {
 
   // get all categories
   async getCategories(req, cb) {
-    const { error, data, message } = await CategoryResource.getCategories(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getCategories(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   // get all products from a specific category
@@ -149,16 +140,7 @@ class UserService extends AccountService {
   // like a specific product
   async likeProduct(req, cb) {
     try {
-      // current login user
-      const loginUser = AuthToolKit.getUser(req)
-      const { productId } = req.params
-      const findLikeOption = {
-        where: { userId: loginUser.id, productId }
-      }
-
-      const result = await LikeResourceValidator.likeProduct(req)
-      result.data = { ...result.data, findLikeOption }
-      const { error, data, message } = await LikeResource.likeProduct(req, result.data)
+      const { error, data, message } = await LikeResource.likeProduct(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -168,18 +150,7 @@ class UserService extends AccountService {
   // unlike a specific product
   async unlikeProduct(req, cb) {
     try {
-      const loginUser = AuthToolKit.getUser(req)
-      const { productId } = req.params
-      const findUnlikeOption = {
-        where: {
-          userId: loginUser.id,
-          productId
-        }
-      }
-
-      const result = await LikeResourceValidator.unlikeProduct(req)
-      result.data = { ...result.data, findUnlikeOption }
-      const { error, data, message } = await LikeResource.unlikeProduct(req, result.data)
+      const { error, data, message } = await LikeResource.unlikeProduct(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -205,23 +176,7 @@ class UserService extends AccountService {
 
   async getReplies(req, cb) {
     try {
-      const result = await ReplyResourceValidator.getReplies(req)
-      const { productId } = req.params
-      const { limit, offset, order } = req.query
-      // define how to find
-
-      const findOption = {
-        include: [
-          { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
-        ],
-        where: { productId },
-        order: [['createdAt', order]],
-        limit,
-        offset
-      }
-
-      result.data = { ...result.data, findOption }
-      const { error, data, message } = await ReplyResource.getReplies(req, result.data)
+      const { error, data, message } = await ReplyResource.getReplies(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -230,12 +185,7 @@ class UserService extends AccountService {
 
   async getReply(req, cb) {
     try {
-      const findOption = {
-        include: [
-          { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
-        ]
-      }
-      const { error, data, message } = await ReplyResource.getReply(req, { findOption })
+      const { error, data, message } = await ReplyResource.getReply(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -244,8 +194,7 @@ class UserService extends AccountService {
 
   async postReplies(req, cb) {
     try {
-      const result = await ReplyResourceValidator.postReplies(req)
-      const { error, data, message } = await ReplyResource.postReplies(req, result.data)
+      const { error, data, message } = await ReplyResource.postReplies(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -254,8 +203,7 @@ class UserService extends AccountService {
 
   async deleteReply(req, cb) {
     try {
-      const result = await ReplyResourceValidator.deleteReply(req)
-      const { error, data, message } = await ReplyResource.deleteReply(req, result.data)
+      const { error, data, message } = await ReplyResource.deleteReply(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -264,8 +212,7 @@ class UserService extends AccountService {
 
   async putReply(req, cb) {
     try {
-      const result = await ReplyResourceValidator.putReply(req)
-      const { error, data, message } = await ReplyResource.putReply(req, result.data)
+      const { error, data, message } = await ReplyResource.putReply(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -365,17 +312,7 @@ class UserService extends AccountService {
 
   async getOrders(req, cb) {
     try {
-      const currentUser = AuthToolKit.getUser(req)
-      const { limit, offset, order } = req.query
-      const findOption = {
-        where: { userId: currentUser.id },
-        limit,
-        offset,
-        order: [['createdAt', order]]
-      }
-      const option = { user: currentUser, findOption }
-
-      const { error, data, message } = await OrderResource.getOrders(req, option)
+      const { error, data, message } = await OrderResource.getOrders(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -384,13 +321,7 @@ class UserService extends AccountService {
 
   async getOrder(req, cb) {
     try {
-      const { orderId } = req.params
-      const currentUser = AuthToolKit.getUser(req)
-      const findOption = {
-        where: { userId: currentUser.id, id: orderId }
-      }
-      const option = { user: currentUser, findOption }
-      const { error, data, message } = await OrderResource.getOrder(req, option)
+      const { error, data, message } = await OrderResource.getOrder(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)

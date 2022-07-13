@@ -3,8 +3,7 @@ const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const {
   Product, Ownership, Stock,
-  ProductStatistic, Cart, CartItem,
-  Like, Reply
+  ProductStatistic, Cart, CartItem
 } = require('../../db/models')
 const { CartToolKit } = require('../../utils/cart-tool-kit')
 const { ProductToolKit } = require('../../utils/product-tool-kit')
@@ -17,46 +16,42 @@ const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cac
 
 class ProductResource {
   static async getProducts(req, type = 'get') {
-    try {
-      const { page, limit, offset, order } = req.query
+    const { page, limit, offset, order } = req.query
 
-      const findOption = {
-        include: [
-          {
-            model: Ownership,
-            attributes: ['categoryId', 'categoryName'],
-            as: 'productCategory'
-          },
-          {
-            model: ProductStatistic,
-            attributes: ['likedTally', 'repliedTally'],
-            as: 'statistics'
-          }
-        ],
-        order: [['createdAt', order]],
-        nest: true
-      }
-
-      switch (type) {
-        case 'get':
-          findOption.limit = limit
-          findOption.offset = offset
-          break
-        case 'search':
-          // do something for searching
-          break
-      }
-
-      const products = await Product.findAll(findOption)
-
-      if (!products.length) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到產品' }) }
-      }
-      const resultProducts = products.map(product => product.toJSON())
-      return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    const findOption = {
+      include: [
+        {
+          model: Ownership,
+          attributes: ['categoryId', 'categoryName'],
+          as: 'productCategory'
+        },
+        {
+          model: ProductStatistic,
+          attributes: ['likedTally', 'repliedTally'],
+          as: 'statistics'
+        }
+      ],
+      order: [['createdAt', order]],
+      nest: true
     }
+
+    switch (type) {
+      case 'get':
+        findOption.limit = limit
+        findOption.offset = offset
+        break
+      case 'search':
+        // do something for searching
+        break
+    }
+
+    const products = await Product.findAll(findOption)
+
+    if (!products.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    const resultProducts = products.map(product => product.toJSON())
+    return { error: null, data: { currentPage: page, resultProducts }, message: '獲取成功' }
   }
 
   static async getProductSnapshot(req) {

@@ -8,14 +8,15 @@ class ParameterValidator {
   static searchParameterValidate(req, _, next) {
     const { keyword, by } = req.query
     const { AVABILABLE_BY_OPTION } = parameterValidator
+    const { isInvalidFormat } = ParameterValidationKit
     const matchingType = by?.toLowerCase()
 
-    if (!keyword) {
+    if (isInvalidFormat(keyword)) {
       return next(new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }))
     }
 
     // check whether by is empty
-    if (!by) {
+    if (isInvalidFormat(by)) {
       return next(new APIError({ code: code.BADREQUEST, status, message: 'by參數為空' }))
     }
 

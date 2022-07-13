@@ -129,7 +129,10 @@ const adminMiddleware = {
 
 const productMiddleware = {
   // add middleware to route (GET /products/search/hints)
-  searchHints: [],
+  searchHints: [
+    ParameterPreprocessor.paging,
+    ParameterValidator.searchParameterValidate
+  ],
   // add middleware to route (GET /products/categories/search)
   searchCategory: [
     ParameterPreprocessor.paging,

@@ -1,16 +1,55 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
-const { Product, Reply, User, UserStatistic, ProductStatistic } = require('../../db/models')
+const { Reply, UserStatistic, ProductStatistic } = require('../../db/models')
 
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { ReplyToolKit } = require('../../utils/reply-tool-kit')
+const { User, Product } = require('../../db/models')
 
 class ReplyResource {
-  static async getReplies(req, data) {
-    const { page } = req.query
+  static async existReplyValidate(req) {
+    const { replyId } = req.params
+    const reply = await Reply.findByPk(replyId)
+    if (!reply) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    const loginUser = AuthToolKit.getUser(req)
+
+    if (reply.userId !== loginUser.id) {
+      throw new APIError({ code: code.FORBIDDEN, message: '只能存取自己的留言' })
+    }
+    const resultData = { reply }
+    return { data: resultData }
+  }
+
+  static async existProductValidate(req) {
+    // check whether the product exists
+    const { productId } = req.params
+
+    const product = await Product.findByPk(productId)
+    if (!product) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    const resultData = { product }
+    return { data: resultData }
+  }
+
+  static async getReplies(req) {
+    await ReplyResource.existProductValidate(req)
+    const { productId } = req.params
+    const { limit, offset, order, page } = req.query
     // define how to find
-    const { findOption } = data
+
+    const findOption = {
+      include: [
+        { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
+      ],
+      where: { productId },
+      order: [['createdAt', order]],
+      limit,
+      offset
+    }
 
     // begin to find
     const replies = await Reply.findAll(findOption)
@@ -26,9 +65,14 @@ class ReplyResource {
     return { error: null, data: { currentPage: page, resultReplies }, message: '獲取成功' }
   }
 
-  static async getReply(req, data) {
+  static async getReply(req) {
     const { replyId } = req.params
-    const { findOption } = data
+
+    const findOption = {
+      include: [
+        { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
+      ]
+    }
     const reply = await Reply.findByPk(replyId, findOption)
     if (!reply) {
       throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
@@ -38,7 +82,8 @@ class ReplyResource {
     return { error: null, data: resultReply, message: '獲取成功' }
   }
 
-  static async postReplies(req, data) {
+  static async postReplies(req) {
+    await ReplyResource.existProductValidate(req)
     const { productId } = req.params
     const message = ReplyToolKit.replyContentValidate(req)
     const { content } = req.body
@@ -82,10 +127,11 @@ class ReplyResource {
     return { error: null, data: resultObject, message: '留言成功' }
   }
 
-  static async deleteReply(req, data) {
+  static async deleteReply(req) {
     try {
+      const result = await ReplyResource.existReplyValidate(req)
       const loginUser = AuthToolKit.getUser(req)
-      const { reply } = data
+      const { reply } = result.data
 
       // begin to delete the reply
       const resultReply = await reply.destroy()
@@ -122,18 +168,10 @@ class ReplyResource {
     }
   }
 
-  static async putReply(req, data) {
-    // const { replyId } = req.params
-    // const reply = await ReplyToolKit.replyGetter(replyId)
+  static async putReply(req) {
+    const result = await ReplyResource.existReplyValidate(req)
+    const { reply } = result.data
 
-    // // check whether the reply owner is current user
-    // const loginUser = AuthToolKit.getUser(req)
-
-    // if (reply.userId !== loginUser.id) {
-    //   return { error: new APIError({ code: code.FORBIDDEN, status, message: '只能編輯自己的留言' }) }
-    // }
-
-    const { reply } = data
     // begin to edit the reply
     const message = ReplyToolKit.replyContentValidate(req)
     const { content } = req.body

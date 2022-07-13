@@ -3,6 +3,7 @@ const { code } = require('../../config/result-status-table').errorTable
 const { status } = require('../../config/result-status-table').orderStatusTable
 const { APIError } = require('../../helpers/api-error')
 const { Order, OrderDetail } = require('../../db/models')
+const { AuthToolKit } = require('../../utils/auth-tool-kit')
 
 class OrderResource {
   static async postOrders(req, data) {
@@ -60,12 +61,20 @@ class OrderResource {
     return results
   }
 
-  static async getOrders(req, data) {
-    const { findOption } = data
+  static async getOrders(req) {
+    const currentUser = AuthToolKit.getUser(req)
+    const { limit, offset, order } = req.query
+    const findOption = {
+      where: { userId: currentUser.id },
+      limit,
+      offset,
+      order: [['createdAt', order]]
+    }
+
     const { page } = req.query
     const orders = await Order.findAll(findOption)
     if (!orders.length) {
-      throw new APIError({ code: code.NOTFOUND, message: '找不到對象項目' })
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
     }
 
     const results = await OrderResource.getOrderDetails(orders)
@@ -74,13 +83,17 @@ class OrderResource {
     return { error: null, data: { currentPage: page, resultOrder }, message: '獲取成功' }
   }
 
-  static async getOrder(req, data) {
-    const { findOption } = data
+  static async getOrder(req) {
+    const { orderId } = req.params
+    const currentUser = AuthToolKit.getUser(req)
+    const findOption = {
+      where: { userId: currentUser.id, id: orderId }
+    }
 
     const order = await Order.findOne(findOption)
 
     if (!order) {
-      throw new APIError({ code: code.NOTFOUND, message: '找不到對象項目' })
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
     }
 
     const results = await OrderResource.getOrderDetails(order)
