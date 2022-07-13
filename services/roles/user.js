@@ -11,14 +11,11 @@ const { PurchaseResourceValidator } = require('../validators/purchase-resource-v
 const { CartResourceValidator } = require('../validators/cart-resource-validator')
 const { OrderResourceValidator } = require('../validators/order-resource-validator')
 const { LikeResourceValidator } = require('../validators/like-resource-validator')
-const { ReplyResourceValidator } = require('../validators/reply-resource-validator')
 
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { SearchResource } = require('../resources/search')
-
-const { User } = require('../../db/models')
 
 // isLiked & isReplied status marker for each product
 function statusMarker(req, products) {
@@ -199,7 +196,6 @@ class UserService extends AccountService {
 
   async getReplies(req, cb) {
     try {
-      await ReplyResourceValidator.getReplies(req)
       const { error, data, message } = await ReplyResource.getReplies(req)
       return cb(error, data, message)
     } catch (error) {
@@ -218,8 +214,7 @@ class UserService extends AccountService {
 
   async postReplies(req, cb) {
     try {
-      const result = await ReplyResourceValidator.postReplies(req)
-      const { error, data, message } = await ReplyResource.postReplies(req, result.data)
+      const { error, data, message } = await ReplyResource.postReplies(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -228,8 +223,7 @@ class UserService extends AccountService {
 
   async deleteReply(req, cb) {
     try {
-      const result = await ReplyResourceValidator.deleteReply(req)
-      const { error, data, message } = await ReplyResource.deleteReply(req, result.data)
+      const { error, data, message } = await ReplyResource.deleteReply(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -238,8 +232,7 @@ class UserService extends AccountService {
 
   async putReply(req, cb) {
     try {
-      const result = await ReplyResourceValidator.putReply(req)
-      const { error, data, message } = await ReplyResource.putReply(req, result.data)
+      const { error, data, message } = await ReplyResource.putReply(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
