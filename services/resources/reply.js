@@ -5,12 +5,25 @@ const { Reply, UserStatistic, ProductStatistic } = require('../../db/models')
 
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { ReplyToolKit } = require('../../utils/reply-tool-kit')
+const { User } = require('../../db/models')
 
 class ReplyResource {
-  static async getReplies(req, data) {
-    const { page } = req.query
+  static async getReplies(req) {
     // define how to find
-    const { findOption } = data
+
+    const { productId } = req.params
+    const { limit, offset, order, page } = req.query
+    // define how to find
+
+    const findOption = {
+      include: [
+        { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
+      ],
+      where: { productId },
+      order: [['createdAt', order]],
+      limit,
+      offset
+    }
 
     // begin to find
     const replies = await Reply.findAll(findOption)
@@ -26,9 +39,14 @@ class ReplyResource {
     return { error: null, data: { currentPage: page, resultReplies }, message: '獲取成功' }
   }
 
-  static async getReply(req, data) {
+  static async getReply(req) {
     const { replyId } = req.params
-    const { findOption } = data
+
+    const findOption = {
+      include: [
+        { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
+      ]
+    }
     const reply = await Reply.findByPk(replyId, findOption)
     if (!reply) {
       throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })

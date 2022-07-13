@@ -12,9 +12,7 @@ const { CartResourceValidator } = require('../validators/cart-resource-validator
 const { OrderResourceValidator } = require('../validators/order-resource-validator')
 const { LikeResourceValidator } = require('../validators/like-resource-validator')
 const { ReplyResourceValidator } = require('../validators/reply-resource-validator')
-const { SearchResourceValidator } = require('../validators/search-resource-validator')
 
-const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
@@ -201,23 +199,8 @@ class UserService extends AccountService {
 
   async getReplies(req, cb) {
     try {
-      const result = await ReplyResourceValidator.getReplies(req)
-      const { productId } = req.params
-      const { limit, offset, order } = req.query
-      // define how to find
-
-      const findOption = {
-        include: [
-          { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
-        ],
-        where: { productId },
-        order: [['createdAt', order]],
-        limit,
-        offset
-      }
-
-      result.data = { ...result.data, findOption }
-      const { error, data, message } = await ReplyResource.getReplies(req, result.data)
+      await ReplyResourceValidator.getReplies(req)
+      const { error, data, message } = await ReplyResource.getReplies(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -226,12 +209,7 @@ class UserService extends AccountService {
 
   async getReply(req, cb) {
     try {
-      const findOption = {
-        include: [
-          { model: User, attributes: ['avatar', 'nickname'], as: 'user' }
-        ]
-      }
-      const { error, data, message } = await ReplyResource.getReply(req, { findOption })
+      const { error, data, message } = await ReplyResource.getReply(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -361,17 +339,7 @@ class UserService extends AccountService {
 
   async getOrders(req, cb) {
     try {
-      const currentUser = AuthToolKit.getUser(req)
-      const { limit, offset, order } = req.query
-      const findOption = {
-        where: { userId: currentUser.id },
-        limit,
-        offset,
-        order: [['createdAt', order]]
-      }
-      const option = { user: currentUser, findOption }
-
-      const { error, data, message } = await OrderResource.getOrders(req, option)
+      const { error, data, message } = await OrderResource.getOrders(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -380,13 +348,7 @@ class UserService extends AccountService {
 
   async getOrder(req, cb) {
     try {
-      const { orderId } = req.params
-      const currentUser = AuthToolKit.getUser(req)
-      const findOption = {
-        where: { userId: currentUser.id, id: orderId }
-      }
-      const option = { user: currentUser, findOption }
-      const { error, data, message } = await OrderResource.getOrder(req, option)
+      const { error, data, message } = await OrderResource.getOrder(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
