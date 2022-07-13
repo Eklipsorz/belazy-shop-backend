@@ -12,6 +12,7 @@ const { CartResourceValidator } = require('../validators/cart-resource-validator
 const { OrderResourceValidator } = require('../validators/order-resource-validator')
 const { LikeResourceValidator } = require('../validators/like-resource-validator')
 const { ReplyResourceValidator } = require('../validators/reply-resource-validator')
+const { SearchResourceValidator } = require('../validators/search-resource-validator')
 
 const { userService } = require('../../config/app').service
 const { APIError } = require('../../helpers/api-error')
@@ -81,15 +82,16 @@ class UserService extends AccountService {
 
   // get search hint when user input something in search bar
   async getSearchHints(req, cb) {
-    const { error, data, message } = await SearchResource.getSearchHints(req)
-    if (error) return cb(error, data, message)
+    // if (error) return cb(error, data, message)
 
     try {
+      const result = SearchResourceValidator.getSearchHints(req)
+      const { error, data, message } = await SearchResource.getSearchHints(req, result.data)
       const hintNumber = userService.SEARCH_HINT_NUMBER
       const results = data.slice(0, hintNumber)
       return cb(error, results, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 

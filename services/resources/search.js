@@ -3,40 +3,37 @@ const { CategoryResource } = require('./category')
 const { ProductResource } = require('./product')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { ArrayToolKit } = require('../../utils/array-tool-kit')
+
 const { Category, Product } = require('../../db/models')
 
 class SearchResource {
-  static async getSearchHints(req) {
-    try {
-      const { keyword } = req.query
-      if (!keyword) {
-        return { error: new APIError({ code: code.BADREQUEST, status, message: '關鍵字為空' }) }
-      }
-      // 建立一個搜尋用的關鍵字陣列
-      const keywords = []
-      // 獲取所有類別的名稱，來加進關鍵字陣列
-      const categories = await Category.findAll({
-        attributes: ['name'],
-        raw: true
-      })
-      // 獲取所有產品的名稱，來加進關鍵字陣列
-      const products = await Product.findAll({
-        attributes: ['name'],
-        raw: true
-      })
+  static async getSearchHints(req, data) {
+    const { keyword } = req.query
+    // 建立一個搜尋用的關鍵字陣列
+    const keywords = []
+    // 獲取所有類別的名稱，來加進關鍵字陣列
+    const categories = await Category.findAll({
+      attributes: ['name'],
+      raw: true
+    })
+    // 獲取所有產品的名稱，來加進關鍵字陣列
+    const products = await Product.findAll({
+      attributes: ['name'],
+      raw: true
+    })
 
-      categories.forEach(category => { category.type = 'category' })
-      products.forEach(product => { product.type = 'product' })
+    categories.forEach(category => { category.type = 'category' })
+    products.forEach(product => { product.type = 'product' })
 
-      keywords.push(...categories, ...products)
+    keywords.push(...categories, ...products)
 
-      const searchOption = { data: keywords, field: 'name', keyword }
-      const fuseResults = ArrayToolKit.fuzzySearch(searchOption)
-
-      return { error: null, data: fuseResults, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    const searchOption = { data: keywords, field: 'name', keyword }
+    const fuseResults = ArrayToolKit.fuzzySearch(searchOption)
+    if (!fuseResults.length) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
     }
+
+    return { error: null, data: fuseResults, message: '獲取成功' }
   }
 
   static async searchProducts(req) {

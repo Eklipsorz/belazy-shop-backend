@@ -1,6 +1,6 @@
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
-const { Ownership, Category, Product, Stock, ProductStatistic, sequelize } = require('../../db/models')
+const { Ownership, Category, Product, ProductStatistic, sequelize } = require('../../db/models')
 
 class CategoryResource {
   // Get all category (Only include category)

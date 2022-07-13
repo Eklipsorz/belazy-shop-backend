@@ -1,20 +1,9 @@
 const validator = require('validator')
 const { ParameterValidationKit } = require('./parameter-validation-kit')
 const { Reply, UserStatistic } = require('../db/models')
-const { APIError } = require('../helpers/api-error')
 const { MAX_LENGTH_CONTENT, MIN_LENGTH_CONTENT } = require('../config/app').service.replyResource
-const { status, code } = require('../config/result-status-table').errorTable
 
 class ReplyToolKit {
-  // check whether the reply exists
-  static async replyGetter(replyId) {
-    const reply = await Reply.findByPk(replyId)
-    if (!reply) {
-      return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-    }
-    return reply
-  }
-
   // return replies with product (i.e., productId)
   static async getRepliesByProduct(productId) {
     const findOption = {

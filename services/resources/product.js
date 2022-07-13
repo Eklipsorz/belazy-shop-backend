@@ -3,8 +3,7 @@ const { APIError } = require('../../helpers/api-error')
 const { RedisToolKit } = require('../../utils/redis-tool-kit')
 const {
   Product, Ownership, Stock,
-  ProductStatistic, Cart, CartItem,
-  Like, Reply
+  ProductStatistic, Cart, CartItem
 } = require('../../db/models')
 const { CartToolKit } = require('../../utils/cart-tool-kit')
 const { ProductToolKit } = require('../../utils/product-tool-kit')

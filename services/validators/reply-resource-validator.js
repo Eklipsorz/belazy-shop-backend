@@ -3,7 +3,7 @@ require('dotenv').config({ path: project.ENV })
 
 const { APIError } = require('../../helpers/api-error')
 const { code } = require('../../config/result-status-table').errorTable
-const { Product, User, Reply } = require('../../db/models')
+const { Product, Reply } = require('../../db/models')
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 
 class ReplyResourceValidator {

@@ -1,7 +1,7 @@
 
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
-const { Product, Reply, User, UserStatistic, ProductStatistic } = require('../../db/models')
+const { Reply, UserStatistic, ProductStatistic } = require('../../db/models')
 
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 const { ReplyToolKit } = require('../../utils/reply-tool-kit')
@@ -123,16 +123,6 @@ class ReplyResource {
   }
 
   static async putReply(req, data) {
-    // const { replyId } = req.params
-    // const reply = await ReplyToolKit.replyGetter(replyId)
-
-    // // check whether the reply owner is current user
-    // const loginUser = AuthToolKit.getUser(req)
-
-    // if (reply.userId !== loginUser.id) {
-    //   return { error: new APIError({ code: code.FORBIDDEN, status, message: '只能編輯自己的留言' }) }
-    // }
-
     const { reply } = data
     // begin to edit the reply
     const message = ReplyToolKit.replyContentValidate(req)
