@@ -69,17 +69,6 @@ class OrderResource {
     }
 
     const results = await OrderResource.getOrderDetails(orders)
-    // const results = []
-    // for (const order of orders) {
-    //   const detailOption = {
-    //     where: { orderId: order.id },
-    //     attributes: ['productId', 'price', 'quantity'],
-    //     raw: true
-    //   }
-    //   const orderDetail = await OrderDetail.findAll(detailOption)
-    //   const result = { ...order.toJSON(), products: orderDetail }
-    //   results.push(result)
-    // }
 
     const resultOrder = results
     return { error: null, data: { currentPage: page, resultOrder }, message: '獲取成功' }
