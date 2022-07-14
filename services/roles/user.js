@@ -299,8 +299,7 @@ class UserService extends AccountService {
 
   async postOrders(req, cb) {
     try {
-      const result = await OrderResourceValidator.postOrders(req)
-      const { error, data, message } = await OrderResource.postOrders(req, result.data)
+      const { error, data, message } = await OrderResource.postOrders(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -309,7 +308,17 @@ class UserService extends AccountService {
 
   async getOrders(req, cb) {
     try {
-      const { error, data, message } = await OrderResource.getOrders(req)
+      const currentUser = AuthToolKit.getUser(req)
+      const { limit, offset, order } = req.query
+      const findOption = {
+        where: { userId: currentUser.id },
+        limit,
+        offset,
+        order: [['createdAt', order]]
+      }
+      const option = { user: currentUser, findOption }
+
+      const { error, data, message } = await OrderResource.getOrders(req, option)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -318,7 +327,13 @@ class UserService extends AccountService {
 
   async getOrder(req, cb) {
     try {
-      const { error, data, message } = await OrderResource.getOrder(req)
+      const { orderId } = req.params
+      const currentUser = AuthToolKit.getUser(req)
+      const findOption = {
+        where: { userId: currentUser.id, id: orderId }
+      }
+      const option = { user: currentUser, findOption }
+      const { error, data, message } = await OrderResource.getOrder(req, option)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)

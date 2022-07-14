@@ -66,8 +66,7 @@ class AdminService extends AccountService {
 
   async postOrders(req, cb) {
     try {
-      const result = await OrderResourceValidator.postOrders(req)
-      const { error, data, message } = await OrderResource.postOrders(req, result.data)
+      const { error, data, message } = await OrderResource.postOrders(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
