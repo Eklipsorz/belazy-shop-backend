@@ -28,7 +28,10 @@ class OrderResourceValidator {
     // check whether receiver is valid
     GeneralResourceValidator.checkReceiver(req)
     // check whether product requirement is valid
-    await GeneralResourceValidator.checkProductRequirement(req)
+    const { error, result } = await ProductToolKit.checkProductRequirement(req)
+    if (error) {
+      throw new APIError({ code: result.code, data: result.data, message: result.message })
+    }
 
     // calculate the sum
     const { items } = req.body

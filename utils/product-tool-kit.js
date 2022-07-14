@@ -55,6 +55,40 @@ class ProductToolKit {
     return { error: false, result }
   }
 
+  // check whether items which buyer is buying are valid?
+  static async checkProductRequirement(req) {
+    const redisClient = req.app.locals.redisClient
+    const { isInvalidFormat } = ParameterValidationKit
+    const { items } = req.body
+
+    if (isInvalidFormat(items)) {
+      const result = { code: code.NOTFOUND, message: '找不到對應項目' }
+      return { error: true, result }
+    }
+
+    // check whether syntax of items field is valid?
+    const { quantityHashMapSyntaxValidate } = ProductToolKit
+    const syntaxValidation = quantityHashMapSyntaxValidate(items)
+    if (syntaxValidation.error) {
+      const { result } = syntaxValidation
+      return { error: true, result }
+    }
+
+    // check whether products are exist?
+    const { existProductsValidate, getQuantityHashMap } = ProductToolKit
+    const quantityHashMap = getQuantityHashMap(items)
+
+    const keys = Object.keys(quantityHashMap)
+    const existValidation = await existProductsValidate(keys, redisClient)
+    if (existValidation.error) {
+      const { result } = existValidation
+      return { error: true, result }
+    }
+
+    const result = { quantityHashMap }
+    return { error: false, result }
+  }
+
   static async postProductsValidate(req) {
     return await ProductToolKit.productsValidate(req, 'post')
   }

@@ -7,7 +7,6 @@ const { CartResource } = require('../resources/cart')
 const { OrderResource } = require('../resources/order')
 const { PurchaseResource } = require('../resources/purchase')
 
-const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
 const { CartResourceValidator } = require('../validators/cart-resource-validator')
 const { OrderResourceValidator } = require('../validators/order-resource-validator')
 
@@ -282,8 +281,7 @@ class UserService extends AccountService {
   async postPagePurchase(req, cb) {
     try {
       req.body.items = [req.body.items]
-      const result = await PurchaseResourceValidator.postPagePurchase(req)
-      const { error, data, message } = await PurchaseResource.postPurchase('page', req, result.data)
+      const { error, data, message } = await PurchaseResource.postPurchase('page', req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -292,8 +290,7 @@ class UserService extends AccountService {
 
   async postCartPurchase(req, cb) {
     try {
-      const result = await PurchaseResourceValidator.postCartPurchase(req)
-      const { error, data, message } = await PurchaseResource.postPurchase('cart', req, result.data)
+      const { error, data, message } = await PurchaseResource.postPurchase('cart', req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)

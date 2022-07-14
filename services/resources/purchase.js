@@ -10,6 +10,7 @@ const { APIError } = require('../../helpers/api-error')
 
 const { code } = require('../../config/result-status-table').errorTable
 const { ProductToolKit } = require('../../utils/product-tool-kit')
+const { OrderToolKit } = require('../../utils/order-tool-kit')
 const { CartResource } = require('../resources/cart')
 const { OrderResource } = require('../resources/order')
 const { RedisLock } = require('../db/redisLock')
@@ -49,18 +50,37 @@ class PurchaseResource {
     return { error: false, result }
   }
 
-  static async postPurchase(from, req, data) {
+  static async purchaseInfoValidate(req) {
+    const { isInvalidFormat } = ParameterValidationKit
+    const { stripeToken } = req.body
+    // check whether receiver info is valid
+    const { error, result } = OrderToolKit.checkReceiver(req)
+    if (error) {
+      throw new APIError({ code: result.code, message: result.message })
+    }
+
+    // check whether token and items fields are filled?
+    if (isInvalidFormat(stripeToken)) {
+      throw new APIError({ code: code.FORBIDDEN, message: '目前付款資訊無法正常付款' })
+    }
+    return await ProductToolKit.checkProductRequirement(req)
+  }
+
+  static async postPurchase(from, req) {
     const redisClient = req.app.locals.redisClient
     const redisLock = new RedisLock(redisClient)
     const lockId = uuidv4()
 
     try {
-      const { isInvalidFormat } = ParameterValidationKit
-      const { getQuantityHashMap } = ProductToolKit
+      const { error, result } = await PurchaseResource.purchaseInfoValidate(req)
+      if (error) {
+        throw new APIError({ code: result.code, data: result.data, message: result.message })
+      }
+
       // check whether stock is enough
       let { items } = req.body
       if (!Array.isArray(items)) req.body.items = items = [items]
-      const quantityHashMap = isInvalidFormat(data) ? getQuantityHashMap(items) : data.quantityHashMap
+      const { quantityHashMap } = result
       const keys = Object.keys(quantityHashMap)
 
       await redisLock.lock(DEFAULT_LOCKNAME, lockId)
