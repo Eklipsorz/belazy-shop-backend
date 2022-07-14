@@ -88,6 +88,7 @@ class PurchaseResource {
 
       const stockHashMap = await getStock(keys, redisClient)
       const { soldOut, notEnough } = checkStockStatus(quantityHashMap, stockHashMap)
+
       const stockError = Boolean(soldOut.length) || Boolean(notEnough.length)
 
       if (stockError) {
