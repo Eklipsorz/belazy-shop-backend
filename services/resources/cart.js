@@ -66,7 +66,18 @@ class CartResource {
 
   // get cart info from current cart
   static async getCart(req, data) {
-    const cart = data
+    const redisClient = req.app.locals.redisClient
+    const { cartId } = req.session
+    const cartKey = `${PREFIX_CART_KEY}:${cartId}`
+
+    const cart = await redisClient.hgetall(cartKey)
+
+    // check whether the cart is empty
+    const existCart = await CartToolKit.existCartCache(cart)
+    if (!existCart) {
+      throw new APIError({ code: code.NOTFOUND, message: '購物車是空的' })
+    }
+
     // return success message
     const template = {
       id: cart.id,
@@ -84,9 +95,19 @@ class CartResource {
 
   // get all cartItems from current cart
   static async getCartItems(req, data) {
+    const { cartId } = req.session
+    const redisClient = req.app.locals.redisClient
+    const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
+
+    const getCacheValues = RedisToolKit.getCacheValues
+    const cart = await getCacheValues(cartKeyPattern, redisClient)
+    // if none
+    if (CartToolKit.isEmptyCart(cart)) {
+      throw new APIError({ code: code.NOTFOUND, message: '購物車是空的' })
+    }
+
     // if yes
     // get all products from the cart
-    const cart = data
 
     const results = CartToolKit.getValidProducts(cart)
     const { page, offset, limit, order } = req.query
@@ -127,12 +148,18 @@ class CartResource {
   }
 
   // add a product into current cart
-  static async postCartItems(req, data) {
+  static async postCartItems(req) {
+    const { error, result } = await CartToolKit.postCartItemsValidate(req)
+    if (error) {
+      throw new APIError({ code: result.code, data: result.data, message: result.message })
+    }
+
     const redisClient = req.app.locals.redisClient
     const { productId } = req.body
     const { cartId } = req.session
-    const { stockHashMap, cartItem } = data
     const cartKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
+
+    const { stockHashMap, cartItem } = result
 
     const isExistCart = Boolean(Object.keys(cartItem).length) && Boolean(Number(cartItem.quantity))
     const quantity = isExistCart ? Number(cartItem.quantity) + 1 : 1
@@ -169,9 +196,13 @@ class CartResource {
 
   // update a cartItem inside current cart
   static async putCartItems(req, data) {
+    const { error, result } = await CartToolKit.putCartItemsValidate(req)
+    if (error) {
+      throw new APIError({ code: result.code, data: result.data, message: result.message })
+    }
+    const { stockHashMap, cartHashMap } = result
     const redisClient = req.app.locals.redisClient
     const { cartId } = req.session
-    const { stockHashMap, cartHashMap } = data
     const entries = Object.entries(cartHashMap)
     //  All is ok, then buy some goods
     const templates = []
@@ -211,8 +242,22 @@ class CartResource {
     const { productId } = req.body
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
+
+    const syntaxValidation = CartToolKit.cartItemSyntaxValidate(req)
+    if (syntaxValidation.error) {
+      const { result } = syntaxValidation
+      throw new APIError({ code: result.code, data: result.data, message: result.message })
+    }
+
     const cartItemKey = `${PREFIX_CARTITEM_KEY}:${cartId}:${productId}`
-    const cartItem = data
+
+    // check whether product exists in carts
+    const cartItem = await redisClient.hgetall(cartItemKey)
+
+    // nothing
+    if (!CartToolKit.existCartProduct(cartItem)) {
+      throw new APIError({ code: code.NOTFOUND, message: '購物車內找不到對應項目' })
+    }
 
     // I've found that
     // remove that product with quantity = 0
@@ -237,15 +282,18 @@ class CartResource {
   }
 
   // remove all products from current cart
-  static async deleteCart(req, data = null) {
+  static async deleteCart(req) {
     // req.session.cartId = '5bbd8cf9-0656-4126-b7fc-1b5ace445883'
     const { cartId } = req.session
     const redisClient = req.app.locals.redisClient
 
-    let cart = data
-    if (!cart) {
-      const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
-      cart = await RedisToolKit.getCacheValues(cartKeyPattern, redisClient)
+    // check whether there is something inside the cart
+    const cartKeyPattern = `${PREFIX_CARTITEM_KEY}:${cartId}:*`
+    const cart = await RedisToolKit.getCacheValues(cartKeyPattern, redisClient)
+
+    // if none, then
+    if (CartToolKit.isEmptyCart(cart)) {
+      throw new APIError({ code: code.NOTFOUND, message: '購物車是空的' })
     }
 
     const products = CartToolKit.getValidProducts(cart)

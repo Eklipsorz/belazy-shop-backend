@@ -7,8 +7,6 @@ const { CartResource } = require('../resources/cart')
 const { OrderResource } = require('../resources/order')
 const { PurchaseResource } = require('../resources/purchase')
 
-const { CartResourceValidator } = require('../validators/cart-resource-validator')
-
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
@@ -219,8 +217,7 @@ class UserService extends AccountService {
 
   async getCart(req, cb) {
     try {
-      const result = await CartResourceValidator.getCart(req)
-      const { error, data, message } = await CartResource.getCart(req, result.data)
+      const { error, data, message } = await CartResource.getCart(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -229,8 +226,7 @@ class UserService extends AccountService {
 
   async getCartItems(req, cb) {
     try {
-      const result = await CartResourceValidator.getCartItems(req)
-      const { error, data, message } = await CartResource.getCartItems(req, result.data)
+      const { error, data, message } = await CartResource.getCartItems(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -239,8 +235,7 @@ class UserService extends AccountService {
 
   async putCartItems(req, cb) {
     try {
-      const result = await CartResourceValidator.putCartItems(req)
-      const { error, data, message } = await CartResource.putCartItems(req, result.data)
+      const { error, data, message } = await CartResource.putCartItems(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -249,8 +244,7 @@ class UserService extends AccountService {
 
   async postCartItems(req, cb) {
     try {
-      const result = await CartResourceValidator.postCartItems(req)
-      const { error, data, message } = await CartResource.postCartItems(req, result.data)
+      const { error, data, message } = await CartResource.postCartItems(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -259,8 +253,7 @@ class UserService extends AccountService {
 
   async deleteCartItem(req, cb) {
     try {
-      const result = await CartResourceValidator.deleteCartItem(req)
-      const { error, data, message } = await CartResource.deleteCartItem(req, result.data)
+      const { error, data, message } = await CartResource.deleteCartItem(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -269,8 +262,7 @@ class UserService extends AccountService {
 
   async deleteCart(req, cb) {
     try {
-      const result = await CartResourceValidator.deleteCart(req)
-      const { error, data, message } = await CartResource.deleteCart(req, result.data)
+      const { error, data, message } = await CartResource.deleteCart(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
