@@ -7,10 +7,6 @@ const { CartResource } = require('../resources/cart')
 const { OrderResource } = require('../resources/order')
 const { PurchaseResource } = require('../resources/purchase')
 
-const { PurchaseResourceValidator } = require('../validators/purchase-resource-validator')
-const { CartResourceValidator } = require('../validators/cart-resource-validator')
-const { OrderResourceValidator } = require('../validators/order-resource-validator')
-
 const { APIError } = require('../../helpers/api-error')
 const { code, status } = require('../../config/result-status-table').errorTable
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
@@ -221,8 +217,7 @@ class UserService extends AccountService {
 
   async getCart(req, cb) {
     try {
-      const result = await CartResourceValidator.getCart(req)
-      const { error, data, message } = await CartResource.getCart(req, result.data)
+      const { error, data, message } = await CartResource.getCart(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -231,8 +226,7 @@ class UserService extends AccountService {
 
   async getCartItems(req, cb) {
     try {
-      const result = await CartResourceValidator.getCartItems(req)
-      const { error, data, message } = await CartResource.getCartItems(req, result.data)
+      const { error, data, message } = await CartResource.getCartItems(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -241,8 +235,7 @@ class UserService extends AccountService {
 
   async putCartItems(req, cb) {
     try {
-      const result = await CartResourceValidator.putCartItems(req)
-      const { error, data, message } = await CartResource.putCartItems(req, result.data)
+      const { error, data, message } = await CartResource.putCartItems(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -251,8 +244,7 @@ class UserService extends AccountService {
 
   async postCartItems(req, cb) {
     try {
-      const result = await CartResourceValidator.postCartItems(req)
-      const { error, data, message } = await CartResource.postCartItems(req, result.data)
+      const { error, data, message } = await CartResource.postCartItems(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -261,8 +253,7 @@ class UserService extends AccountService {
 
   async deleteCartItem(req, cb) {
     try {
-      const result = await CartResourceValidator.deleteCartItem(req)
-      const { error, data, message } = await CartResource.deleteCartItem(req, result.data)
+      const { error, data, message } = await CartResource.deleteCartItem(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -271,8 +262,7 @@ class UserService extends AccountService {
 
   async deleteCart(req, cb) {
     try {
-      const result = await CartResourceValidator.deleteCart(req)
-      const { error, data, message } = await CartResource.deleteCart(req, result.data)
+      const { error, data, message } = await CartResource.deleteCart(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -282,8 +272,7 @@ class UserService extends AccountService {
   async postPagePurchase(req, cb) {
     try {
       req.body.items = [req.body.items]
-      const result = await PurchaseResourceValidator.postPagePurchase(req)
-      const { error, data, message } = await PurchaseResource.postPurchase('page', req, result.data)
+      const { error, data, message } = await PurchaseResource.postPurchase('page', req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -292,8 +281,7 @@ class UserService extends AccountService {
 
   async postCartPurchase(req, cb) {
     try {
-      const result = await PurchaseResourceValidator.postCartPurchase(req)
-      const { error, data, message } = await PurchaseResource.postPurchase('cart', req, result.data)
+      const { error, data, message } = await PurchaseResource.postPurchase('cart', req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -302,8 +290,7 @@ class UserService extends AccountService {
 
   async postOrders(req, cb) {
     try {
-      const result = await OrderResourceValidator.postOrders(req)
-      const { error, data, message } = await OrderResource.postOrders(req, result.data)
+      const { error, data, message } = await OrderResource.postOrders(req)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -312,7 +299,17 @@ class UserService extends AccountService {
 
   async getOrders(req, cb) {
     try {
-      const { error, data, message } = await OrderResource.getOrders(req)
+      const currentUser = AuthToolKit.getUser(req)
+      const { limit, offset, order } = req.query
+      const findOption = {
+        where: { userId: currentUser.id },
+        limit,
+        offset,
+        order: [['createdAt', order]]
+      }
+      const option = { user: currentUser, findOption }
+
+      const { error, data, message } = await OrderResource.getOrders(req, option)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)
@@ -321,7 +318,13 @@ class UserService extends AccountService {
 
   async getOrder(req, cb) {
     try {
-      const { error, data, message } = await OrderResource.getOrder(req)
+      const { orderId } = req.params
+      const currentUser = AuthToolKit.getUser(req)
+      const findOption = {
+        where: { userId: currentUser.id, id: orderId }
+      }
+      const option = { user: currentUser, findOption }
+      const { error, data, message } = await OrderResource.getOrder(req, option)
       return cb(error, data, message)
     } catch (error) {
       return cb(error)

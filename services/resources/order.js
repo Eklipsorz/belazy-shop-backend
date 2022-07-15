@@ -3,13 +3,26 @@ const { code } = require('../../config/result-status-table').errorTable
 const { status } = require('../../config/result-status-table').orderStatusTable
 const { APIError } = require('../../helpers/api-error')
 const { Order, OrderDetail } = require('../../db/models')
+const { OrderToolKit } = require('../../utils/order-tool-kit')
 const { AuthToolKit } = require('../../utils/auth-tool-kit')
 
 class OrderResource {
   static async postOrders(req, data) {
-    const { receiverName, receiverPhone, receiverAddr, items } = req.body
-    const { sum, user, stockHashMap } = data
+    let inputObject = {}
 
+    if (!data) {
+      const validation = await OrderToolKit.postOrdersValidate(req)
+      if (validation.error) {
+        const { result } = validation
+        throw new APIError({ code: result.code, data: result.data, message: result.message })
+      }
+      inputObject = validation.result.data
+    } else {
+      inputObject = data
+    }
+
+    const { receiverName, receiverPhone, receiverAddr, items } = req.body
+    const { sum, user, stockHashMap } = inputObject
     // create a order (including order_details and orders)
     // create a order
     // id, userId, sum, status, receiverName, receiverPhone, receiverAddr
@@ -61,16 +74,8 @@ class OrderResource {
     return results
   }
 
-  static async getOrders(req) {
-    const currentUser = AuthToolKit.getUser(req)
-    const { limit, offset, order } = req.query
-    const findOption = {
-      where: { userId: currentUser.id },
-      limit,
-      offset,
-      order: [['createdAt', order]]
-    }
-
+  static async getOrders(req, data) {
+    const { findOption } = data
     const { page } = req.query
     const orders = await Order.findAll(findOption)
     if (!orders.length) {
@@ -83,13 +88,8 @@ class OrderResource {
     return { error: null, data: { currentPage: page, resultOrder }, message: '獲取成功' }
   }
 
-  static async getOrder(req) {
-    const { orderId } = req.params
-    const currentUser = AuthToolKit.getUser(req)
-    const findOption = {
-      where: { userId: currentUser.id, id: orderId }
-    }
-
+  static async getOrder(req, data) {
+    const { findOption } = data
     const order = await Order.findOne(findOption)
 
     if (!order) {
