@@ -27,28 +27,48 @@ class AdminService extends AccountService {
   }
 
   async getStock(req, cb) {
-    const { error, data, message } = await ProductResource.getStock(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await ProductResource.getStock(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async putStock(req, cb) {
-    const { error, data, message } = await ProductResource.putStock(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await ProductResource.putStock(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async postProducts(req, cb) {
-    const { error, data, message } = await ProductResource.postProducts(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await ProductResource.postProducts(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async putProducts(req, cb) {
-    const { error, data, message } = await ProductResource.putProducts(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await ProductResource.putProducts(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async deleteProducts(req, cb) {
-    const { error, data, message } = await ProductResource.deleteProducts(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await ProductResource.deleteProducts(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getCategory(req, cb) {

@@ -207,13 +207,15 @@ class ProductToolKit {
       }
       case 'put': {
         const { Op } = Sequelize
-        const { productId } = req.param
-        findOption = { where: { name, id: { [Op.ne]: productId } } }
+        const { productId } = req.params
+        findOption = { where: { name } }
+        findOption = { where: { name, id: { [Op.not]: productId } } }
         break
       }
     }
 
     const product = await Product.findOne(findOption)
+
     if (product) {
       messageQueue.push('產品名稱不能與其他產品重複')
     }
@@ -230,7 +232,7 @@ class ProductToolKit {
   static async updateStockValidate(req) {
     const messageQueue = []
     const { quantity, restQuantity, price } = req.body
-    const { isNaN, isInvalidFormat } = ParameterValidationKit
+    const { canBeANumber, isInvalidFormat } = ParameterValidationKit
 
     const { productId } = req.params
     const redisClient = req.app.locals.redisClient
@@ -252,7 +254,7 @@ class ProductToolKit {
       return { error: true, result }
     }
 
-    if (isNaN(quantity) || isNaN(restQuantity) || isNaN(price)) {
+    if (!canBeANumber(quantity) || !canBeANumber(restQuantity) || !canBeANumber(price)) {
       messageQueue.push('所有欄位都必須是數字')
       result = { code: code.BADREQUEST, data: req.body, message: messageQueue }
       return { error: true, result }

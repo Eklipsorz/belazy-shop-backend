@@ -1,3 +1,5 @@
+const { ParameterValidationKit } = require('../utils/parameter-validation-kit')
+
 const {
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
@@ -13,9 +15,12 @@ class ParameterPreprocessor {
 
   static paging(req, _, next) {
     let { page, limit, order } = req.query
+    const { canBeANumber } = ParameterValidationKit
 
-    page = (!isNaN(page) && Number(page)) || DEFAULT_PAGE
-    limit = (!isNaN(limit) && Number(limit)) || DEFAULT_LIMIT
+    // page = (!isNaN(page) && Number(page)) || DEFAULT_PAGE
+    // limit = (!isNaN(limit) && Number(limit)) || DEFAULT_LIMIT
+    page = (canBeANumber(page)) ? Number(page) : DEFAULT_PAGE
+    limit = (canBeANumber(limit)) ? Number(limit) : DEFAULT_LIMIT
     order = order ? ParameterPreprocessor.orderSetter(order) : DEFAULT_ORDER
 
     const offset = (page - 1) * limit
