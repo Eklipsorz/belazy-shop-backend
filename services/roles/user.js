@@ -46,15 +46,13 @@ class UserService extends AccountService {
 
   // get a specific product
   async getProduct(req, cb) {
-    const { error, data, message } = await ProductResource.getProduct(req)
-
-    if (error) return cb(error, data, message)
     try {
+      const { error, data, message } = await ProductResource.getProduct(req)
       const product = data
       statusMarker(req, product)
-      return cb(null, data, message)
+      return cb(error, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 

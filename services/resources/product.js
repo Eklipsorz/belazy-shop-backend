@@ -82,33 +82,29 @@ class ProductResource {
   }
 
   static async getProduct(req) {
-    try {
-      const { productId } = req.params
-      const findOption = {
-        include: [
-          {
-            model: Ownership,
-            attributes: ['categoryId', 'categoryName'],
-            as: 'productCategory'
-          },
-          {
-            model: ProductStatistic,
-            attributes: ['likedTally', 'repliedTally'],
-            as: 'statistics'
-          }
-        ],
-        nest: true
-      }
-      const product = await Product.findByPk(productId, findOption)
-
-      if (!product) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-      }
-      const resultProduct = product.toJSON()
-      return { error: null, data: resultProduct, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    const { productId } = req.params
+    const findOption = {
+      include: [
+        {
+          model: Ownership,
+          attributes: ['categoryId', 'categoryName'],
+          as: 'productCategory'
+        },
+        {
+          model: ProductStatistic,
+          attributes: ['likedTally', 'repliedTally'],
+          as: 'statistics'
+        }
+      ],
+      nest: true
     }
+    const product = await Product.findByPk(productId, findOption)
+
+    if (!product) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    const resultProduct = product.toJSON()
+    return { error: null, data: resultProduct, message: '獲取成功' }
   }
 
   static async postProducts(req) {

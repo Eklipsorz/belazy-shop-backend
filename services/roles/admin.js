@@ -9,13 +9,21 @@ class AdminService extends AccountService {
   }
 
   async getProducts(req, cb) {
-    const { error, data, message } = await ProductResource.getProducts(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await ProductResource.getProducts(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getProduct(req, cb) {
-    const { error, data, message } = await ProductResource.getProduct(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await ProductResource.getProduct(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getStock(req, cb) {
