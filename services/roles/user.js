@@ -112,8 +112,12 @@ class UserService extends AccountService {
 
   // get a specific category
   async getCategory(req, cb) {
-    const { error, data, message } = await CategoryResource.getCategory(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getCategory(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   // get all categories

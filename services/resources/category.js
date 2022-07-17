@@ -34,26 +34,23 @@ class CategoryResource {
 
   // Get a specific category
   static async getCategory(req) {
-    try {
-      const { categoryId } = req.params
+    const { categoryId } = req.params
 
-      // define how to find
-      const findOption = {
-        // settings
-      }
-
-      // begin to find
-      const category = await Category.findByPk(categoryId)
-      // nothing to find
-      if (!category) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-      }
-      // return data
-      const resultCategory = category.toJSON()
-      return { error: null, data: resultCategory, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
+    // define how to find
+    const findOption = {
+      // settings
+      where: { id: categoryId }
     }
+
+    // begin to find
+    const category = await Category.findOne(findOption)
+    // nothing to find
+    if (!category) {
+      return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
+    }
+    // return data
+    const resultCategory = category.toJSON()
+    return { error: null, data: resultCategory, message: '獲取成功' }
   }
 
   // Get every product from a specific category
