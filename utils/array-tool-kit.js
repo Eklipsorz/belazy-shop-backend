@@ -1,4 +1,5 @@
 const Fuse = require('fuse.js')
+const { code } = require('../config/result-status-table').errorTable
 class ArrayToolKit {
   static fuzzySearch({ data, field, keyword }) {
     const fuseOptions = {
@@ -26,6 +27,18 @@ class ArrayToolKit {
     }
 
     return Object.keys(optionHashTab)
+  }
+
+  // validate whether there is a something on current page
+  static getArrayByCurrentPage(array, offset, limit) {
+    let result = {}
+    const currentPage = array.slice(offset, limit + offset)
+    if (!currentPage.length) {
+      result = { code: code.NOTFOUND, data: null, message: '找不到對應項目' }
+      return { error: true, result }
+    }
+    result = currentPage
+    return { error: false, result }
   }
 }
 

@@ -10,7 +10,7 @@ const { ProductToolKit } = require('../../utils/product-tool-kit')
 const { FileUploader } = require('../../middlewares/file-uploader')
 const { ReplyToolKit } = require('../../utils/reply-tool-kit')
 const { LikeToolKit } = require('../../utils/like-tool-kit')
-const { status, code } = require('../../config/result-status-table').errorTable
+const { code } = require('../../config/result-status-table').errorTable
 const { DEFAULT_PRODUCT_IMAGE, DEL_OPERATION_CODE } = require('../../config/app').service.productResource
 const { PREFIX_CART_KEY, PREFIX_CARTITEM_KEY } = require('../../config/app').cache.CART
 

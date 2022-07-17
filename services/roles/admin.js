@@ -72,23 +72,39 @@ class AdminService extends AccountService {
   }
 
   async getCategory(req, cb) {
-    const { error, data, message } = await CategoryResource.getCategory(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getCategory(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getCategories(req, cb) {
-    const { error, data, message } = await CategoryResource.getCategories(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getCategories(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getProductsFromCategory(req, cb) {
-    const { error, data, message } = await CategoryResource.getProductsFromCategory(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getProductsFromCategory(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getProductsFromCategories(req, cb) {
-    const { error, data, message } = await CategoryResource.getProductsFromCategories(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getProductsFromCategories(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async postOrders(req, cb) {
