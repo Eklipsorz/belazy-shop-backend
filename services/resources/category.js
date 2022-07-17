@@ -1,6 +1,7 @@
 const { APIError } = require('../../helpers/api-error')
 const { status, code } = require('../../config/result-status-table').errorTable
 const { Ownership, Category, Product, ProductStatistic, sequelize } = require('../../db/models')
+const { ArrayToolKit } = require('../../utils/array-tool-kit')
 
 class CategoryResource {
   // Get all category (Only include category)
@@ -55,62 +56,64 @@ class CategoryResource {
 
   // Get every product from a specific category
   static async getProductsFromCategory(req, type = 'get') {
-    try {
-      const { page, limit, offset, order } = req.query
-      const { categoryId } = req.params
+    const { page, limit, offset, order } = req.query
+    const { categoryId } = req.params
 
-      // define how to find
-      const includeProductOption = [
-        { model: ProductStatistic, attributes: ['likedTally', 'repliedTally'], as: 'statistics' }
+    // define how to find
+    const includeProductOption = [
+      { model: ProductStatistic, attributes: ['likedTally', 'repliedTally'], as: 'statistics' }
+    ]
+    const findOption = {
+      include: [
+        {
+          model: Ownership,
+          attributes: ['productId', 'categoryId'],
+          include: [
+            { model: Product, include: includeProductOption }
+          ],
+          as: 'ownedProducts'
+        }
+      ],
+      where: { id: categoryId },
+      order: [
+        [sequelize.literal('`ownedProducts.Product.createdAt`'), order]
       ]
-      const findOption = {
-        include: [
-          {
-            model: Ownership,
-            attributes: ['productId', 'categoryId'],
-            include: [
-              { model: Product, include: includeProductOption }
-            ],
-            as: 'ownedProducts'
-          }
-        ],
-        where: { id: categoryId },
-        order: [
-          [sequelize.literal('`ownedProducts.Product.createdAt`'), order]
-        ]
 
-      }
-      // begin to find
-      const products = await Category.findOne(findOption)
-
-      // nothing to find
-      if (!products) {
-        return { error: new APIError({ code: code.NOTFOUND, status, message: '找不到對應項目' }) }
-      }
-      // return data
-      const results = products.toJSON()
-
-      let resultProducts = results.ownedProducts.map(result => ({ ...result.Product }))
-
-      switch (type) {
-        case 'get':
-          resultProducts = resultProducts.slice(offset, offset + limit)
-          break
-        case 'search':
-          break
-      }
-
-      const returnObject = {
-        categoryId,
-        categoryName: results.name,
-        currentPage: page,
-        resultProducts
-      }
-
-      return { error: null, data: returnObject, message: '獲取成功' }
-    } catch (error) {
-      return { error: new APIError({ code: code.SERVERERROR, status, message: error.message }) }
     }
+    // begin to find
+    const products = await Category.findOne(findOption)
+
+    // nothing to find
+    if (!products) {
+      throw new APIError({ code: code.NOTFOUND, message: '找不到對應項目' })
+    }
+    // return data
+    const results = products.toJSON()
+
+    let resultProducts = results.ownedProducts.map(result => ({ ...result.Product }))
+
+    switch (type) {
+      case 'get': {
+        const { error, result } = ArrayToolKit.getArrayByCurrentPage(resultProducts, offset, limit)
+        if (error) {
+          throw new APIError({ code: result.code, data: result.data, message: result.message })
+        }
+        resultProducts = result
+        break
+      }
+      case 'search': {
+        break
+      }
+    }
+
+    const returnObject = {
+      categoryId,
+      categoryName: results.name,
+      currentPage: page,
+      resultProducts
+    }
+
+    return { error: null, data: returnObject, message: '獲取成功' }
   }
 
   // Get every product from every category

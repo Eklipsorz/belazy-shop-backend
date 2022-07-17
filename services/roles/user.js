@@ -132,14 +132,13 @@ class UserService extends AccountService {
 
   // get all products from a specific category
   async getProductsFromCategory(req, cb) {
-    const { error, data, message } = await CategoryResource.getProductsFromCategory(req)
-    if (error) return cb(error, data, message)
     try {
+      const { error, data, message } = await CategoryResource.getProductsFromCategory(req)
       const products = data.resultProducts
       statusMarker(req, products)
       return cb(error, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 

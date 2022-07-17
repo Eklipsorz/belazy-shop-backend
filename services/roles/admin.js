@@ -72,8 +72,12 @@ class AdminService extends AccountService {
   }
 
   async getCategory(req, cb) {
-    const { error, data, message } = await CategoryResource.getCategory(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getCategory(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getCategories(req, cb) {
@@ -86,8 +90,12 @@ class AdminService extends AccountService {
   }
 
   async getProductsFromCategory(req, cb) {
-    const { error, data, message } = await CategoryResource.getProductsFromCategory(req)
-    return cb(error, data, message)
+    try {
+      const { error, data, message } = await CategoryResource.getProductsFromCategory(req)
+      return cb(error, data, message)
+    } catch (error) {
+      return cb(error)
+    }
   }
 
   async getProductsFromCategories(req, cb) {
