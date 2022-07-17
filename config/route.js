@@ -71,7 +71,9 @@ const adminMiddleware = {
   // add middleware to route (PUT /admin/getSelf)
   putSelf: [],
   // add middleware to route (GET /admin/categories/products)
-  getProductsFromCategories: [],
+  getProductsFromCategories: [
+    ParameterPreprocessor.paging
+  ],
 
   // add middleware to route (POST /admin/products)
   postProducts: [
@@ -205,7 +207,7 @@ const categoryMiddleware = {
   ],
   // add middleware to route (GET /categories/products)
   getProductsFromCategories: [
-
+    ParameterPreprocessor.paging
   ],
   // add middleware to route (GET /categories/:categoryId/products)
   getProductsFromCategory: [

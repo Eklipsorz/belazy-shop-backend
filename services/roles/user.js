@@ -164,10 +164,8 @@ class UserService extends AccountService {
 
   // get all products from each category
   async getProductsFromCategories(req, cb) {
-    const { error, data, message } = await CategoryResource.getProductsFromCategories(req)
-
-    if (error) return cb(error, data, message)
     try {
+      const { error, data, message } = await CategoryResource.getProductsFromCategories(req)
       const resultSets = data
       resultSets.forEach(set => {
         const products = set.ownedProducts
@@ -175,7 +173,7 @@ class UserService extends AccountService {
       })
       return cb(error, data, message)
     } catch (error) {
-      return cb(new APIError({ code: code.SERVERERROR, status, message: error.message }))
+      return cb(error)
     }
   }
 
